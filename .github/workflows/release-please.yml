@@ -25,7 +25,8 @@ jobs:
           manifest-file: .release-please-manifest.json
 
       # SECURITY NOTE: We do NOT checkout the release PR branch here.
-      # release-please handles all version bumps automatically.
+      # release-please handles all version bumps automatically, including
+      # updating package-lock.json for npm workspace monorepos (since v16.1.0).
       # Post-release actions (like publishing) should only run after
       # the release PR is merged and releases are created.
 
