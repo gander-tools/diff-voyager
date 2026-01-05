@@ -1,6 +1,5 @@
 {
   "name": "diff-voyager",
-  "version": "0.0.0",
   "description": "Local website version comparison tool for framework migrations - crawl, compare, and verify visual, SEO, and performance changes",
   "private": true,
   "engines": {
