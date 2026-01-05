@@ -52,7 +52,7 @@
   "homepage": "https://github.com/gander-tools/diff-voyager#readme",
   "devDependencies": {
     "@biomejs/biome": "^2.3.11",
-    "@types/node": "^22.10.5",
+    "@types/node": "^24.0.0",
     "typescript": "^5.7.3"
   },
   "overrides": {
