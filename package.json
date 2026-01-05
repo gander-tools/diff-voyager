@@ -9,19 +9,20 @@
     "packages/*"
   ],
   "scripts": {
-    "setup": "npm install && npm run build:shared",
-    "build:shared": "npm run build --workspace=@gander-tools/diff-voyager-shared",
-    "build:backend": "npm run build --workspace=@gander-tools/diff-voyager-backend",
-    "build:frontend": "npm run build --workspace=@gander-tools/diff-voyager-frontend",
-    "build": "npm run build:shared && npm run build:backend && npm run build:frontend",
-    "dev:backend": "npm run dev --workspace=@gander-tools/diff-voyager-backend",
-    "dev:frontend": "npm run dev --workspace=@gander-tools/diff-voyager-frontend",
-    "test": "npm run test --workspaces --if-present",
-    "test:backend": "npm run test --workspace=@gander-tools/diff-voyager-backend",
-    "test:frontend": "npm run test --workspace=@gander-tools/diff-voyager-frontend",
-    "test:shared": "npm run test --workspace=@gander-tools/diff-voyager-shared",
-    "lint": "npm run lint --workspaces --if-present",
-    "clean": "npm run clean --workspaces --if-present && rm -rf node_modules"
+    "setup": "pnpm install && pnpm run build:shared",
+    "build:shared": "pnpm run build --filter=@gander-tools/diff-voyager-shared",
+    "build:backend": "pnpm run build --filter=@gander-tools/diff-voyager-backend",
+    "build:frontend": "pnpm run build --filter=@gander-tools/diff-voyager-frontend",
+    "build": "pnpm run build:shared && pnpm run build:backend && pnpm run build:frontend",
+    "dev:backend": "pnpm run dev --filter=@gander-tools/diff-voyager-backend",
+    "dev:frontend": "pnpm run dev --filter=@gander-tools/diff-voyager-frontend",
+    "test": "pnpm run test --filter='./packages/*'",
+    "test:backend": "pnpm run test --filter=@gander-tools/diff-voyager-backend",
+    "test:frontend": "pnpm run test --filter=@gander-tools/diff-voyager-frontend",
+    "test:shared": "pnpm run test --filter=@gander-tools/diff-voyager-shared",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "clean": "pnpm run clean --filter='./packages/*' && rm -rf node_modules"
   },
   "keywords": [
     "diff",
@@ -40,6 +41,7 @@
     "url": "https://github.com/gander-tools/diff-voyager.git"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.3.11",
     "@types/node": "^22.10.5",
     "typescript": "^5.7.3"
   }
