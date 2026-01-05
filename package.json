@@ -1,6 +1,5 @@
 {
   "name": "diff-voyager",
-  "version": "0.1.0",
   "description": "Local website version comparison tool for framework migrations - crawl, compare, and verify visual, SEO, and performance changes",
   "private": true,
   "engines": {
@@ -11,16 +10,16 @@
   ],
   "scripts": {
     "setup": "npm install && npm run build:shared",
-    "build:shared": "npm run build --workspace=@diff-voyager/shared",
-    "build:backend": "npm run build --workspace=@diff-voyager/backend",
-    "build:frontend": "npm run build --workspace=@diff-voyager/frontend",
+    "build:shared": "npm run build --workspace=@gander-tools/diff-voyager-shared",
+    "build:backend": "npm run build --workspace=@gander-tools/diff-voyager-backend",
+    "build:frontend": "npm run build --workspace=@gander-tools/diff-voyager-frontend",
     "build": "npm run build:shared && npm run build:backend && npm run build:frontend",
-    "dev:backend": "npm run dev --workspace=@diff-voyager/backend",
-    "dev:frontend": "npm run dev --workspace=@diff-voyager/frontend",
+    "dev:backend": "npm run dev --workspace=@gander-tools/diff-voyager-backend",
+    "dev:frontend": "npm run dev --workspace=@gander-tools/diff-voyager-frontend",
     "test": "npm run test --workspaces --if-present",
-    "test:backend": "npm run test --workspace=@diff-voyager/backend",
-    "test:frontend": "npm run test --workspace=@diff-voyager/frontend",
-    "test:shared": "npm run test --workspace=@diff-voyager/shared",
+    "test:backend": "npm run test --workspace=@gander-tools/diff-voyager-backend",
+    "test:frontend": "npm run test --workspace=@gander-tools/diff-voyager-frontend",
+    "test:shared": "npm run test --workspace=@gander-tools/diff-voyager-shared",
     "lint": "npm run lint --workspaces --if-present",
     "clean": "npm run clean --workspaces --if-present && rm -rf node_modules"
   },
