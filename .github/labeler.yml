@@ -1,0 +1,120 @@
+version: 1
+
+labels:
+  # Label PRs from claude/ branches
+  - label: "claude code"
+    branch: "^claude/.*"
+
+  # Label PRs from renovate/ branches
+  - label: "renovate"
+    branch: "^renovate/.*"
+
+  # Documentation changes
+  - label: "documentation"
+    files:
+      - "docs/.*"
+      - "README.md"
+      - "CHANGELOG.md"
+      - "CLAUDE.md"
+      - ".claude/.*"
+
+  # Test changes
+  - label: "tests"
+    files:
+      - "tests/.*"
+      - "packages/.*/tests/.*"
+      - "packages/.*/__tests__/.*"
+      - "packages/.*/.*.test.ts"
+      - "packages/.*/.*.spec.ts"
+
+  # GitHub workflows and CI/CD
+  - label: "github-actions"
+    files:
+      - ".github/workflows/.*"
+      - ".github/labeler.yml"
+
+  # Dependency updates
+  - label: "dependencies"
+    files:
+      - "package.json"
+      - "package-lock.json"
+      - "packages/.*/package.json"
+      - "packages/frontend/bun.lockb"
+
+  # Backend changes
+  - label: "backend"
+    files:
+      - "packages/backend/.*"
+
+  # Frontend changes
+  - label: "frontend"
+    files:
+      - "packages/frontend/.*"
+
+  # Shared types/code changes
+  - label: "shared"
+    files:
+      - "packages/shared/.*"
+
+  # Core source code changes (any package)
+  - label: "core"
+    files:
+      - "packages/.*/src/.*"
+
+  # Configuration files
+  - label: "configuration"
+    files:
+      - "tsconfig.*\\.json"
+      - "biome.json"
+      - ".nvmrc"
+      - ".node-version"
+      - "packages/.*/tsconfig.*\\.json"
+
+  # PR size labels - small (< 50 lines)
+  - label: "size/small"
+    size:
+      below: 50
+      exclude-files:
+        - "package-lock.json"
+        - "bun.lockb"
+        - "CHANGELOG.md"
+
+  # PR size labels - medium (50-200 lines)
+  - label: "size/medium"
+    size:
+      above: 49
+      below: 201
+      exclude-files:
+        - "package-lock.json"
+        - "bun.lockb"
+        - "CHANGELOG.md"
+
+  # PR size labels - large (200-500 lines)
+  - label: "size/large"
+    size:
+      above: 199
+      below: 501
+      exclude-files:
+        - "package-lock.json"
+        - "bun.lockb"
+        - "CHANGELOG.md"
+
+  # PR size labels - xlarge (> 500 lines)
+  - label: "size/xlarge"
+    size:
+      above: 500
+      exclude-files:
+        - "package-lock.json"
+        - "bun.lockb"
+        - "CHANGELOG.md"
+
+  # Draft PRs
+  - label: "work-in-progress"
+    draft: true
+
+  # Release-related changes
+  - label: "release"
+    files:
+      - ".github/workflows/release-.*"
+      - ".github/workflows/publish-.*"
+      - ".changeset/.*"
