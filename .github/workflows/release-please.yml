@@ -16,6 +16,8 @@ jobs:
     outputs:
       releases_created: ${{ steps.release.outputs.releases_created }}
       paths_released: ${{ steps.release.outputs.paths_released }}
+      pr_created: ${{ steps.release.outputs.pr != '' }}
+      pr_branch: ${{ steps.release.outputs.pr && fromJSON(steps.release.outputs.pr).headBranchName || '' }}
     steps:
       - id: release
         uses: googleapis/release-please-action@16a9c90856f42705d54a6fda1823352bdc62cf38
@@ -24,10 +26,93 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-      # SECURITY NOTE: We do NOT checkout the release PR branch here.
-      # release-please handles all version bumps automatically.
-      # Post-release actions (like publishing) should only run after
-      # the release PR is merged and releases are created.
+  # Update package-lock.json when release PR is created/updated
+  # This ensures workspace package versions in lockfile stay synchronized
+  # and prevents "unknown license" warnings in dependency review
+  #
+  # SECURITY: This job uses a safe approach without checking out PR code:
+  # 1. Checks out trusted main branch only
+  # 2. Fetches package.json files from PR via API (read-only)
+  # 3. Generates lockfile in isolated environment
+  # 4. Commits via API without executing any PR code
+  update-lockfile:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.pr_created == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout main branch (trusted)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Fetch and apply package.json updates from PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_BRANCH: ${{ needs.release-please.outputs.pr_branch }}
+        run: |
+          # Fetch package.json files from PR branch via API (read-only, safe)
+          for pkg in packages/backend packages/frontend packages/shared; do
+            if gh api repos/${{ github.repository }}/contents/$pkg/package.json?ref=$PR_BRANCH \
+               --jq '.content' | base64 -d > $pkg/package.json.tmp 2>/dev/null; then
+              mv $pkg/package.json.tmp $pkg/package.json
+              echo "Updated $pkg/package.json"
+            fi
+          done
+
+          # Also fetch root package.json if it changed
+          if gh api repos/${{ github.repository }}/contents/package.json?ref=$PR_BRANCH \
+             --jq '.content' | base64 -d > package.json.tmp 2>/dev/null; then
+            mv package.json.tmp package.json
+            echo "Updated package.json"
+          fi
+
+      - name: Regenerate package-lock.json safely
+        run: npm install --ignore-scripts --package-lock-only
+
+      - name: Commit updated lockfile to PR via API
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_BRANCH: ${{ needs.release-please.outputs.pr_branch }}
+        run: |
+          # Check if package-lock.json changed
+          if git diff --quiet package-lock.json; then
+            echo "No changes to package-lock.json"
+            exit 0
+          fi
+
+          # Get current file SHA from PR branch
+          CURRENT_SHA=$(gh api repos/${{ github.repository }}/contents/package-lock.json?ref=$PR_BRANCH --jq '.sha' 2>/dev/null || echo "")
+
+          # Commit updated file to PR branch via API (safe, no code execution)
+          CONTENT=$(base64 -w 0 package-lock.json)
+
+          if [ -n "$CURRENT_SHA" ]; then
+            # File exists, update it
+            gh api repos/${{ github.repository }}/contents/package-lock.json \
+              -X PUT \
+              -f message="chore: update package-lock.json after version bump" \
+              -f content="$CONTENT" \
+              -f branch="$PR_BRANCH" \
+              -f sha="$CURRENT_SHA"
+          else
+            # File doesn't exist, create it
+            gh api repos/${{ github.repository }}/contents/package-lock.json \
+              -X PUT \
+              -f message="chore: update package-lock.json after version bump" \
+              -f content="$CONTENT" \
+              -f branch="$PR_BRANCH"
+          fi
+
+          echo "Successfully updated package-lock.json in PR"
 
   # Optional: Add publish job that only runs after releases are created
   # publish:
