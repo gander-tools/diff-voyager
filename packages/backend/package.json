@@ -1,6 +1,6 @@
 {
-  "name": "@diff-voyager/backend",
-  "version": "0.1.0",
+  "name": "@gander-tools/diff-voyager-backend",
+  "version": "0.0.0",
   "description": "Backend crawler and API for DiffVoyager",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -22,7 +22,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@diff-voyager/shared": "workspace:*",
+    "@gander-tools/diff-voyager-shared": "workspace:*",
     "crawlee": "^3.12.3",
     "playwright": "^1.49.1",
     "fastify": "^5.2.0",

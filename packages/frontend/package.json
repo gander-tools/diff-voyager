@@ -1,6 +1,6 @@
 {
-  "name": "@diff-voyager/frontend",
-  "version": "0.1.0",
+  "name": "@gander-tools/diff-voyager-frontend",
+  "version": "0.0.0",
   "description": "Vue.js frontend for DiffVoyager",
   "type": "module",
   "scripts": {
@@ -19,7 +19,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@diff-voyager/shared": "workspace:*",
+    "@gander-tools/diff-voyager-shared": "workspace:*",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0",
     "pinia": "^2.3.0"
