@@ -222,5 +222,10 @@ When working on DiffVoyager:
 
 - Main branch: (check git status)
 - Feature branches: Use descriptive names
-- Commit messages: Clear, concise descriptions
+- **Commit messages: MUST use Conventional Commits format**
+  - Format: `<type>(<scope>): <description>`
+  - Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+  - Example: `feat(backend): add page snapshot comparison logic`
+  - Example: `fix(frontend): resolve visual diff rendering issue`
+  - Example: `docs: update CLAUDE.md with commit guidelines`
 - Push regularly to backup work
