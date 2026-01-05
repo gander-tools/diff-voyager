@@ -1,4 +1,5 @@
 {
+  "bootstrap-sha": "72de797780e610baba626bb57b7a33f9fe43eb61",
   "packages": {
     "packages/shared": {
       "package-name": "@gander-tools/diff-voyager-shared",
