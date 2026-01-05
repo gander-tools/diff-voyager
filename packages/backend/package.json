@@ -39,7 +39,7 @@
     "@gander-tools/diff-voyager-shared": "*",
     "crawlee": "^3.12.3",
     "fastify": "^5.2.0",
-    "pixelmatch": "^6.0.0",
+    "pixelmatch": "^7.0.0",
     "playwright": "^1.49.1",
     "pngjs": "^7.0.0"
   },
