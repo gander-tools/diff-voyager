@@ -41,7 +41,7 @@
     "url": "https://github.com/gander-tools/diff-voyager.git"
   },
   "devDependencies": {
-    "@types/node": "^22.10.5",
+    "@types/node": "^24.0.0",
     "typescript": "^5.7.3"
   }
 }
