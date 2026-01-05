@@ -20,7 +20,8 @@
     "test:backend": "npm run test --workspace=@gander-tools/diff-voyager-backend",
     "test:frontend": "npm run test --workspace=@gander-tools/diff-voyager-frontend",
     "test:shared": "npm run test --workspace=@gander-tools/diff-voyager-shared",
-    "lint": "npm run lint --workspaces --if-present",
+    "lint": "biome check .",
+    "format": "biome format --write .",
     "clean": "npm run clean --workspaces --if-present && rm -rf node_modules"
   },
   "keywords": [
@@ -40,7 +41,11 @@
     "url": "https://github.com/gander-tools/diff-voyager.git"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.3.11",
     "@types/node": "^22.10.5",
     "typescript": "^5.7.3"
+  },
+  "overrides": {
+    "esbuild": "^0.27.2"
   }
 }
