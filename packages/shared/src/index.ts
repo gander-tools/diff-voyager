@@ -1,8 +1,8 @@
 /**
- * DiffVoyager Shared Types and Enums
+ * Diff Voyager Shared Types and Enums
  *
  * This package contains shared TypeScript types and enums used across
- * the backend and frontend packages of DiffVoyager.
+ * the backend and frontend packages of Diff Voyager.
  */
 
 // Export all enums

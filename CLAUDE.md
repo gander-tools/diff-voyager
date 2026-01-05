@@ -1,8 +1,8 @@
-# DiffVoyager - Claude Code Development Guide
+# Diff Voyager - Claude Code Development Guide
 
 ## Project Overview
 
-DiffVoyager is a local website version comparison tool designed for solo developers upgrading frameworks and dependencies. It verifies that code changes maintain visual correctness, content integrity, SEO compliance, and performance metrics.
+Diff Voyager is a local website version comparison tool designed for solo developers upgrading frameworks and dependencies. It verifies that code changes maintain visual correctness, content integrity, SEO compliance, and performance metrics.
 
 ## Architecture
 
@@ -210,7 +210,7 @@ npm test                 # Validate types
 
 ## Contributing
 
-When working on DiffVoyager:
+When working on Diff Voyager:
 
 1. Read the PRD in `.claude/PRD.md`
 2. Follow TDD - write tests first

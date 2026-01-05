@@ -1,7 +1,7 @@
 {
   "name": "@gander-tools/diff-voyager-backend",
   "version": "0.0.0",
-  "description": "Backend crawler and API for DiffVoyager",
+  "description": "Backend crawler and API for Diff Voyager",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

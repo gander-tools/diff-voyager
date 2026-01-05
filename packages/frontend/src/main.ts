@@ -1,5 +1,5 @@
 /**
- * DiffVoyager Frontend
+ * Diff Voyager Frontend
  *
  * Main entry point for the Vue 3 application.
  */
@@ -9,7 +9,7 @@ import { createApp } from 'vue';
 // import App from './App.vue';
 // import router from './router';
 
-console.log('DiffVoyager Frontend - Starting...');
+console.log('Diff Voyager Frontend - Starting...');
 
 // Placeholder - will be implemented later
 // const app = createApp(App);

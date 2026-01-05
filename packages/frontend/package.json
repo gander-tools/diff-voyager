@@ -1,7 +1,7 @@
 {
   "name": "@gander-tools/diff-voyager-frontend",
   "version": "0.0.0",
-  "description": "Vue.js frontend for DiffVoyager",
+  "description": "Vue.js frontend for Diff Voyager",
   "type": "module",
   "scripts": {
     "dev": "vite",

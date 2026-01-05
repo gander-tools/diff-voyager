@@ -1,10 +1,10 @@
 /**
- * DiffVoyager Backend
+ * Diff Voyager Backend
  *
  * Main entry point for the backend API and crawler service.
  */
 
-console.log('DiffVoyager Backend - Starting...');
+console.log('Diff Voyager Backend - Starting...');
 
 // Placeholder - will be implemented in TDD fashion
 async function main() {
