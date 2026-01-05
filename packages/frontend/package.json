@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "@gander-tools/diff-voyager-shared": "*",
-    "pinia": "^2.3.0",
+    "pinia": "^3.0.0",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0"
   },
