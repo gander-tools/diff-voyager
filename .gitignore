@@ -39,7 +39,7 @@ lerna-debug.log*
 *.temp
 .cache/
 
-# DiffVoyager specific
+# Diff Voyager specific
 data/
 storage/
 artifacts/

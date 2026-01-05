@@ -1,8 +1,8 @@
-# DiffVoyager
+# Diff Voyager
 
 > **Local Website Version Comparison Tool for Framework Migrations**
 
-DiffVoyager helps solo developers verify that framework upgrades and dependency changes don't break their websites. It crawls your site, captures baselines, and compares visual appearance, SEO metadata, and performance metrics across versions.
+Diff Voyager helps solo developers verify that framework upgrades and dependency changes don't break their websites. It crawls your site, captures baselines, and compares visual appearance, SEO metadata, and performance metrics across versions.
 
 ## Features
 
@@ -15,7 +15,7 @@ DiffVoyager helps solo developers verify that framework upgrades and dependency 
 
 ## Architecture
 
-DiffVoyager is a monorepo with three packages:
+Diff Voyager is a monorepo with three packages:
 
 ```
 packages/
@@ -90,7 +90,7 @@ diff-voyager/
 
 ### Testing
 
-DiffVoyager follows Test-Driven Development (TDD):
+Diff Voyager follows Test-Driven Development (TDD):
 
 ```bash
 # Run all tests
