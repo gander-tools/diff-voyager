@@ -10,3 +10,6 @@ export * from './enums/index.js';
 
 // Export all types
 export * from './types/index.js';
+
+// Export all domain models
+export * from './models/index.js';
