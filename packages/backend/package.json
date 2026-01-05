@@ -22,7 +22,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@gander-tools/diff-voyager-shared": "workspace:*",
+    "@gander-tools/diff-voyager-shared": "*",
     "crawlee": "^3.12.3",
     "playwright": "^1.49.1",
     "fastify": "^5.2.0",
