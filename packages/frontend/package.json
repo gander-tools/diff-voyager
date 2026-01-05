@@ -17,8 +17,21 @@
     "frontend",
     "vue"
   ],
-  "author": "",
-  "license": "MIT",
+  "author": "Adam Gąsowski (https://github.com/gander)",
+  "license": "GPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gander-tools/diff-voyager.git",
+    "directory": "packages/frontend"
+  },
+  "bugs": {
+    "url": "https://github.com/gander-tools/diff-voyager/issues"
+  },
+  "homepage": "https://github.com/gander-tools/diff-voyager#readme",
+  "engines": {
+    "node": "^22.0.0 || ^24.0.0",
+    "npm": "^10.0.0 || ^11.0.0"
+  },
   "dependencies": {
     "@gander-tools/diff-voyager-shared": "*",
     "pinia": "^2.3.0",
