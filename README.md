@@ -26,7 +26,7 @@ packages/
 
 ## Requirements
 
-- **Node.js**: v22 or higher
+- **Node.js**: v22 or v24
 - **Bun**: Latest version (for frontend development)
 - **Operating System**: Linux, macOS, or Windows with WSL2
 
@@ -163,13 +163,15 @@ Filters to ignore expected differences (e.g., timestamps, analytics scripts, dyn
 
 1. Read the [PRD](.claude/PRD.md) to understand requirements
 2. Follow TDD - write tests first
-3. Use shared TypeScript types from `@diff-voyager/shared`
+3. Use shared TypeScript types from `@gander-tools/diff-voyager-shared`
 4. Keep changes focused and avoid over-engineering
 5. Update documentation as needed
 
 ## License
 
-MIT
+GNU General Public License v3.0 (GPL-3.0)
+
+See [LICENSE](LICENSE) for details.
 
 ## Roadmap
 
