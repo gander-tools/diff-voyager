@@ -3,7 +3,8 @@
   "description": "Local website version comparison tool for framework migrations - crawl, compare, and verify visual, SEO, and performance changes",
   "private": true,
   "engines": {
-    "node": ">=22.0.0"
+    "node": "^22.0.0 || ^24.0.0",
+    "npm": "^10.0.0 || ^11.0.0"
   },
   "workspaces": [
     "packages/*"
@@ -34,12 +35,16 @@
     "framework-migration",
     "testing"
   ],
-  "author": "",
-  "license": "MIT",
+  "author": "Adam Gąsowski (https://github.com/gander)",
+  "license": "GPL-3.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/gander-tools/diff-voyager.git"
+    "url": "git+https://github.com/gander-tools/diff-voyager.git"
   },
+  "bugs": {
+    "url": "https://github.com/gander-tools/diff-voyager/issues"
+  },
+  "homepage": "https://github.com/gander-tools/diff-voyager#readme",
   "devDependencies": {
     "@biomejs/biome": "^2.3.11",
     "@types/node": "^22.10.5",
