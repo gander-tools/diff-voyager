@@ -13,5 +13,38 @@ name: release-please
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    outputs:
+      releases_created: ${{ steps.release.outputs.releases_created }}
+      paths_released: ${{ steps.release.outputs.paths_released }}
     steps:
-      - uses: googleapis/release-please-action@16a9c90856f42705d54a6fda1823352bdc62cf38
+      - id: release
+        uses: googleapis/release-please-action@16a9c90856f42705d54a6fda1823352bdc62cf38
+        with:
+          # Uses config-file and manifest-file for monorepo support
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+      # SECURITY NOTE: We do NOT checkout the release PR branch here.
+      # release-please handles all version bumps automatically.
+      # Post-release actions (like publishing) should only run after
+      # the release PR is merged and releases are created.
+
+  # Optional: Add publish job that only runs after releases are created
+  # publish:
+  #   needs: release-please
+  #   if: ${{ needs.release-please.outputs.releases_created }}
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     # Checkout MERGED code from main, not the release PR
+  #     - uses: actions/checkout@v4
+  #     - name: Setup Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: '22'
+  #         registry-url: 'https://registry.npmjs.org'
+  #     - name: Publish packages
+  #       run: |
+  #         npm install
+  #         # Publish logic here
+  #       env:
+  #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
