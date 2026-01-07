@@ -36,11 +36,21 @@ function runMigrations(db: DatabaseInstance): void {
   `);
 
   // Check if initial schema migration was applied
-  const applied = db.prepare('SELECT 1 FROM migrations WHERE name = ?').get('001-initial-schema');
+  const applied001 = db
+    .prepare('SELECT 1 FROM migrations WHERE name = ?')
+    .get('001-initial-schema');
 
-  if (!applied) {
+  if (!applied001) {
     applyInitialSchema(db);
     db.prepare('INSERT INTO migrations (name) VALUES (?)').run('001-initial-schema');
+  }
+
+  // Check if task queue migration was applied
+  const applied002 = db.prepare('SELECT 1 FROM migrations WHERE name = ?').get('002-task-queue');
+
+  if (!applied002) {
+    applyTaskQueueSchema(db);
+    db.prepare('INSERT INTO migrations (name) VALUES (?)').run('002-task-queue');
   }
 }
 
@@ -126,6 +136,37 @@ function applyInitialSchema(db: DatabaseInstance): void {
     );
 
     CREATE INDEX idx_diffs_run_id ON diffs(run_id);
+  `);
+}
+
+/**
+ * Apply task queue schema migration
+ */
+function applyTaskQueueSchema(db: DatabaseInstance): void {
+  db.exec(`
+    -- Tasks table for asynchronous job processing
+    CREATE TABLE tasks (
+      id TEXT NOT NULL PRIMARY KEY,
+      type TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending',
+      priority TEXT NOT NULL DEFAULT 'normal',
+      payload_json TEXT NOT NULL,
+      attempts INTEGER NOT NULL DEFAULT 0,
+      max_attempts INTEGER NOT NULL DEFAULT 3,
+      error_message TEXT,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      started_at TEXT,
+      completed_at TEXT
+    );
+
+    -- Index on status and priority for efficient dequeue operations
+    CREATE INDEX idx_tasks_status_priority ON tasks(status, priority DESC, created_at ASC);
+
+    -- Index on created_at for ordering
+    CREATE INDEX idx_tasks_created_at ON tasks(created_at);
+
+    -- Index on type for filtering by task type
+    CREATE INDEX idx_tasks_type ON tasks(type);
   `);
 }
 
