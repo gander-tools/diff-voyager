@@ -3,6 +3,7 @@
  */
 
 import * as baseline from './baseline.js';
+import * as comparison from './comparison.js';
 import * as edgeCases from './edge-cases.js';
 import * as seoChanges from './seo-changes.js';
 
@@ -11,6 +12,11 @@ export const HTML_FIXTURES = {
     simple: baseline.BASELINE_SIMPLE,
     withLinks: baseline.BASELINE_WITH_LINKS,
     minimal: baseline.BASELINE_MINIMAL,
+  },
+  comparison: {
+    contentChange: comparison.CONTENT_CHANGE,
+    visualChange: comparison.VISUAL_CHANGE,
+    structureChange: comparison.STRUCTURE_CHANGE,
   },
   seoChanges: {
     titleChanged: seoChanges.SEO_TITLE_CHANGED,
@@ -32,4 +38,4 @@ export const HTML_FIXTURES = {
   },
 };
 
-export { baseline, seoChanges, edgeCases };
+export { baseline, comparison, seoChanges, edgeCases };
