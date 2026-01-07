@@ -3,3 +3,4 @@
  */
 
 export * from './url-normalizer.js';
+export * from './seo-comparator.js';
