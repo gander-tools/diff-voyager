@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.7](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.6...diff-voyager-backend-v0.1.7) (2026-01-07)
+
+
+### Features
+
+* **backend:** integrate Crawlee for multi-page URL discovery ([67083d7](https://github.com/gander-tools/diff-voyager/commit/67083d7da9e1f7486db42eb03f0b8fa86b3efcfa))
+
+
+### Bug Fixes
+
+* **security:** restrict file permissions for artifact storage ([12c1bf2](https://github.com/gander-tools/diff-voyager/commit/12c1bf22fd1ee1e442ea1e3e8e665af932f37639))
+
 ## [0.1.6](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.5...diff-voyager-backend-v0.1.6) (2026-01-07)
 
 
