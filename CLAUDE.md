@@ -136,17 +136,102 @@ Development follows Test-Driven Development:
 
 ### Initial Setup
 ```bash
-npm install              # Install root dependencies
-npm run setup            # Setup all packages
+# Install all dependencies (from root)
+npm install
+
+# Build shared types (required before backend)
+npm run build:shared
+
+# Build backend
+npm run build:backend
+
+# Or setup everything at once
+npm run setup
+```
+
+### Running the API Server
+```bash
+# Start backend server (default port 3000)
+npm run dev:backend
+
+# Or with custom port/data directory
+PORT=3001 DATA_DIR=./my-data npm run dev:backend
+```
+
+The server will be available at `http://localhost:3000` with endpoints:
+- `POST /api/v1/scans` - Create a scan (single page or crawl)
+- `GET /api/v1/projects/:id` - Get project details with pages
+- `GET /api/v1/artifacts/:pageId/*` - Get artifacts (screenshot, har, html)
+- `GET /health` - Health check
+
+### Testing the API
+
+**Quick test with curl:**
+```bash
+# Async scan (returns immediately)
+curl -X POST http://localhost:3000/api/v1/scans \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com"}'
+
+# Sync scan (blocks until complete, returns full result)
+curl -X POST http://localhost:3000/api/v1/scans \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com", "sync": true}'
+
+# Get project details
+curl http://localhost:3000/api/v1/projects/{projectId}
+```
+
+**Scan options:**
+```json
+{
+  "url": "https://example.com",
+  "sync": true,
+  "name": "My Project",
+  "crawl": false,
+  "viewport": { "width": 1920, "height": 1080 },
+  "collectHar": false,
+  "waitAfterLoad": 1000
+}
 ```
 
 ### Backend Development
 ```bash
 cd packages/backend
-npm install
-npm run dev              # Start in development mode
-npm test                 # Run tests
-npm run test:watch       # Watch mode
+
+# Run all tests
+npm test
+
+# Run specific test file
+npm test -- tests/unit/domain/url-normalizer.test.ts
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage
+npm test -- --coverage
+
+# Build TypeScript
+npm run build
+
+# Start dev server with hot reload
+npm run dev
+```
+
+### Test Structure
+```
+packages/backend/tests/
+├── unit/                    # Unit tests (no external deps)
+│   ├── domain/             # URL normalizer, etc.
+│   └── storage/            # Repository tests
+├── integration/            # Integration tests (with DB, mock server)
+│   └── api/                # API endpoint tests
+├── fixtures/               # Test data
+│   └── html/               # HTML fixtures for SEO testing
+└── helpers/                # Test utilities
+    ├── mock-server.ts      # HTTP mock server
+    ├── test-db.ts          # In-memory SQLite
+    └── factories.ts        # Test data factories
 ```
 
 ### Frontend Development
