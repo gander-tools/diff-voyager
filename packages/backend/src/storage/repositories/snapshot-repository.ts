@@ -8,8 +8,20 @@ import type { Database } from 'better-sqlite3';
 import type { SnapshotRow } from '../types.js';
 
 export interface CreateSnapshotInput {
+  id?: string;
   pageId: string;
   runId: string;
+  isBaseline: boolean;
+  capturedAt: Date;
+  httpStatus: number;
+  redirectChain?: Array<{ url: string; status: number }>;
+  htmlHash: string;
+  headers: Record<string, string>;
+  seo: SeoData;
+  performanceData?: PerformanceData;
+  hasScreenshot: boolean;
+  hasHar: boolean;
+  hasDiff: boolean;
 }
 
 export interface UpdateSnapshotInput {
@@ -51,20 +63,52 @@ export class SnapshotRepository {
   constructor(private db: Database) {}
 
   async create(input: CreateSnapshotInput): Promise<SnapshotEntity> {
-    const id = randomUUID();
+    const id = input.id || randomUUID();
 
     const stmt = this.db.prepare(`
-      INSERT INTO snapshots (id, page_id, run_id, status)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO snapshots (
+        id, page_id, run_id, status, http_status,
+        redirect_chain_json, html_hash, headers_json,
+        seo_data_json, performance_data_json,
+        screenshot_path, har_path, diff_image_path,
+        captured_at, is_baseline
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    stmt.run(id, input.pageId, input.runId, PageStatus.PENDING);
+    stmt.run(
+      id,
+      input.pageId,
+      input.runId,
+      PageStatus.COMPLETED,
+      input.httpStatus,
+      input.redirectChain ? JSON.stringify(input.redirectChain) : null,
+      input.htmlHash,
+      JSON.stringify(input.headers),
+      JSON.stringify(input.seo),
+      input.performanceData ? JSON.stringify(input.performanceData) : null,
+      input.hasScreenshot ? 'screenshot.png' : null,
+      input.hasHar ? 'performance.har' : null,
+      input.hasDiff ? 'diff.png' : null,
+      input.capturedAt.toISOString(),
+      input.isBaseline ? 1 : 0,
+    );
 
     return {
       id,
       pageId: input.pageId,
       runId: input.runId,
-      status: PageStatus.PENDING,
+      status: PageStatus.COMPLETED,
+      httpStatus: input.httpStatus,
+      redirectChain: input.redirectChain,
+      htmlHash: input.htmlHash,
+      headers: input.headers,
+      seoData: input.seo,
+      performanceData: input.performanceData,
+      screenshotPath: input.hasScreenshot ? 'screenshot.png' : undefined,
+      harPath: input.hasHar ? 'performance.har' : undefined,
+      diffImagePath: input.hasDiff ? 'diff.png' : undefined,
+      capturedAt: input.capturedAt,
     };
   }
 
