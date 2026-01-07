@@ -91,11 +91,20 @@ export interface ViewportConfig {
 }
 
 /**
- * Request to create a single-page scan (Scenario 1)
+ * Request to create a scan (Scenarios 1 & 2)
+ * - crawl: false (default) = scan only the specified URL (Scenario 1)
+ * - crawl: true = discover and crawl all pages in domain (Scenario 2)
  */
-export interface CreateSinglePageScanRequest {
-  /** URL of the page to scan */
+export interface CreateScanRequest {
+  /** Starting URL for the scan */
   url: string;
+
+  /**
+   * Enable crawler to discover and scan all pages in domain
+   * - false (default): scan only the specified URL
+   * - true: crawl entire domain starting from URL
+   */
+  crawl?: boolean;
 
   /** Optional project name (auto-generated if not provided) */
   name?: string;
@@ -117,32 +126,8 @@ export interface CreateSinglePageScanRequest {
 
   /** Wait time after page load (ms) */
   waitAfterLoad?: number;
-}
 
-/**
- * Request to create a full domain crawl (Scenario 2)
- */
-export interface CreateCrawlRequest {
-  /** Base URL to start crawling from */
-  baseUrl: string;
-
-  /** Optional project name */
-  name?: string;
-
-  /** Optional project description */
-  description?: string;
-
-  /** Run profile determining what data to collect */
-  profile?: RunProfile;
-
-  /** Viewport configuration for screenshots */
-  viewport?: ViewportConfig;
-
-  /** Visual diff threshold (0-1) */
-  visualDiffThreshold?: number;
-
-  /** Whether to collect HAR files */
-  collectHar?: boolean;
+  // --- Crawler options (only used when crawl: true) ---
 
   /** Maximum number of pages to crawl */
   maxPages?: number;
@@ -158,9 +143,6 @@ export interface CreateCrawlRequest {
 
   /** Whether to follow subdomains */
   followSubdomains?: boolean;
-
-  /** Wait time after page load (ms) */
-  waitAfterLoad?: number;
 
   /** Concurrent page processing limit */
   concurrency?: number;

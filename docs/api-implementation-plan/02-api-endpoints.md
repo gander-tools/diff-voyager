@@ -43,18 +43,19 @@ X-Request-Id: <uuid>
 
 ---
 
-## Scenario 1: Single Page Scan
+## Scenarios 1 & 2: Create Scan
 
-### POST /scans/single-page
+### POST /scans
 
-Create a new single-page scan task.
+Create a new scan task. The `crawl` parameter determines whether to scan only the starting URL (Scenario 1) or discover and crawl all pages within the domain (Scenario 2).
 
 **Request Body:**
 
 ```json
 {
   "url": "https://example.com/page",
-  "name": "My Single Page Scan",
+  "crawl": false,
+  "name": "My Scan",
   "description": "Optional description",
   "profile": "VISUAL_SEO",
   "viewport": {
@@ -63,20 +64,53 @@ Create a new single-page scan task.
   },
   "visualDiffThreshold": 0.01,
   "collectHar": false,
-  "waitAfterLoad": 1000
+  "waitAfterLoad": 1000,
+  "maxPages": 100,
+  "maxDurationSeconds": 3600,
+  "includePatterns": ["^/blog/.*", "^/products/.*"],
+  "excludePatterns": ["^/admin/.*", ".*\\.pdf$"],
+  "followSubdomains": false,
+  "concurrency": 3
 }
 ```
 
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
-| `url` | string | Yes | - | URL to scan |
+| `url` | string | Yes | - | Starting URL for the scan |
+| `crawl` | boolean | No | `false` | **false** = scan only this URL (Scenario 1), **true** = discover and crawl all pages in domain (Scenario 2) |
 | `name` | string | No | Auto-generated | Project name |
 | `description` | string | No | null | Project description |
 | `profile` | RunProfile | No | `VISUAL_SEO` | Data collection profile |
 | `viewport` | ViewportConfig | No | `{1920, 1080}` | Screenshot viewport |
 | `visualDiffThreshold` | number | No | `0.01` | Visual diff threshold (0-1) |
 | `collectHar` | boolean | No | `false` | Collect HAR files |
-| `waitAfterLoad` | number | No | `1000` | Wait time after load (ms) |
+| `waitAfterLoad` | number | No | `1000` | Wait time after page load (ms) |
+| `maxPages` | number | No | `1000` | Max pages to crawl (only when `crawl: true`) |
+| `maxDurationSeconds` | number | No | `3600` | Max crawl duration (only when `crawl: true`) |
+| `includePatterns` | string[] | No | `[]` | URL patterns to include - regex (only when `crawl: true`) |
+| `excludePatterns` | string[] | No | `[]` | URL patterns to exclude - regex (only when `crawl: true`) |
+| `followSubdomains` | boolean | No | `false` | Crawl subdomains (only when `crawl: true`) |
+| `concurrency` | number | No | `3` | Concurrent page limit (only when `crawl: true`) |
+
+**Example: Single Page Scan (Scenario 1)**
+
+```json
+{
+  "url": "https://example.com/specific-page",
+  "crawl": false
+}
+```
+
+**Example: Full Domain Crawl (Scenario 2)**
+
+```json
+{
+  "url": "https://example.com",
+  "crawl": true,
+  "maxPages": 100,
+  "excludePatterns": ["^/admin/.*"]
+}
+```
 
 **Response: 202 Accepted**
 
@@ -86,70 +120,9 @@ Create a new single-page scan task.
   "projectId": "550e8400-e29b-41d4-a716-446655440001",
   "runId": "550e8400-e29b-41d4-a716-446655440002",
   "status": "PENDING",
+  "crawl": false,
   "statusUrl": "/api/v1/tasks/550e8400-e29b-41d4-a716-446655440000",
   "projectUrl": "/api/v1/projects/550e8400-e29b-41d4-a716-446655440001"
-}
-```
-
----
-
-## Scenario 2: Full Domain Crawl
-
-### POST /scans/crawl
-
-Create a new full domain crawl task.
-
-**Request Body:**
-
-```json
-{
-  "baseUrl": "https://example.com",
-  "name": "Full Site Crawl",
-  "description": "Complete site audit",
-  "profile": "FULL",
-  "viewport": {
-    "width": 1920,
-    "height": 1080
-  },
-  "visualDiffThreshold": 0.01,
-  "collectHar": true,
-  "maxPages": 100,
-  "maxDurationSeconds": 3600,
-  "includePatterns": ["^/blog/.*", "^/products/.*"],
-  "excludePatterns": ["^/admin/.*", ".*\\.pdf$"],
-  "followSubdomains": false,
-  "waitAfterLoad": 1000,
-  "concurrency": 3
-}
-```
-
-| Field | Type | Required | Default | Description |
-|-------|------|----------|---------|-------------|
-| `baseUrl` | string | Yes | - | Base URL to crawl |
-| `name` | string | No | Auto-generated | Project name |
-| `description` | string | No | null | Project description |
-| `profile` | RunProfile | No | `VISUAL_SEO` | Data collection profile |
-| `viewport` | ViewportConfig | No | `{1920, 1080}` | Screenshot viewport |
-| `visualDiffThreshold` | number | No | `0.01` | Visual diff threshold |
-| `collectHar` | boolean | No | `false` | Collect HAR files |
-| `maxPages` | number | No | `1000` | Max pages to crawl |
-| `maxDurationSeconds` | number | No | `3600` | Max crawl duration |
-| `includePatterns` | string[] | No | `[]` | URL patterns to include (regex) |
-| `excludePatterns` | string[] | No | `[]` | URL patterns to exclude (regex) |
-| `followSubdomains` | boolean | No | `false` | Crawl subdomains |
-| `waitAfterLoad` | number | No | `1000` | Wait time after load (ms) |
-| `concurrency` | number | No | `3` | Concurrent page limit |
-
-**Response: 202 Accepted**
-
-```json
-{
-  "taskId": "550e8400-e29b-41d4-a716-446655440010",
-  "projectId": "550e8400-e29b-41d4-a716-446655440011",
-  "runId": "550e8400-e29b-41d4-a716-446655440012",
-  "status": "PENDING",
-  "statusUrl": "/api/v1/tasks/550e8400-e29b-41d4-a716-446655440010",
-  "projectUrl": "/api/v1/projects/550e8400-e29b-41d4-a716-446655440011"
 }
 ```
 
@@ -663,8 +636,7 @@ Create a comparison run against baseline.
 
 | Method | Endpoint | Description | Scenario |
 |--------|----------|-------------|----------|
-| POST | `/scans/single-page` | Create single page scan | 1 |
-| POST | `/scans/crawl` | Create full crawl | 2 |
+| POST | `/scans` | Create scan (`crawl: false` = single page, `crawl: true` = full crawl) | 1, 2 |
 | GET | `/tasks/:taskId` | Get task status | 1, 2 |
 | GET | `/projects` | List projects | 3 |
 | GET | `/projects/:projectId` | Get project details | 3 |
