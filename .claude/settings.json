@@ -5,10 +5,6 @@
 		"SessionStart": {
 			"command": "npm install -g npm@11.7.0 && cd \"$CLAUDE_PROJECT_DIR\" && npm install",
 			"timeout": 300000
-		},
-		"PostToolUse": {
-			"command": "cd \"$CLAUDE_PROJECT_DIR\" && npm run check:fix",
-			"timeout": 120000
 		}
 	}
 }
