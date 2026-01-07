@@ -158,6 +158,49 @@ export class TaskQueue {
   }
 
   /**
+   * Retry a failed task by resetting it to pending status
+   *
+   * @param taskId - ID of the task to retry
+   */
+  retry(taskId: string): void {
+    const stmt = this.db.prepare(`
+      UPDATE tasks
+      SET
+        status = 'pending',
+        completed_at = NULL,
+        error_message = NULL
+      WHERE id = ?
+    `);
+
+    stmt.run(taskId);
+  }
+
+  /**
+   * Requeue stale processing tasks that have been running too long
+   *
+   * Only requeues tasks that haven't exceeded max_attempts
+   *
+   * @param timeoutMs - Timeout in milliseconds
+   * @returns Number of tasks requeued
+   */
+  requeueStaleProcessingTasks(timeoutMs: number): number {
+    const timeoutSeconds = Math.floor(timeoutMs / 1000);
+
+    const stmt = this.db.prepare(`
+      UPDATE tasks
+      SET
+        status = 'pending',
+        started_at = NULL
+      WHERE status = 'processing'
+        AND datetime(started_at) < datetime('now', '-' || ? || ' seconds')
+        AND attempts < max_attempts
+    `);
+
+    const result = stmt.run(timeoutSeconds);
+    return result.changes;
+  }
+
+  /**
    * Convert database row to Task object
    */
   private rowToTask(row: TaskRow): Task {

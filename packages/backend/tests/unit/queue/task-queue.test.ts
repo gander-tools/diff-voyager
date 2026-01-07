@@ -674,3 +674,234 @@ describe('TaskQueue.fail()', () => {
     expect(task.error_message).toBe(longError);
   });
 });
+
+describe('TaskQueue.retry()', () => {
+  let testDir: string;
+  let dbPath: string;
+  let db: Database.Database;
+  let taskQueue: TaskQueue;
+
+  beforeEach(() => {
+    testDir = join(tmpdir(), `diff-voyager-test-${randomUUID()}`);
+    mkdirSync(testDir, { recursive: true });
+    dbPath = join(testDir, 'test.db');
+    db = createDatabase({ dbPath, artifactsDir: join(testDir, 'artifacts') });
+    taskQueue = new TaskQueue(db);
+  });
+
+  afterEach(() => {
+    closeDatabase(db);
+    rmSync(testDir, { recursive: true, force: true });
+  });
+
+  it('should reset failed task to pending', () => {
+    const payload: CapturePagePayload = {
+      runId: 'run-123',
+      pageId: 'page-456',
+      url: 'https://example.com',
+      projectId: 'project-789',
+      isBaseline: true,
+      config: {},
+    };
+
+    const taskId = taskQueue.enqueue({ type: 'capture-page', payload });
+    taskQueue.dequeue();
+    taskQueue.fail(taskId, 'First failure');
+
+    taskQueue.retry(taskId);
+
+    const task = db.prepare('SELECT status FROM tasks WHERE id = ?').get(taskId) as {
+      status: string;
+    };
+    expect(task.status).toBe('pending');
+  });
+
+  it('should not reset attempts counter', () => {
+    const payload: CapturePagePayload = {
+      runId: 'run-123',
+      pageId: 'page-456',
+      url: 'https://example.com',
+      projectId: 'project-789',
+      isBaseline: true,
+      config: {},
+    };
+
+    const taskId = taskQueue.enqueue({ type: 'capture-page', payload });
+    taskQueue.dequeue(); // attempts = 1
+    taskQueue.fail(taskId, 'First failure');
+
+    taskQueue.retry(taskId);
+
+    const task = db.prepare('SELECT attempts FROM tasks WHERE id = ?').get(taskId) as {
+      attempts: number;
+    };
+    expect(task.attempts).toBe(1);
+  });
+
+  it('should clear completed_at timestamp', () => {
+    const payload: CapturePagePayload = {
+      runId: 'run-123',
+      pageId: 'page-456',
+      url: 'https://example.com',
+      projectId: 'project-789',
+      isBaseline: true,
+      config: {},
+    };
+
+    const taskId = taskQueue.enqueue({ type: 'capture-page', payload });
+    taskQueue.dequeue();
+    taskQueue.fail(taskId, 'First failure');
+
+    taskQueue.retry(taskId);
+
+    const task = db.prepare('SELECT completed_at FROM tasks WHERE id = ?').get(taskId) as {
+      completed_at: string | null;
+    };
+    expect(task.completed_at).toBeNull();
+  });
+
+  it('should allow task to be dequeued again after retry', () => {
+    const payload: CapturePagePayload = {
+      runId: 'run-123',
+      pageId: 'page-456',
+      url: 'https://example.com',
+      projectId: 'project-789',
+      isBaseline: true,
+      config: {},
+    };
+
+    const taskId = taskQueue.enqueue({ type: 'capture-page', payload });
+    taskQueue.dequeue();
+    taskQueue.fail(taskId, 'First failure');
+    taskQueue.retry(taskId);
+
+    const task = taskQueue.dequeue();
+
+    expect(task).not.toBeNull();
+    expect(task?.id).toBe(taskId);
+    expect(task?.status).toBe('processing');
+    expect(task?.attempts).toBe(2); // Second attempt
+  });
+
+  it('should handle task that has not reached max attempts', () => {
+    const payload: CapturePagePayload = {
+      runId: 'run-123',
+      pageId: 'page-456',
+      url: 'https://example.com',
+      projectId: 'project-789',
+      isBaseline: true,
+      config: {},
+    };
+
+    const taskId = taskQueue.enqueue({ type: 'capture-page', payload, maxAttempts: 3 });
+    taskQueue.dequeue(); // attempts = 1
+    taskQueue.fail(taskId, 'First failure');
+
+    taskQueue.retry(taskId);
+
+    const task = db
+      .prepare('SELECT attempts, max_attempts FROM tasks WHERE id = ?')
+      .get(taskId) as {
+      attempts: number;
+      max_attempts: number;
+    };
+    expect(task.attempts).toBeLessThan(task.max_attempts);
+  });
+});
+
+describe('TaskQueue.requeueStaleProcessingTasks()', () => {
+  let testDir: string;
+  let dbPath: string;
+  let db: Database.Database;
+  let taskQueue: TaskQueue;
+
+  beforeEach(() => {
+    testDir = join(tmpdir(), `diff-voyager-test-${randomUUID()}`);
+    mkdirSync(testDir, { recursive: true });
+    dbPath = join(testDir, 'test.db');
+    db = createDatabase({ dbPath, artifactsDir: join(testDir, 'artifacts') });
+    taskQueue = new TaskQueue(db);
+  });
+
+  afterEach(() => {
+    closeDatabase(db);
+    rmSync(testDir, { recursive: true, force: true });
+  });
+
+  it('should requeue processing tasks that started more than timeout ago', () => {
+    const payload: CapturePagePayload = {
+      runId: 'run-123',
+      pageId: 'page-456',
+      url: 'https://example.com',
+      projectId: 'project-789',
+      isBaseline: true,
+      config: {},
+    };
+
+    const taskId = taskQueue.enqueue({ type: 'capture-page', payload });
+    taskQueue.dequeue(); // Move to processing
+
+    // Manually set started_at to 2 hours ago
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+    db.prepare('UPDATE tasks SET started_at = ? WHERE id = ?').run(twoHoursAgo, taskId);
+
+    // Requeue tasks that have been processing for more than 1 hour
+    const requeuedCount = taskQueue.requeueStaleProcessingTasks(60 * 60 * 1000); // 1 hour timeout
+
+    expect(requeuedCount).toBe(1);
+
+    const task = db.prepare('SELECT status FROM tasks WHERE id = ?').get(taskId) as {
+      status: string;
+    };
+    expect(task.status).toBe('pending');
+  });
+
+  it('should not requeue recent processing tasks', () => {
+    const payload: CapturePagePayload = {
+      runId: 'run-123',
+      pageId: 'page-456',
+      url: 'https://example.com',
+      projectId: 'project-789',
+      isBaseline: true,
+      config: {},
+    };
+
+    const taskId = taskQueue.enqueue({ type: 'capture-page', payload });
+    taskQueue.dequeue(); // Move to processing (just now)
+
+    // Requeue tasks older than 10 seconds (recent task should not be requeued)
+    const requeuedCount = taskQueue.requeueStaleProcessingTasks(10 * 1000);
+
+    expect(requeuedCount).toBe(0);
+
+    const task = db.prepare('SELECT status FROM tasks WHERE id = ?').get(taskId) as {
+      status: string;
+    };
+    expect(task.status).toBe('processing');
+  });
+
+  it('should not requeue tasks that exceeded max attempts', () => {
+    const payload: CapturePagePayload = {
+      runId: 'run-123',
+      pageId: 'page-456',
+      url: 'https://example.com',
+      projectId: 'project-789',
+      isBaseline: true,
+      config: {},
+    };
+
+    const taskId = taskQueue.enqueue({ type: 'capture-page', payload, maxAttempts: 2 });
+    taskQueue.dequeue(); // attempts = 1
+    taskQueue.fail(taskId, 'First failure');
+    taskQueue.retry(taskId);
+    taskQueue.dequeue(); // attempts = 2 (max reached)
+
+    // Set started_at to 2 hours ago
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+    db.prepare('UPDATE tasks SET started_at = ? WHERE id = ?').run(twoHoursAgo, taskId);
+
+    const requeuedCount = taskQueue.requeueStaleProcessingTasks(60 * 60 * 1000);
+
+    expect(requeuedCount).toBe(0); // Should not requeue because max attempts reached
+  });
+});
