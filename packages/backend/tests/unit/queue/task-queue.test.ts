@@ -264,3 +264,213 @@ describe('TaskQueue.enqueue()', () => {
     expect(count.count).toBe(2);
   });
 });
+
+describe('TaskQueue.dequeue()', () => {
+  let testDir: string;
+  let dbPath: string;
+  let db: Database.Database;
+  let taskQueue: TaskQueue;
+
+  beforeEach(() => {
+    testDir = join(tmpdir(), `diff-voyager-test-${randomUUID()}`);
+    mkdirSync(testDir, { recursive: true });
+    dbPath = join(testDir, 'test.db');
+    db = createDatabase({ dbPath, artifactsDir: join(testDir, 'artifacts') });
+    taskQueue = new TaskQueue(db);
+  });
+
+  afterEach(() => {
+    closeDatabase(db);
+    rmSync(testDir, { recursive: true, force: true });
+  });
+
+  it('should return null when no pending tasks', () => {
+    const task = taskQueue.dequeue();
+    expect(task).toBeNull();
+  });
+
+  it('should return and lock oldest pending task', () => {
+    const payload: CapturePagePayload = {
+      runId: 'run-123',
+      pageId: 'page-456',
+      url: 'https://example.com',
+      projectId: 'project-789',
+      isBaseline: true,
+      config: {},
+    };
+
+    const taskId = taskQueue.enqueue({ type: 'capture-page', payload });
+
+    const task = taskQueue.dequeue();
+
+    expect(task).not.toBeNull();
+    expect(task?.id).toBe(taskId);
+    expect(task?.type).toBe('capture-page');
+    expect(task?.status).toBe('processing');
+  });
+
+  it('should set started_at timestamp when dequeuing', () => {
+    const payload: CapturePagePayload = {
+      runId: 'run-123',
+      pageId: 'page-456',
+      url: 'https://example.com',
+      projectId: 'project-789',
+      isBaseline: true,
+      config: {},
+    };
+
+    taskQueue.enqueue({ type: 'capture-page', payload });
+
+    const before = Date.now();
+    const task = taskQueue.dequeue();
+    const after = Date.now();
+
+    expect(task?.startedAt).toBeDefined();
+    expect(task!.startedAt!.getTime()).toBeGreaterThanOrEqual(before - 1000);
+    expect(task!.startedAt!.getTime()).toBeLessThanOrEqual(after + 1000);
+  });
+
+  it('should increment attempts counter', () => {
+    const payload: CapturePagePayload = {
+      runId: 'run-123',
+      pageId: 'page-456',
+      url: 'https://example.com',
+      projectId: 'project-789',
+      isBaseline: true,
+      config: {},
+    };
+
+    taskQueue.enqueue({ type: 'capture-page', payload });
+
+    const task = taskQueue.dequeue();
+
+    expect(task?.attempts).toBe(1);
+  });
+
+  it('should deserialize payload from JSON', () => {
+    const payload: CapturePagePayload = {
+      runId: 'run-123',
+      pageId: 'page-456',
+      url: 'https://example.com',
+      projectId: 'project-789',
+      isBaseline: true,
+      config: {
+        viewport: { width: 1920, height: 1080 },
+        collectHar: true,
+      },
+    };
+
+    taskQueue.enqueue({ type: 'capture-page', payload });
+
+    const task = taskQueue.dequeue();
+
+    expect(task?.payload).toEqual(payload);
+  });
+
+  it('should respect priority order (high > normal > low)', () => {
+    const payload: CapturePagePayload = {
+      runId: 'run-123',
+      pageId: 'page-456',
+      url: 'https://example.com',
+      projectId: 'project-789',
+      isBaseline: true,
+      config: {},
+    };
+
+    // Enqueue in reverse priority order
+    const lowId = taskQueue.enqueue({ type: 'capture-page', payload, priority: 'low' });
+    const normalId = taskQueue.enqueue({ type: 'capture-page', payload, priority: 'normal' });
+    const highId = taskQueue.enqueue({ type: 'capture-page', payload, priority: 'high' });
+
+    // Should dequeue high priority first
+    const task1 = taskQueue.dequeue();
+    expect(task1?.id).toBe(highId);
+
+    // Then normal
+    const task2 = taskQueue.dequeue();
+    expect(task2?.id).toBe(normalId);
+
+    // Then low
+    const task3 = taskQueue.dequeue();
+    expect(task3?.id).toBe(lowId);
+  });
+
+  it('should return oldest task when priority is equal', () => {
+    const payload: CapturePagePayload = {
+      runId: 'run-123',
+      pageId: 'page-456',
+      url: 'https://example.com',
+      projectId: 'project-789',
+      isBaseline: true,
+      config: {},
+    };
+
+    const taskId1 = taskQueue.enqueue({ type: 'capture-page', payload, priority: 'normal' });
+    const taskId2 = taskQueue.enqueue({ type: 'capture-page', payload, priority: 'normal' });
+
+    const task1 = taskQueue.dequeue();
+    expect(task1?.id).toBe(taskId1);
+
+    const task2 = taskQueue.dequeue();
+    expect(task2?.id).toBe(taskId2);
+  });
+
+  it('should not dequeue tasks that are already processing', () => {
+    const payload: CapturePagePayload = {
+      runId: 'run-123',
+      pageId: 'page-456',
+      url: 'https://example.com',
+      projectId: 'project-789',
+      isBaseline: true,
+      config: {},
+    };
+
+    taskQueue.enqueue({ type: 'capture-page', payload });
+
+    // First dequeue should succeed
+    const task1 = taskQueue.dequeue();
+    expect(task1).not.toBeNull();
+
+    // Second dequeue should return null (no more pending tasks)
+    const task2 = taskQueue.dequeue();
+    expect(task2).toBeNull();
+  });
+
+  it('should not dequeue completed tasks', () => {
+    const payload: CapturePagePayload = {
+      runId: 'run-123',
+      pageId: 'page-456',
+      url: 'https://example.com',
+      projectId: 'project-789',
+      isBaseline: true,
+      config: {},
+    };
+
+    const taskId = taskQueue.enqueue({ type: 'capture-page', payload });
+
+    // Mark task as completed directly in DB
+    db.prepare('UPDATE tasks SET status = ? WHERE id = ?').run('completed', taskId);
+
+    const task = taskQueue.dequeue();
+    expect(task).toBeNull();
+  });
+
+  it('should not dequeue failed tasks', () => {
+    const payload: CapturePagePayload = {
+      runId: 'run-123',
+      pageId: 'page-456',
+      url: 'https://example.com',
+      projectId: 'project-789',
+      isBaseline: true,
+      config: {},
+    };
+
+    const taskId = taskQueue.enqueue({ type: 'capture-page', payload });
+
+    // Mark task as failed directly in DB
+    db.prepare('UPDATE tasks SET status = ? WHERE id = ?').run('failed', taskId);
+
+    const task = taskQueue.dequeue();
+    expect(task).toBeNull();
+  });
+});
