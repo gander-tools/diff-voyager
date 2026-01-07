@@ -139,6 +139,23 @@ describe('POST /api/v1/scans', () => {
     expect(body.description).toBe('Test description');
     expect(body.config.viewport.width).toBe(1280);
   });
+
+  it('should return 202 for async crawl scan request', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/v1/scans',
+      payload: {
+        url: `${baseUrl}/test-page`,
+        crawl: true, // Enable crawling
+      },
+    });
+
+    expect(response.statusCode).toBe(202);
+    const body = JSON.parse(response.body);
+    expect(body.projectId).toBeDefined();
+    expect(body.status).toBe('PENDING');
+    expect(body.projectUrl).toContain('/api/v1/projects/');
+  });
 });
 
 describe('GET /api/v1/projects/:projectId', () => {

@@ -10,6 +10,7 @@ import {
   RunStatus,
 } from '@gander-tools/diff-voyager-shared';
 import type { Database } from 'better-sqlite3';
+import { CheerioCrawler } from 'crawlee';
 import { PageCapturer } from '../crawler/page-capturer.js';
 import * as UrlNormalizer from '../domain/url-normalizer.js';
 import type { PageRepository } from '../storage/repositories/page-repository.js';
@@ -151,8 +152,8 @@ export class ScanProcessor {
           maxPages: project.config.maxPages,
         },
         status: project.status,
-        createdAt: project.createdAt.toISOString(),
-        updatedAt: project.updatedAt.toISOString(),
+        createdAt: project.createdAt?.toISOString() || new Date().toISOString(),
+        updatedAt: project.updatedAt?.toISOString() || new Date().toISOString(),
         statistics: {
           ...statistics,
           totalDifferences: 0,
@@ -178,9 +179,40 @@ export class ScanProcessor {
     }
   }
 
-  private async discoverUrls(_baseUrl: string): Promise<string[]> {
-    // TODO: Implement crawler for crawl: true scenario
-    // For now, return only the base URL
-    return [_baseUrl];
+  /**
+   * Discover URLs using Crawlee
+   * Crawls the site starting from base URL and returns all discovered URLs
+   */
+  private async discoverUrls(baseUrl: string): Promise<string[]> {
+    const discoveredUrls: Set<string> = new Set();
+    discoveredUrls.add(baseUrl); // Always include the base URL
+
+    // Use default max pages limit
+    const maxPages = 100;
+
+    const crawler = new CheerioCrawler({
+      maxRequestsPerCrawl: maxPages,
+      maxConcurrency: 2, // Limit concurrency for discovery
+
+      requestHandler: async ({ request, enqueueLinks }) => {
+        // Add this URL to discovered set
+        discoveredUrls.add(request.url);
+
+        // Enqueue links for discovery (same-domain only)
+        await enqueueLinks({
+          strategy: 'same-domain',
+        });
+      },
+
+      // Silently handle failed requests during discovery
+      failedRequestHandler: async () => {
+        // Discovery failures are non-critical
+      },
+    });
+
+    // Run crawler for discovery
+    await crawler.run([baseUrl]);
+
+    return Array.from(discoveredUrls);
   }
 }
