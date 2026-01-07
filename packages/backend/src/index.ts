@@ -16,10 +16,11 @@ async function main() {
   const port = Number(process.env.PORT) || DEFAULT_PORT;
   const dataDir = process.env.DATA_DIR || DEFAULT_DATA_DIR;
 
-  // Ensure data directories exist
+  // Ensure data directories exist with restricted permissions
   const dbPath = join(dataDir, 'diff-voyager.db');
   const artifactsDir = join(dataDir, 'artifacts');
-  await mkdir(artifactsDir, { recursive: true });
+  // Create directory with restricted permissions (owner only: rwx------)
+  await mkdir(artifactsDir, { recursive: true, mode: 0o700 });
 
   console.log('Diff Voyager Backend - Starting...');
   console.log(`Data directory: ${dataDir}`);
