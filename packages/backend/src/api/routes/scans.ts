@@ -35,7 +35,112 @@ export async function registerScanRoutes(
 
 	app.post<{ Body: CreateScanRequest }>(
 		"/scans",
-		{ config: EXPENSIVE_OPERATION_RATE_LIMIT },
+		{
+			config: EXPENSIVE_OPERATION_RATE_LIMIT,
+			schema: {
+				tags: ["scans"],
+				description: "Create a new scan or crawl",
+				body: {
+					type: "object",
+					required: ["url"],
+					properties: {
+						url: {
+							type: "string",
+							format: "uri",
+							description: "URL to scan or crawl",
+						},
+						sync: {
+							type: "boolean",
+							description: "Wait for scan to complete before returning",
+							default: false,
+						},
+						name: {
+							type: "string",
+							description: "Project name",
+						},
+						description: {
+							type: "string",
+							description: "Project description",
+						},
+						crawl: {
+							type: "boolean",
+							description: "Crawl entire site instead of single page",
+							default: false,
+						},
+						maxPages: {
+							type: "integer",
+							description: "Maximum pages to crawl",
+							minimum: 1,
+						},
+						viewport: {
+							type: "object",
+							properties: {
+								width: { type: "integer", minimum: 320 },
+								height: { type: "integer", minimum: 240 },
+							},
+						},
+						collectHar: {
+							type: "boolean",
+							description: "Collect HAR files for performance analysis",
+							default: false,
+						},
+						waitAfterLoad: {
+							type: "integer",
+							description: "Milliseconds to wait after page load",
+							minimum: 0,
+						},
+						visualDiffThreshold: {
+							type: "number",
+							description: "Visual diff pixel threshold (0-1)",
+							minimum: 0,
+							maximum: 1,
+						},
+					},
+				},
+				response: {
+					200: {
+						description: "Sync scan completed",
+						type: "object",
+						properties: {
+							projectId: { type: "string" },
+							runId: { type: "string" },
+							status: { type: "string" },
+							pageCount: { type: "integer" },
+							artifacts: {
+								type: "object",
+								properties: {
+									screenshots: { type: "integer" },
+									htmlFiles: { type: "integer" },
+									harFiles: { type: "integer" },
+								},
+							},
+						},
+					},
+					202: {
+						description: "Async scan accepted",
+						type: "object",
+						properties: {
+							projectId: { type: "string" },
+							status: { type: "string" },
+							projectUrl: { type: "string" },
+						},
+					},
+					400: {
+						description: "Validation error",
+						type: "object",
+						properties: {
+							error: {
+								type: "object",
+								properties: {
+									code: { type: "string" },
+									message: { type: "string" },
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 		async (request, reply) => {
 			const body = request.body;
 

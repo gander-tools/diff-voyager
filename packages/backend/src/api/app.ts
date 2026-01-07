@@ -3,6 +3,8 @@
  */
 
 import rateLimit from "@fastify/rate-limit";
+import swagger from "@fastify/swagger";
+import swaggerUi from "@fastify/swagger-ui";
 import { API_BASE_PATH } from "@gander-tools/diff-voyager-shared";
 import Fastify, { type FastifyInstance } from "fastify";
 import type { DatabaseInstance } from "../storage/database.js";
@@ -25,6 +27,37 @@ export async function createApp(config: AppConfig): Promise<FastifyInstance> {
 		global: false, // We'll apply it selectively to specific routes
 		max: 100,
 		timeWindow: "1 minute",
+	});
+
+	// Register Swagger
+	await app.register(swagger, {
+		openapi: {
+			info: {
+				title: "Diff Voyager API",
+				description: "API for web page comparison and crawling",
+				version: "0.1.1",
+			},
+			servers: [
+				{
+					url: "http://localhost:3000",
+					description: "Development server",
+				},
+			],
+			tags: [
+				{ name: "scans", description: "Scan and crawl operations" },
+				{ name: "projects", description: "Project management" },
+				{ name: "artifacts", description: "Access captured artifacts" },
+				{ name: "health", description: "Health check" },
+			],
+		},
+	});
+
+	await app.register(swaggerUi, {
+		routePrefix: "/docs",
+		uiConfig: {
+			docExpansion: "list",
+			deepLinking: true,
+		},
 	});
 
 	// Error handler
@@ -56,9 +89,26 @@ export async function createApp(config: AppConfig): Promise<FastifyInstance> {
 	});
 
 	// Health check
-	app.get("/health", async () => {
-		return { status: "ok" };
-	});
+	app.get(
+		"/health",
+		{
+			schema: {
+				tags: ["health"],
+				description: "Check API health status",
+				response: {
+					200: {
+						type: "object",
+						properties: {
+							status: { type: "string", enum: ["ok"] },
+						},
+					},
+				},
+			},
+		},
+		async () => {
+			return { status: "ok" };
+		},
+	);
 
 	// Register routes
 	await app.register(registerScanRoutes, {

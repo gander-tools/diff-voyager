@@ -37,7 +37,77 @@ export async function registerProjectRoutes(
 		Querystring: GetProjectQuery;
 	}>(
 		"/projects/:projectId",
-		{ config: DATABASE_READ_RATE_LIMIT },
+		{
+			config: DATABASE_READ_RATE_LIMIT,
+			schema: {
+				tags: ["projects"],
+				description: "Get project details with pages and statistics",
+				params: {
+					type: "object",
+					required: ["projectId"],
+					properties: {
+						projectId: {
+							type: "string",
+							description: "Project ID",
+						},
+					},
+				},
+				querystring: {
+					type: "object",
+					properties: {
+						includePages: {
+							type: "boolean",
+							description: "Include pages in response",
+							default: true,
+						},
+						pageLimit: {
+							type: "integer",
+							description: "Maximum pages to return",
+							minimum: 1,
+							default: DEFAULT_PAGE_LIMIT,
+						},
+						pageOffset: {
+							type: "integer",
+							description: "Page offset for pagination",
+							minimum: 0,
+							default: 0,
+						},
+					},
+				},
+				response: {
+					200: {
+						description: "Project details",
+						type: "object",
+						properties: {
+							id: { type: "string" },
+							name: { type: "string" },
+							description: { type: "string" },
+							baseUrl: { type: "string" },
+							config: { type: "object" },
+							status: { type: "string" },
+							createdAt: { type: "string", format: "date-time" },
+							updatedAt: { type: "string", format: "date-time" },
+							statistics: { type: "object" },
+							pages: { type: "array" },
+							pagination: { type: "object" },
+						},
+					},
+					404: {
+						description: "Project not found",
+						type: "object",
+						properties: {
+							error: {
+								type: "object",
+								properties: {
+									code: { type: "string" },
+									message: { type: "string" },
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 		async (request, reply) => {
 			const { projectId } = request.params;
 			const query = request.query;

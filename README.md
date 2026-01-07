@@ -58,6 +58,8 @@ npm run dev:frontend
 
 Visit `http://localhost:5173` to access the UI.
 
+**API Documentation**: The backend exposes Swagger UI at `http://localhost:3000/docs` for interactive API documentation and testing.
+
 ## Development
 
 ### Project Structure

@@ -37,6 +37,8 @@
 	},
 	"dependencies": {
 		"@fastify/rate-limit": "^10.3.0",
+		"@fastify/swagger": "^9.6.1",
+		"@fastify/swagger-ui": "^5.2.4",
 		"@gander-tools/diff-voyager-shared": "*",
 		"better-sqlite3": "^11.7.0",
 		"crawlee": "^3.12.3",

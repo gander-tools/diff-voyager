@@ -289,6 +289,11 @@ The server will be available at `http://localhost:3000` with endpoints:
 - `GET /api/v1/artifacts/:pageId/*` - Get artifacts (screenshot, har, html)
 - `GET /health` - Health check
 
+**API Documentation:**
+- Swagger UI is available at `http://localhost:3000/docs`
+- Interactive API documentation with request/response examples
+- Try out API endpoints directly from the browser
+
 ### Testing the API
 
 **Quick test with curl:**
