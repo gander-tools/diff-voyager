@@ -1,0 +1,9 @@
+{
+	"id": "yveCj6EmAezhhds",
+	"json": "{\"id\":\"yveCj6EmAezhhds\",\"url\":\"http://127.0.0.1:38229/home\",\"loadedUrl\":\"http://127.0.0.1:38229/home\",\"uniqueKey\":\"http://127.0.0.1:38229/home\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"__crawlee\":{\"state\":4}},\"handledAt\":\"2026-01-07T21:27:51.158Z\"}",
+	"method": "GET",
+	"orderNo": null,
+	"retryCount": 0,
+	"uniqueKey": "http://127.0.0.1:38229/home",
+	"url": "http://127.0.0.1:38229/home"
+}
