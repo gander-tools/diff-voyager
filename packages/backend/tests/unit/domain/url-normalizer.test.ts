@@ -3,7 +3,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { UrlNormalizer } from "../../../src/domain/url-normalizer.js";
+import * as UrlNormalizer from "../../../src/domain/url-normalizer.js";
 
 describe("UrlNormalizer", () => {
 	describe("normalize", () => {

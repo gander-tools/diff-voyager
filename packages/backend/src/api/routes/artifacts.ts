@@ -4,7 +4,11 @@
 
 import { readFile, realpath, stat } from "node:fs/promises";
 import { resolve, sep } from "node:path";
-import type { FastifyInstance, FastifyPluginOptions } from "fastify";
+import type {
+	FastifyInstance,
+	FastifyPluginOptions,
+	FastifyReply,
+} from "fastify";
 import {
 	FILE_SYSTEM_RATE_LIMIT,
 	LARGE_FILE_RATE_LIMIT,
@@ -23,7 +27,7 @@ interface ArtifactRoutesOptions extends FastifyPluginOptions {
  * @param message - Error message
  */
 function sendErrorResponse(
-	reply: any,
+	reply: FastifyReply,
 	status: number,
 	code: string,
 	message: string,
@@ -72,7 +76,7 @@ async function getSecureFile(
 	let fileStat: Awaited<ReturnType<typeof stat>>;
 	try {
 		fileStat = await stat(requestedPath);
-	} catch (error) {
+	} catch (_error) {
 		throw new Error("File not found");
 	}
 
@@ -86,7 +90,7 @@ async function getSecureFile(
 	let realPath: string;
 	try {
 		realPath = await realpath(requestedPath);
-	} catch (error) {
+	} catch (_error) {
 		throw new Error("Invalid path: Cannot resolve file path");
 	}
 
