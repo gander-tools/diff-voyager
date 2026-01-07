@@ -1,14 +1,11 @@
 /**
  * Scan API endpoint integration tests
  *
- * NOTE: Tests requiring Playwright (sync scans) are skipped in CI environments
- * where browser binaries are not available.
+ * NOTE: Some sync scan tests are currently skipped as they await completion
+ * of the sync scan response structure implementation.
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-
-// Check if Playwright browsers are available
-const _PLAYWRIGHT_AVAILABLE = await checkPlaywrightAvailable();
 
 async function checkPlaywrightAvailable(): Promise<boolean> {
   try {
@@ -112,8 +109,8 @@ describe('POST /api/v1/scans', () => {
     expect(body.projectUrl).toContain('/api/v1/projects/');
   });
 
-  // TODO: Fix sync scan response structure - currently returns incomplete data
-  // See: https://github.com/gander-tools/diff-voyager/issues/XXX
+  // SKIPPED: Awaiting implementation of complete sync scan response structure.
+  // Response is missing seoData and other fields. Enable when implemented.
   it.skip('should return 200 with full result for sync scan', async () => {
     const response = await app.inject({
       method: 'POST',
@@ -133,8 +130,8 @@ describe('POST /api/v1/scans', () => {
     expect(body.pages[0].seoData?.title).toBe('Test Page Title');
   });
 
-  // TODO: Fix sync scan response structure - currently returns incomplete data
-  // See: https://github.com/gander-tools/diff-voyager/issues/XXX
+  // SKIPPED: Awaiting implementation of complete sync scan response structure.
+  // Response structure needs to be validated. Enable when implemented.
   it.skip('should accept optional configuration', async () => {
     const response = await app.inject({
       method: 'POST',
@@ -197,8 +194,8 @@ describe('GET /api/v1/projects/:projectId', () => {
     expect(body.error.code).toBe('NOT_FOUND');
   });
 
-  // TODO: Fix sync scan response structure - currently returns incomplete data
-  // See: https://github.com/gander-tools/diff-voyager/issues/XXX
+  // SKIPPED: Awaiting implementation of complete sync scan response structure.
+  // Response is missing statistics field. Enable when implemented.
   it.skip('should return project details after scan', async () => {
     // Create a scan first
     const scanResponse = await app.inject({
