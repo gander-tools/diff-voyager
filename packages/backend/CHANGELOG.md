@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.1.6](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.5...diff-voyager-backend-v0.1.6) (2026-01-07)
+
+
+### Features
+
+* **backend:** add task timestamps for created, started, and completed events ([516bd80](https://github.com/gander-tools/diff-voyager/commit/516bd8021803aa361aa28d88c98c1757af383e3c))
+* **crawler:** add browser manager for browser instance pooling ([6f04453](https://github.com/gander-tools/diff-voyager/commit/6f044530b0d7a4ce998b1044acbfb02fb63c4cd8))
+* **crawler:** add Phase 3 crawler types and interfaces ([9cfc148](https://github.com/gander-tools/diff-voyager/commit/9cfc14893d867de2f48d87b3cbd69b1208e1e8f0))
+* **crawler:** add single page processor with TDD tests ([246a7b3](https://github.com/gander-tools/diff-voyager/commit/246a7b3edd08ccf7538b9169e3582b357412773e))
+* **crawler:** implement Crawlee-based site crawler ([43671d9](https://github.com/gander-tools/diff-voyager/commit/43671d96925e7922409ce82488bbdce9133f8e8d))
+
+
+### Bug Fixes
+
+* **backend:** add undefined checks for baseline and diff image buffers ([37aac9c](https://github.com/gander-tools/diff-voyager/commit/37aac9c595b45c549dfb6220b26206e1d21004ce))
+* **storage:** update SnapshotRepository to accept full snapshot data on creation ([03642fb](https://github.com/gander-tools/diff-voyager/commit/03642fbc0e70621b160d3c6307df6979b8ca6e4d))
+* **tests:** add missing fullSeo HTML fixture for SEO extraction tests ([60e54d7](https://github.com/gander-tools/diff-voyager/commit/60e54d735020ab06fb4d316257cd30493871394b))
+* **tests:** use seoData property name in single-page-processor tests ([5b501d9](https://github.com/gander-tools/diff-voyager/commit/5b501d99a7a5ccae49c491839b9cc9f2e009218a))
+
 ## [0.1.5](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.4...diff-voyager-backend-v0.1.5) (2026-01-07)
 
 
