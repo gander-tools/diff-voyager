@@ -8,7 +8,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 // Check if Playwright browsers are available
-const PLAYWRIGHT_AVAILABLE = await checkPlaywrightAvailable();
+const _PLAYWRIGHT_AVAILABLE = await checkPlaywrightAvailable();
 
 async function checkPlaywrightAvailable(): Promise<boolean> {
   try {
