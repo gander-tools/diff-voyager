@@ -1,5 +1,5 @@
 /**
- * Page details endpoint integration tests
+ * Page diff endpoint integration tests
  */
 
 import { randomUUID } from 'node:crypto';
@@ -19,7 +19,7 @@ import { ProjectRepository } from '../../../src/storage/repositories/project-rep
 import { RunRepository } from '../../../src/storage/repositories/run-repository.js';
 import { SnapshotRepository } from '../../../src/storage/repositories/snapshot-repository.js';
 
-describe('GET /api/v1/pages/:pageId', () => {
+describe('GET /api/v1/pages/:pageId/diff', () => {
   let app: FastifyInstance;
   let db: DatabaseInstance;
   let projectRepo: ProjectRepository;
@@ -60,7 +60,7 @@ describe('GET /api/v1/pages/:pageId', () => {
     const nonExistentId = randomUUID();
     const response = await app.inject({
       method: 'GET',
-      url: `/api/v1/pages/${nonExistentId}`,
+      url: `/api/v1/pages/${nonExistentId}/diff`,
     });
 
     expect(response.statusCode).toBe(404);
@@ -69,7 +69,7 @@ describe('GET /api/v1/pages/:pageId', () => {
     expect(body.error.message).toContain('Page not found');
   });
 
-  it('should return page details with latest snapshot', async () => {
+  it('should return 404 if no comparison exists (baseline only)', async () => {
     const project = await projectRepo.create({
       name: 'Test Project',
       baseUrl: 'https://example.com',
@@ -80,7 +80,7 @@ describe('GET /api/v1/pages/:pageId', () => {
       },
     });
 
-    const run = await runRepo.create({
+    const baselineRun = await runRepo.create({
       projectId: project.id,
       isBaseline: true,
       config: {
@@ -97,14 +97,14 @@ describe('GET /api/v1/pages/:pageId', () => {
     });
 
     await snapshotRepo.create({
-      runId: run.id,
+      runId: baselineRun.id,
       pageId: page.id,
       isBaseline: true,
       capturedAt: new Date(),
       httpStatus: 200,
       htmlHash: 'hash1',
       headers: { 'content-type': 'text/html' },
-      seo: { title: 'Test Page', description: 'Test description' },
+      seo: { title: 'Home', description: 'Homepage' },
       hasScreenshot: true,
       hasHar: false,
       hasDiff: false,
@@ -112,18 +112,16 @@ describe('GET /api/v1/pages/:pageId', () => {
 
     const response = await app.inject({
       method: 'GET',
-      url: `/api/v1/pages/${page.id}`,
+      url: `/api/v1/pages/${page.id}/diff`,
     });
 
-    expect(response.statusCode).toBe(200);
+    expect(response.statusCode).toBe(404);
     const body = JSON.parse(response.body);
-    expect(body.id).toBe(page.id);
-    expect(body.url).toBe(page.normalizedUrl);
-    expect(body.originalUrl).toBe(page.originalUrl);
-    expect(body.projectId).toBe(project.id);
+    expect(body.error.code).toBe('NOT_FOUND');
+    expect(body.error.message).toContain('No comparison run found');
   });
 
-  it.skip('should include SEO data from latest snapshot', async () => {
+  it('should return null diff when no changes detected', async () => {
     const project = await projectRepo.create({
       name: 'Test Project',
       baseUrl: 'https://example.com',
@@ -134,7 +132,7 @@ describe('GET /api/v1/pages/:pageId', () => {
       },
     });
 
-    const run = await runRepo.create({
+    const baselineRun = await runRepo.create({
       projectId: project.id,
       isBaseline: true,
       config: {
@@ -144,55 +142,9 @@ describe('GET /api/v1/pages/:pageId', () => {
       },
     });
 
-    const page = await pageRepo.create({
+    const comparisonRun = await runRepo.create({
       projectId: project.id,
-      normalizedUrl: 'https://example.com/seo',
-      originalUrl: 'https://example.com/seo',
-    });
-
-    await snapshotRepo.create({
-      runId: run.id,
-      pageId: page.id,
-      isBaseline: true,
-      capturedAt: new Date(),
-      httpStatus: 200,
-      htmlHash: 'hash1',
-      headers: { 'content-type': 'text/html' },
-      seo: {
-        title: 'SEO Test Page',
-        description: 'Test SEO description',
-      },
-      hasScreenshot: true,
-      hasHar: false,
-      hasDiff: false,
-    });
-
-    const response = await app.inject({
-      method: 'GET',
-      url: `/api/v1/pages/${page.id}`,
-    });
-
-    expect(response.statusCode).toBe(200);
-    const body = JSON.parse(response.body);
-    expect(body.seoData).toBeDefined();
-    expect(body.seoData.title).toBe('SEO Test Page');
-    expect(body.seoData.description).toBe('Test SEO description');
-  });
-
-  it.skip('should include HTTP headers from latest snapshot', async () => {
-    const project = await projectRepo.create({
-      name: 'Test Project',
-      baseUrl: 'https://example.com',
-      config: {
-        crawl: false,
-        viewport: { width: 1920, height: 1080 },
-        visualDiffThreshold: 0.01,
-      },
-    });
-
-    const run = await runRepo.create({
-      projectId: project.id,
-      isBaseline: true,
+      isBaseline: false,
       config: {
         viewport: { width: 1920, height: 1080 },
         captureScreenshots: true,
@@ -202,22 +154,35 @@ describe('GET /api/v1/pages/:pageId', () => {
 
     const page = await pageRepo.create({
       projectId: project.id,
-      normalizedUrl: 'https://example.com/headers',
-      originalUrl: 'https://example.com/headers',
+      normalizedUrl: 'https://example.com/',
+      originalUrl: 'https://example.com/',
     });
 
+    // Baseline snapshot
     await snapshotRepo.create({
-      runId: run.id,
+      runId: baselineRun.id,
       pageId: page.id,
       isBaseline: true,
       capturedAt: new Date(),
       httpStatus: 200,
       htmlHash: 'hash1',
-      headers: {
-        'content-type': 'text/html',
-        'cache-control': 'max-age=3600',
-      },
-      seo: { title: 'Headers Test', description: 'Test headers' },
+      headers: { 'content-type': 'text/html' },
+      seo: { title: 'Home', description: 'Homepage' },
+      hasScreenshot: true,
+      hasHar: false,
+      hasDiff: false,
+    });
+
+    // Comparison snapshot (identical)
+    await snapshotRepo.create({
+      runId: comparisonRun.id,
+      pageId: page.id,
+      isBaseline: false,
+      capturedAt: new Date(),
+      httpStatus: 200,
+      htmlHash: 'hash1',
+      headers: { 'content-type': 'text/html' },
+      seo: { title: 'Home', description: 'Homepage' },
       hasScreenshot: true,
       hasHar: false,
       hasDiff: false,
@@ -225,17 +190,18 @@ describe('GET /api/v1/pages/:pageId', () => {
 
     const response = await app.inject({
       method: 'GET',
-      url: `/api/v1/pages/${page.id}`,
+      url: `/api/v1/pages/${page.id}/diff`,
     });
 
     expect(response.statusCode).toBe(200);
     const body = JSON.parse(response.body);
-    expect(body.httpHeaders).toBeDefined();
-    expect(body.httpHeaders['content-type']).toBe('text/html');
-    expect(body.httpHeaders['cache-control']).toBe('max-age=3600');
+    expect(body.hasChanges).toBe(false);
+    expect(body.seoChanges).toEqual([]);
+    expect(body.headerChanges).toEqual([]);
+    expect(body.performanceChanges).toEqual([]);
   });
 
-  it.skip('should include performance metrics from latest snapshot', async () => {
+  it('should return SEO changes when title changed', async () => {
     const project = await projectRepo.create({
       name: 'Test Project',
       baseUrl: 'https://example.com',
@@ -246,7 +212,7 @@ describe('GET /api/v1/pages/:pageId', () => {
       },
     });
 
-    const run = await runRepo.create({
+    const baselineRun = await runRepo.create({
       projectId: project.id,
       isBaseline: true,
       config: {
@@ -256,26 +222,47 @@ describe('GET /api/v1/pages/:pageId', () => {
       },
     });
 
-    const page = await pageRepo.create({
+    const comparisonRun = await runRepo.create({
       projectId: project.id,
-      normalizedUrl: 'https://example.com/perf',
-      originalUrl: 'https://example.com/perf',
+      isBaseline: false,
+      config: {
+        viewport: { width: 1920, height: 1080 },
+        captureScreenshots: true,
+        captureHar: false,
+      },
     });
 
+    const page = await pageRepo.create({
+      projectId: project.id,
+      normalizedUrl: 'https://example.com/',
+      originalUrl: 'https://example.com/',
+    });
+
+    // Baseline snapshot
     await snapshotRepo.create({
-      runId: run.id,
+      runId: baselineRun.id,
       pageId: page.id,
       isBaseline: true,
       capturedAt: new Date(),
       httpStatus: 200,
       htmlHash: 'hash1',
       headers: { 'content-type': 'text/html' },
-      seo: { title: 'Perf Test', description: 'Test performance' },
-      performanceData: {
-        loadTime: 1234,
-        requestCount: 10,
-        totalSize: 50000,
-      },
+      seo: { title: 'Old Title', description: 'Homepage' },
+      hasScreenshot: true,
+      hasHar: false,
+      hasDiff: false,
+    });
+
+    // Comparison snapshot (title changed)
+    await snapshotRepo.create({
+      runId: comparisonRun.id,
+      pageId: page.id,
+      isBaseline: false,
+      capturedAt: new Date(),
+      httpStatus: 200,
+      htmlHash: 'hash2',
+      headers: { 'content-type': 'text/html' },
+      seo: { title: 'New Title', description: 'Homepage' },
       hasScreenshot: true,
       hasHar: false,
       hasDiff: false,
@@ -283,18 +270,19 @@ describe('GET /api/v1/pages/:pageId', () => {
 
     const response = await app.inject({
       method: 'GET',
-      url: `/api/v1/pages/${page.id}`,
+      url: `/api/v1/pages/${page.id}/diff`,
     });
 
     expect(response.statusCode).toBe(200);
     const body = JSON.parse(response.body);
-    expect(body.performanceData).toBeDefined();
-    expect(body.performanceData.loadTime).toBe(1234);
-    expect(body.performanceData.requestCount).toBe(10);
-    expect(body.performanceData.totalSize).toBe(50000);
+    expect(body.hasChanges).toBe(true);
+    expect(body.seoChanges).toHaveLength(1);
+    expect(body.seoChanges[0].field).toBe('title');
+    expect(body.seoChanges[0].baseline).toBe('Old Title');
+    expect(body.seoChanges[0].current).toBe('New Title');
   });
 
-  it('should include artifact URLs', async () => {
+  it('should return header changes when headers modified', async () => {
     const project = await projectRepo.create({
       name: 'Test Project',
       baseUrl: 'https://example.com',
@@ -305,53 +293,163 @@ describe('GET /api/v1/pages/:pageId', () => {
       },
     });
 
-    const run = await runRepo.create({
+    const baselineRun = await runRepo.create({
       projectId: project.id,
       isBaseline: true,
       config: {
         viewport: { width: 1920, height: 1080 },
         captureScreenshots: true,
-        captureHar: true,
+        captureHar: false,
+      },
+    });
+
+    const comparisonRun = await runRepo.create({
+      projectId: project.id,
+      isBaseline: false,
+      config: {
+        viewport: { width: 1920, height: 1080 },
+        captureScreenshots: true,
+        captureHar: false,
       },
     });
 
     const page = await pageRepo.create({
       projectId: project.id,
-      normalizedUrl: 'https://example.com/artifacts',
-      originalUrl: 'https://example.com/artifacts',
+      normalizedUrl: 'https://example.com/',
+      originalUrl: 'https://example.com/',
     });
 
+    // Baseline snapshot
     await snapshotRepo.create({
-      runId: run.id,
+      runId: baselineRun.id,
+      pageId: page.id,
+      isBaseline: true,
+      capturedAt: new Date(),
+      httpStatus: 200,
+      htmlHash: 'hash1',
+      headers: { 'content-type': 'text/html', 'cache-control': 'no-cache' },
+      seo: { title: 'Home', description: 'Homepage' },
+      hasScreenshot: true,
+      hasHar: false,
+      hasDiff: false,
+    });
+
+    // Comparison snapshot (cache-control changed)
+    await snapshotRepo.create({
+      runId: comparisonRun.id,
+      pageId: page.id,
+      isBaseline: false,
+      capturedAt: new Date(),
+      httpStatus: 200,
+      htmlHash: 'hash1',
+      headers: { 'content-type': 'text/html', 'cache-control': 'max-age=3600' },
+      seo: { title: 'Home', description: 'Homepage' },
+      hasScreenshot: true,
+      hasHar: false,
+      hasDiff: false,
+    });
+
+    const response = await app.inject({
+      method: 'GET',
+      url: `/api/v1/pages/${page.id}/diff`,
+    });
+
+    expect(response.statusCode).toBe(200);
+    const body = JSON.parse(response.body);
+    expect(body.hasChanges).toBe(true);
+    expect(body.headerChanges).toHaveLength(1);
+    expect(body.headerChanges[0].header).toBe('cache-control');
+    expect(body.headerChanges[0].baseline).toBe('no-cache');
+    expect(body.headerChanges[0].current).toBe('max-age=3600');
+  });
+
+  it('should return performance changes when metrics differ', async () => {
+    const project = await projectRepo.create({
+      name: 'Test Project',
+      baseUrl: 'https://example.com',
+      config: {
+        crawl: false,
+        viewport: { width: 1920, height: 1080 },
+        visualDiffThreshold: 0.01,
+      },
+    });
+
+    const baselineRun = await runRepo.create({
+      projectId: project.id,
+      isBaseline: true,
+      config: {
+        viewport: { width: 1920, height: 1080 },
+        captureScreenshots: true,
+        captureHar: false,
+      },
+    });
+
+    const comparisonRun = await runRepo.create({
+      projectId: project.id,
+      isBaseline: false,
+      config: {
+        viewport: { width: 1920, height: 1080 },
+        captureScreenshots: true,
+        captureHar: false,
+      },
+    });
+
+    const page = await pageRepo.create({
+      projectId: project.id,
+      normalizedUrl: 'https://example.com/',
+      originalUrl: 'https://example.com/',
+    });
+
+    // Baseline snapshot
+    await snapshotRepo.create({
+      runId: baselineRun.id,
       pageId: page.id,
       isBaseline: true,
       capturedAt: new Date(),
       httpStatus: 200,
       htmlHash: 'hash1',
       headers: { 'content-type': 'text/html' },
-      seo: { title: 'Artifacts Test', description: 'Test artifacts' },
+      seo: { title: 'Home', description: 'Homepage' },
+      performanceData: { loadTime: 1000, requestCount: 10, totalSize: 50000 },
       hasScreenshot: true,
-      hasHar: true,
+      hasHar: false,
+      hasDiff: false,
+    });
+
+    // Comparison snapshot (loadTime increased)
+    await snapshotRepo.create({
+      runId: comparisonRun.id,
+      pageId: page.id,
+      isBaseline: false,
+      capturedAt: new Date(),
+      httpStatus: 200,
+      htmlHash: 'hash1',
+      headers: { 'content-type': 'text/html' },
+      seo: { title: 'Home', description: 'Homepage' },
+      performanceData: { loadTime: 2000, requestCount: 10, totalSize: 50000 },
+      hasScreenshot: true,
+      hasHar: false,
       hasDiff: false,
     });
 
     const response = await app.inject({
       method: 'GET',
-      url: `/api/v1/pages/${page.id}`,
+      url: `/api/v1/pages/${page.id}/diff`,
     });
 
     expect(response.statusCode).toBe(200);
     const body = JSON.parse(response.body);
-    expect(body.artifacts).toBeDefined();
-    expect(body.artifacts.screenshotUrl).toContain(`/api/v1/artifacts/${page.id}/screenshot`);
-    expect(body.artifacts.harUrl).toContain(`/api/v1/artifacts/${page.id}/har`);
-    expect(body.artifacts.htmlUrl).toContain(`/api/v1/artifacts/${page.id}/html`);
+    expect(body.hasChanges).toBe(true);
+    expect(body.performanceChanges).toHaveLength(1);
+    expect(body.performanceChanges[0].metric).toBe('loadTime');
+    expect(body.performanceChanges[0].baseline).toBe(1000);
+    expect(body.performanceChanges[0].current).toBe(2000);
   });
 
   it('should validate UUID format for pageId', async () => {
     const response = await app.inject({
       method: 'GET',
-      url: '/api/v1/pages/invalid-uuid',
+      url: '/api/v1/pages/invalid-uuid/diff',
     });
 
     expect(response.statusCode).toBe(400);
