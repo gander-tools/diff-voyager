@@ -5,24 +5,12 @@
  * of the sync scan response structure implementation.
  */
 
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-
-async function checkPlaywrightAvailable(): Promise<boolean> {
-  try {
-    const { chromium } = await import('playwright');
-    const browser = await chromium.launch({ headless: true });
-    await browser.close();
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 import { randomUUID } from 'node:crypto';
 import { mkdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { FastifyInstance } from 'fastify';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../../../src/api/app.js';
 import {
   closeDatabase,
