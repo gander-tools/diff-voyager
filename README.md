@@ -29,7 +29,7 @@ packages/
 ## Requirements
 
 - **Node.js**: v22 or v24
-- **Bun**: Latest version (for frontend development)
+- **Bun** (for frontend development)
 - **Operating System**: Linux, macOS, or Windows with WSL2
 
 ## Quick Start
@@ -153,7 +153,7 @@ Filters to ignore expected differences (e.g., timestamps, analytics scripts, dyn
 
 ## Technology Stack
 
-- **Backend**: Node.js 22, TypeScript, Crawlee, Playwright, Fastify
+- **Backend**: Node.js, TypeScript, Crawlee, Playwright, Fastify
 - **Frontend**: Vue 3, TypeScript, Pinia, Vite, built with bun
 - **Testing**: Vitest
 - **Diff Engine**: Pixelmatch for visual comparison
