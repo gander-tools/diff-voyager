@@ -201,6 +201,41 @@ export class TaskQueue {
   }
 
   /**
+   * Get task progress statistics
+   *
+   * @returns Progress statistics
+   */
+  getProgress(): {
+    pending: number;
+    processing: number;
+    completed: number;
+    failed: number;
+    total: number;
+  } {
+    const stats = this.db
+      .prepare(
+        `
+      SELECT
+        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
+        SUM(CASE WHEN status = 'processing' THEN 1 ELSE 0 END) as processing,
+        SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
+        SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed,
+        COUNT(*) as total
+      FROM tasks
+    `,
+      )
+      .get() as {
+      pending: number;
+      processing: number;
+      completed: number;
+      failed: number;
+      total: number;
+    };
+
+    return stats;
+  }
+
+  /**
    * Convert database row to Task object
    */
   private rowToTask(row: TaskRow): Task {
