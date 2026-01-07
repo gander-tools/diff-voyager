@@ -132,6 +132,12 @@ export class SnapshotRepository {
     return rows.map((row) => this.rowToEntity(row));
   }
 
+  async findByPageId(pageId: string): Promise<SnapshotEntity[]> {
+    const stmt = this.db.prepare('SELECT * FROM snapshots WHERE page_id = ?');
+    const rows = stmt.all(pageId) as SnapshotRow[];
+    return rows.map((row) => this.rowToEntity(row));
+  }
+
   async update(id: string, input: UpdateSnapshotInput): Promise<void> {
     const stmt = this.db.prepare(`
       UPDATE snapshots SET
