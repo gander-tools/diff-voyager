@@ -4,7 +4,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { PerformanceData, SeoData } from '@gander-tools/diff-voyager-shared';
 import { type Browser, chromium, type Page } from 'playwright';
@@ -44,7 +44,8 @@ export class PageCapturer {
 
   async capture(input: CaptureInput): Promise<CaptureResult> {
     const pageDir = join(this.artifactsDir, input.pageId);
-    await mkdir(pageDir, { recursive: true });
+    // Create directory with restricted permissions (owner only: rwx------)
+    await mkdir(pageDir, { recursive: true, mode: 0o700 });
 
     if (!this.browser) {
       this.browser = await chromium.launch({ headless: true });
@@ -101,7 +102,8 @@ export class PageCapturer {
       const html = await page.content();
       const htmlHash = createHash('sha256').update(html).digest('hex');
       const htmlPath = join(pageDir, 'page.html');
-      await writeFile(htmlPath, html, 'utf-8');
+      // Write file with restricted permissions (owner only: rw-------)
+      await writeFile(htmlPath, html, { encoding: 'utf-8', mode: 0o600 });
 
       // Capture screenshot
       const screenshotPath = join(pageDir, 'screenshot.png');
@@ -109,6 +111,8 @@ export class PageCapturer {
         path: screenshotPath,
         fullPage: true,
       });
+      // Ensure screenshot has restricted permissions (owner only: rw-------)
+      await chmod(screenshotPath, 0o600);
 
       // Extract SEO data
       const seoData = await this.extractSeoData(page);
