@@ -168,379 +168,204 @@ Get task processing status.
 
 ## Scenario 3: Project & Results Retrieval
 
-### GET /projects
+### GET /projects/:projectId
 
-List all projects.
+Get full project details including status, runs, pages, and diffs.
 
 **Query Parameters:**
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `page` | number | 1 | Page number |
-| `limit` | number | 20 | Items per page |
-| `sortBy` | string | `createdAt` | Sort field |
-| `sortOrder` | string | `desc` | Sort direction |
+| `includePages` | boolean | `true` | Include pages in response |
+| `includeDiffs` | boolean | `true` | Include diffs for changed pages |
+| `changedOnly` | boolean | `false` | Show only pages with changes |
+| `diffType` | DiffType | - | Filter by diff type |
+| `severity` | DiffSeverity | - | Filter by severity |
+| `pageLimit` | number | `100` | Max pages to include |
+| `pageOffset` | number | `0` | Offset for pagination |
 
 **Response: 200 OK**
 
 ```json
 {
-  "items": [
-    {
-      "id": "550e8400-e29b-41d4-a716-446655440001",
-      "name": "My Project",
-      "description": "Project description",
-      "baseUrl": "https://example.com",
-      "status": "COMPLETED",
-      "createdAt": "2025-01-07T10:00:00Z",
-      "lastRunAt": "2025-01-07T10:05:00Z",
-      "pageCount": 25,
-      "hasBaseline": true
-    }
-  ],
-  "pagination": {
-    "page": 1,
-    "limit": 20,
-    "totalItems": 1,
-    "totalPages": 1,
-    "hasNext": false,
-    "hasPrevious": false
-  }
-}
-```
-
----
-
-### GET /projects/:projectId
-
-Get full project details.
-
-**Response: 200 OK**
-
-```json
-{
-  "project": {
-    "id": "550e8400-e29b-41d4-a716-446655440001",
-    "name": "My Project",
-    "description": "Project description",
-    "baseUrl": "https://example.com",
-    "config": {
-      "viewport": { "width": 1920, "height": 1080 },
-      "visualDiffThreshold": 0.01,
-      "maxPages": 100
-    },
-    "createdAt": "2025-01-07T10:00:00Z",
-    "updatedAt": "2025-01-07T10:05:00Z"
+  "id": "550e8400-e29b-41d4-a716-446655440001",
+  "name": "My Project",
+  "description": "Project description",
+  "baseUrl": "https://example.com",
+  "config": {
+    "crawl": true,
+    "viewport": { "width": 1920, "height": 1080 },
+    "visualDiffThreshold": 0.01,
+    "maxPages": 100
   },
-  "baseline": {
-    "id": "550e8400-e29b-41d4-a716-446655440020",
-    "projectId": "550e8400-e29b-41d4-a716-446655440001",
-    "runId": "550e8400-e29b-41d4-a716-446655440002",
-    "pageCount": 25,
-    "createdAt": "2025-01-07T10:00:00Z"
-  },
-  "latestRun": {
-    "id": "550e8400-e29b-41d4-a716-446655440002",
-    "status": "COMPLETED",
-    "isBaseline": true,
-    "statistics": {
-      "totalPages": 25,
-      "completedPages": 25,
-      "errorPages": 0,
-      "unchangedPages": 25,
-      "changedPages": 0
-    }
-  },
-  "runs": [
-    {
-      "id": "550e8400-e29b-41d4-a716-446655440002",
-      "status": "COMPLETED",
-      "isBaseline": true,
-      "createdAt": "2025-01-07T10:00:00Z",
-      "completedAt": "2025-01-07T10:05:00Z"
-    }
-  ],
+  "status": "COMPLETED",
+  "createdAt": "2025-01-07T10:00:00Z",
+  "updatedAt": "2025-01-07T10:05:00Z",
+
   "statistics": {
-    "totalRuns": 1,
     "totalPages": 25,
-    "lastRunAt": "2025-01-07T10:05:00Z",
-    "totalDifferences": 0,
-    "criticalDifferences": 0,
+    "completedPages": 25,
+    "errorPages": 0,
+    "changedPages": 3,
+    "unchangedPages": 22,
+    "totalDifferences": 8,
+    "criticalDifferences": 2,
     "acceptedDifferences": 0,
-    "mutedDifferences": 0
-  }
-}
-```
-
----
-
-### GET /projects/:projectId/runs
-
-List all runs for a project.
-
-**Response: 200 OK**
-
-```json
-{
-  "items": [
-    {
-      "id": "550e8400-e29b-41d4-a716-446655440002",
-      "projectId": "550e8400-e29b-41d4-a716-446655440001",
-      "status": "COMPLETED",
-      "isBaseline": true,
-      "createdAt": "2025-01-07T10:00:00Z",
-      "completedAt": "2025-01-07T10:05:00Z",
-      "statistics": {
-        "totalPages": 25,
-        "completedPages": 25,
-        "errorPages": 0,
-        "unchangedPages": 25,
-        "changedPages": 0,
-        "criticalDifferences": 0,
-        "acceptedDifferences": 0,
-        "mutedDifferences": 0
-      }
-    }
-  ],
-  "pagination": { ... }
-}
-```
-
----
-
-### GET /runs/:runId
-
-Get run details with pages.
-
-**Response: 200 OK**
-
-```json
-{
-  "run": {
-    "id": "550e8400-e29b-41d4-a716-446655440002",
-    "projectId": "550e8400-e29b-41d4-a716-446655440001",
-    "status": "COMPLETED",
-    "config": { ... },
-    "statistics": { ... },
-    "createdAt": "2025-01-07T10:00:00Z",
-    "completedAt": "2025-01-07T10:05:00Z"
+    "mutedDifferences": 1
   },
-  "project": {
-    "id": "550e8400-e29b-41d4-a716-446655440001",
-    "name": "My Project",
-    "baseUrl": "https://example.com"
-  },
+
   "pages": [
     {
       "id": "550e8400-e29b-41d4-a716-446655440100",
-      "normalizedUrl": "/page-1",
+      "url": "/page-1",
       "originalUrl": "https://example.com/page-1",
       "status": "COMPLETED",
       "httpStatus": 200,
-      "hasChanges": false,
-      "changeCount": 0,
-      "criticalChangeCount": 0,
-      "capturedAt": "2025-01-07T10:01:00Z"
-    }
-  ],
-  "statistics": { ... }
-}
-```
+      "capturedAt": "2025-01-07T10:01:00Z",
 
----
+      "seoData": {
+        "title": "Page Title",
+        "metaDescription": "Page description",
+        "canonical": "https://example.com/page-1",
+        "robots": "index, follow",
+        "h1": ["Main Heading"],
+        "lang": "en"
+      },
 
-### GET /runs/:runId/pages
+      "httpHeaders": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "max-age=3600"
+      },
 
-List pages for a run with filtering.
+      "performanceData": {
+        "loadTimeMs": 1250,
+        "requestCount": 45,
+        "totalSizeBytes": 2500000
+      },
 
-**Query Parameters:**
+      "artifacts": {
+        "screenshotUrl": "/api/v1/artifacts/page-100/screenshot",
+        "harUrl": "/api/v1/artifacts/page-100/har",
+        "htmlUrl": "/api/v1/artifacts/page-100/html"
+      },
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `status` | PageStatus | - | Filter by status |
-| `changedOnly` | boolean | false | Show only changed pages |
-| `diffType` | DiffType | - | Filter by diff type |
-| `severity` | DiffSeverity | - | Filter by severity |
-| `includeMuted` | boolean | false | Include muted diffs |
-| `page` | number | 1 | Page number |
-| `limit` | number | 50 | Items per page |
-| `sortBy` | string | `url` | Sort field |
-| `sortOrder` | string | `asc` | Sort direction |
-
-**Response: 200 OK**
-
-```json
-{
-  "items": [
+      "diff": null
+    },
     {
-      "id": "550e8400-e29b-41d4-a716-446655440100",
-      "normalizedUrl": "/page-1",
-      "originalUrl": "https://example.com/page-1",
+      "id": "550e8400-e29b-41d4-a716-446655440101",
+      "url": "/page-2",
+      "originalUrl": "https://example.com/page-2",
       "status": "COMPLETED",
       "httpStatus": 200,
-      "hasChanges": true,
-      "changeCount": 3,
-      "criticalChangeCount": 1,
-      "capturedAt": "2025-01-07T10:01:00Z"
+      "capturedAt": "2025-01-07T10:01:05Z",
+
+      "seoData": {
+        "title": "Changed Page Title",
+        "metaDescription": "New description",
+        "canonical": "https://example.com/page-2",
+        "robots": "index, follow",
+        "h1": ["Changed Heading"],
+        "lang": "en"
+      },
+
+      "httpHeaders": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache"
+      },
+
+      "performanceData": {
+        "loadTimeMs": 1890,
+        "requestCount": 52,
+        "totalSizeBytes": 2800000
+      },
+
+      "artifacts": {
+        "screenshotUrl": "/api/v1/artifacts/page-101/screenshot",
+        "diffImageUrl": "/api/v1/artifacts/page-101/diff",
+        "harUrl": "/api/v1/artifacts/page-101/har",
+        "htmlUrl": "/api/v1/artifacts/page-101/html"
+      },
+
+      "diff": {
+        "summary": {
+          "totalChanges": 5,
+          "criticalChanges": 1,
+          "changesByType": {
+            "SEO": 2,
+            "VISUAL": 1,
+            "HEADERS": 1,
+            "PERFORMANCE": 1
+          },
+          "visualDiffPercentage": 0.023,
+          "thresholdExceeded": true
+        },
+        "seoChanges": [
+          {
+            "field": "title",
+            "severity": "CRITICAL",
+            "baselineValue": "Original Title",
+            "currentValue": "Changed Page Title"
+          },
+          {
+            "field": "metaDescription",
+            "severity": "WARNING",
+            "baselineValue": "Original description",
+            "currentValue": "New description"
+          }
+        ],
+        "headerChanges": [
+          {
+            "headerName": "cache-control",
+            "severity": "INFO",
+            "baselineValue": "max-age=3600",
+            "currentValue": "no-cache"
+          }
+        ],
+        "performanceChanges": [
+          {
+            "metric": "loadTime",
+            "severity": "WARNING",
+            "baselineValue": 1250,
+            "currentValue": 1890,
+            "changePercentage": 51.2
+          }
+        ],
+        "visualDiff": {
+          "diffPercentage": 0.023,
+          "diffPixels": 4520,
+          "thresholdExceeded": true,
+          "baselineScreenshotUrl": "/api/v1/artifacts/page-101/baseline-screenshot",
+          "diffImageUrl": "/api/v1/artifacts/page-101/diff"
+        }
+      }
     }
   ],
-  "pagination": { ... }
+
+  "pagination": {
+    "totalPages": 25,
+    "limit": 100,
+    "offset": 0,
+    "hasMore": false
+  }
 }
 ```
 
----
-
-### GET /pages/:pageId
-
-Get full page details with snapshot.
-
-**Query Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `runId` | string | latest | Specific run ID |
-
-**Response: 200 OK**
-
-```json
-{
-  "page": {
-    "id": "550e8400-e29b-41d4-a716-446655440100",
-    "projectId": "550e8400-e29b-41d4-a716-446655440001",
-    "normalizedUrl": "/page-1",
-    "originalUrl": "https://example.com/page-1"
-  },
-  "snapshot": {
-    "id": "550e8400-e29b-41d4-a716-446655440200",
-    "pageId": "550e8400-e29b-41d4-a716-446655440100",
-    "runId": "550e8400-e29b-41d4-a716-446655440002",
-    "status": "COMPLETED",
-    "httpStatus": 200,
-    "redirectChain": [],
-    "htmlHash": "abc123...",
-    "httpHeaders": {
-      "content-type": "text/html; charset=utf-8",
-      "cache-control": "max-age=3600"
-    },
-    "seoData": {
-      "title": "Page Title",
-      "metaDescription": "Page description",
-      "canonical": "https://example.com/page-1",
-      "robots": "index, follow",
-      "h1": ["Main Heading"],
-      "h2": ["Subheading 1", "Subheading 2"],
-      "lang": "en"
-    },
-    "performanceData": {
-      "loadTimeMs": 1250,
-      "requestCount": 45,
-      "totalSizeBytes": 2500000
-    },
-    "artifacts": {
-      "screenshotPath": "/artifacts/proj-1/run-2/screenshots/page-100.png",
-      "harPath": "/artifacts/proj-1/run-2/har/page-100.har",
-      "diffImagePath": null
-    },
-    "capturedAt": "2025-01-07T10:01:00Z"
-  },
-  "baselineSnapshot": {
-    "id": "550e8400-e29b-41d4-a716-446655440199",
-    ...
-  },
-  "diff": null
-}
-```
-
----
-
-### GET /pages/:pageId/diff
-
-Get detailed diff for a page.
-
-**Query Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `runId` | string | latest | Specific run ID |
-| `includeMuted` | boolean | false | Include muted changes |
-
-**Response: 200 OK**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440300",
-  "pageId": "550e8400-e29b-41d4-a716-446655440100",
-  "runId": "550e8400-e29b-41d4-a716-446655440003",
-  "summary": {
-    "totalChanges": 5,
-    "criticalChanges": 1,
-    "acceptedChanges": 0,
-    "mutedChanges": 1,
-    "changesByType": {
-      "SEO": 2,
-      "VISUAL": 1,
-      "HEADERS": 1,
-      "PERFORMANCE": 1
-    },
-    "visualDiffPercentage": 0.023,
-    "visualDiffPixels": 4520,
-    "thresholdExceeded": true
-  },
-  "seoChanges": [
-    {
-      "field": "title",
-      "severity": "CRITICAL",
-      "status": "NEW",
-      "baselineValue": "Original Title",
-      "currentValue": "Changed Title"
-    },
-    {
-      "field": "metaDescription",
-      "severity": "WARNING",
-      "status": "NEW",
-      "baselineValue": "Original description",
-      "currentValue": "New description"
-    }
-  ],
-  "headerChanges": [
-    {
-      "headerName": "cache-control",
-      "severity": "INFO",
-      "status": "NEW",
-      "baselineValue": "max-age=3600",
-      "currentValue": "max-age=7200"
-    }
-  ],
-  "contentChanges": [],
-  "visualDiff": {
-    "diffPixels": 4520,
-    "diffPercentage": 0.023,
-    "thresholdExceeded": true,
-    "threshold": 0.01,
-    "baselineScreenshotUrl": "/api/v1/artifacts/snap-199/screenshot",
-    "currentScreenshotUrl": "/api/v1/artifacts/snap-200/screenshot",
-    "diffImageUrl": "/api/v1/artifacts/snap-200/diff"
-  },
-  "performanceChanges": [
-    {
-      "metric": "loadTime",
-      "severity": "WARNING",
-      "status": "NEW",
-      "baselineValue": 1250,
-      "currentValue": 1890,
-      "changePercentage": 51.2
-    }
-  ]
-}
-```
+**Status Values:**
+- `PENDING` - Task queued, not started
+- `IN_PROGRESS` - Scan/crawl is running
+- `INTERRUPTED` - Scan was interrupted, can be resumed
+- `COMPLETED` - Scan finished successfully
+- `FAILED` - Scan failed (see error field)
 
 ---
 
 ## Artifact Endpoints
 
-### GET /artifacts/:snapshotId/screenshot
+Binary artifacts are accessed by page ID. For comparison runs, baseline artifacts are also available.
 
-Get screenshot image for a snapshot.
+### GET /artifacts/:pageId/screenshot
+
+Get current screenshot for a page.
 
 **Response: 200 OK**
 
@@ -553,9 +378,23 @@ Content-Disposition: inline; filename="screenshot.png"
 
 ---
 
-### GET /artifacts/:snapshotId/diff
+### GET /artifacts/:pageId/baseline-screenshot
 
-Get visual diff image for a snapshot.
+Get baseline screenshot for comparison.
+
+**Response: 200 OK**
+
+```
+Content-Type: image/png
+```
+
+**Response: 404 Not Found** (if no baseline exists)
+
+---
+
+### GET /artifacts/:pageId/diff
+
+Get visual diff image between baseline and current.
 
 **Response: 200 OK**
 
@@ -566,13 +405,13 @@ Content-Disposition: inline; filename="diff.png"
 <binary PNG data>
 ```
 
-**Response: 404 Not Found** (if no diff exists)
+**Response: 404 Not Found** (if no diff exists or no changes)
 
 ---
 
-### GET /artifacts/:snapshotId/har
+### GET /artifacts/:pageId/har
 
-Get HAR file for a snapshot.
+Get HAR file for a page.
 
 **Response: 200 OK**
 
@@ -583,11 +422,13 @@ Content-Disposition: attachment; filename="page.har"
 <HAR JSON data>
 ```
 
+**Response: 404 Not Found** (if HAR not collected)
+
 ---
 
-### GET /artifacts/:snapshotId/html
+### GET /artifacts/:pageId/html
 
-Get captured HTML for a snapshot.
+Get captured HTML for a page.
 
 **Response: 200 OK**
 
@@ -599,53 +440,14 @@ Content-Type: text/html; charset=utf-8
 
 ---
 
-## Comparison Run (Future Extension)
-
-### POST /projects/:projectId/runs
-
-Create a comparison run against baseline.
-
-**Request Body:**
-
-```json
-{
-  "profile": "VISUAL_SEO",
-  "viewport": {
-    "width": 1920,
-    "height": 1080
-  }
-}
-```
-
-**Response: 202 Accepted**
-
-```json
-{
-  "taskId": "...",
-  "projectId": "...",
-  "runId": "...",
-  "status": "PENDING",
-  "statusUrl": "/api/v1/tasks/...",
-  "projectUrl": "/api/v1/projects/..."
-}
-```
-
----
-
 ## API Summary Table
 
 | Method | Endpoint | Description | Scenario |
 |--------|----------|-------------|----------|
 | POST | `/scans` | Create scan (`crawl: false` = single page, `crawl: true` = full crawl) | 1, 2 |
-| GET | `/tasks/:taskId` | Get task status | 1, 2 |
-| GET | `/projects` | List projects | 3 |
-| GET | `/projects/:projectId` | Get project details | 3 |
-| GET | `/projects/:projectId/runs` | List project runs | 3 |
-| GET | `/runs/:runId` | Get run details | 3 |
-| GET | `/runs/:runId/pages` | List run pages | 3 |
-| GET | `/pages/:pageId` | Get page details | 3 |
-| GET | `/pages/:pageId/diff` | Get page diff | 3 |
-| GET | `/artifacts/:snapshotId/screenshot` | Get screenshot | 3 |
-| GET | `/artifacts/:snapshotId/diff` | Get diff image | 3 |
-| GET | `/artifacts/:snapshotId/har` | Get HAR file | 3 |
-| GET | `/artifacts/:snapshotId/html` | Get HTML | 3 |
+| GET | `/projects/:projectId` | Get project with status, pages, diffs | 3 |
+| GET | `/artifacts/:pageId/screenshot` | Get screenshot | 3 |
+| GET | `/artifacts/:pageId/baseline-screenshot` | Get baseline screenshot | 3 |
+| GET | `/artifacts/:pageId/diff` | Get diff image | 3 |
+| GET | `/artifacts/:pageId/har` | Get HAR file | 3 |
+| GET | `/artifacts/:pageId/html` | Get HTML | 3 |
