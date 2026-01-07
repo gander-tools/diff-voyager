@@ -13,9 +13,7 @@
   "statsPersistedAt": "2026-01-07T21:27:51.199Z",
   "crawlerRuntimeMillis": 158,
   "crawlerLastStartTimestamp": 1767821271041,
-  "requestRetryHistogram": [
-    4
-  ],
+  "requestRetryHistogram": [4],
   "statsId": 0,
   "requestAvgFailedDurationMillis": null,
   "requestAvgFinishedDurationMillis": 26,
