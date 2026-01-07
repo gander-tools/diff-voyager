@@ -3,12 +3,12 @@
  * Runs before all tests
  */
 
-import { beforeAll, afterAll } from 'vitest';
+import { afterAll, beforeAll } from "vitest";
 
 beforeAll(() => {
-  // Global setup for all tests
+	// Global setup for all tests
 });
 
 afterAll(() => {
-  // Global cleanup
+	// Global cleanup
 });

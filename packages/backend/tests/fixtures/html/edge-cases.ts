@@ -2,9 +2,9 @@
  * Edge case HTML fixtures for testing
  */
 
-export const EMPTY_DOCUMENT = '';
+export const EMPTY_DOCUMENT = "";
 
-export const MALFORMED_HTML = '<html><head><title>Broken';
+export const MALFORMED_HTML = "<html><head><title>Broken";
 
 export const UNICODE_CONTENT = `<!DOCTYPE html>
 <html lang="pl">
@@ -22,11 +22,13 @@ export const UNICODE_CONTENT = `<!DOCTYPE html>
 export const LARGE_DOCUMENT = generateLargeHtml(500);
 
 function generateLargeHtml(paragraphs: number): string {
-  const content = Array.from({ length: paragraphs }, (_, i) =>
-    `<p>Paragraph ${i + 1}: Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>`
-  ).join('\n');
+	const content = Array.from(
+		{ length: paragraphs },
+		(_, i) =>
+			`<p>Paragraph ${i + 1}: Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>`,
+	).join("\n");
 
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">

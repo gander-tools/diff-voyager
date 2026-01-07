@@ -2,4 +2,4 @@
  * Services barrel export
  */
 
-export * from './scan-processor.js';
+export * from "./scan-processor.js";

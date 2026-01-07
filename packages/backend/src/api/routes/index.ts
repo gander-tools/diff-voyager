@@ -2,6 +2,6 @@
  * Routes barrel export
  */
 
-export * from './scans.js';
-export * from './projects.js';
-export * from './artifacts.js';
+export * from "./artifacts.js";
+export * from "./projects.js";
+export * from "./scans.js";

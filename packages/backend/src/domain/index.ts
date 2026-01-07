@@ -2,4 +2,4 @@
  * Domain barrel export
  */
 
-export * from './url-normalizer.js';
+export * from "./url-normalizer.js";

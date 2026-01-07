@@ -2,4 +2,4 @@
  * Crawler barrel export
  */
 
-export * from './page-capturer.js';
+export * from "./page-capturer.js";

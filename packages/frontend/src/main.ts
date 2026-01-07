@@ -4,12 +4,13 @@
  * Main entry point for the Vue 3 application.
  */
 
-import { createApp } from 'vue';
+import { createApp } from "vue";
+
 // import { createPinia } from 'pinia';
 // import App from './App.vue';
 // import router from './router';
 
-console.log('Diff Voyager Frontend - Starting...');
+console.log("Diff Voyager Frontend - Starting...");
 
 // Placeholder - will be implemented later
 // const app = createApp(App);
@@ -17,5 +18,5 @@ console.log('Diff Voyager Frontend - Starting...');
 // app.use(router);
 // app.mount('#app');
 
-console.log('Frontend will be initialized here');
-console.log('Vue 3 app with Pinia and Router will be set up');
+console.log("Frontend will be initialized here");
+console.log("Vue 3 app with Pinia and Router will be set up");
