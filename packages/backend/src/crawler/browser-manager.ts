@@ -10,6 +10,7 @@ export class BrowserManager {
   private config: BrowserManagerConfig;
   private browser: Browser | null = null;
   private isClosing = false;
+  private launchPromise: Promise<Browser> | null = null;
 
   constructor(config: BrowserManagerConfig = {}) {
     this.config = {
@@ -26,13 +27,27 @@ export class BrowserManager {
       throw new Error('BrowserManager is closing, cannot get browser');
     }
 
-    if (!this.browser) {
-      this.browser = await chromium.launch({
-        headless: this.config.headless,
-      });
+    // If browser already exists, return it
+    if (this.browser) {
+      return this.browser;
     }
 
-    return this.browser;
+    // If a launch is in progress, wait for it
+    if (this.launchPromise) {
+      return this.launchPromise;
+    }
+
+    // Start a new launch
+    this.launchPromise = chromium.launch({
+      headless: this.config.headless,
+    });
+
+    try {
+      this.browser = await this.launchPromise;
+      return this.browser;
+    } finally {
+      this.launchPromise = null;
+    }
   }
 
   /**
@@ -40,6 +55,11 @@ export class BrowserManager {
    */
   async close(): Promise<void> {
     this.isClosing = true;
+
+    // Wait for any pending launch to complete
+    if (this.launchPromise) {
+      await this.launchPromise;
+    }
 
     if (this.browser) {
       await this.browser.close();
