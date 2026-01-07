@@ -388,14 +388,16 @@ Development follows the [API Implementation Plan](docs/api-implementation-plan/)
 - [ ] DiffRepository (comparison results storage) - **Next priority**
 - [ ] Database indexes for query optimization
 
-### Phase 2: Domain Logic (30% 🟡)
+### Phase 2: Domain Logic (100% ✅)
 - [x] URL Normalizer (path normalization, query handling, tracking parameter removal)
 - [x] SEO data extraction (title, meta, canonical, robots, H1)
-- [ ] SEO Comparator (detect changes in meta tags and content) - **Next priority**
-- [ ] Visual Comparator (pixelmatch integration, diff image generation)
-- [ ] Header Comparator (HTTP header differences)
-- [ ] Performance Comparator (load time, request count, size deltas)
-- [ ] Full Page Comparator (orchestration of all comparators)
+- [x] SEO Comparator (detect changes in meta tags and content)
+- [x] Visual Comparator (pixelmatch integration, diff image generation)
+- [x] Header Comparator (HTTP header differences)
+- [x] Performance Comparator (load time, request count, size deltas)
+- [x] Full Page Comparator (orchestration of all comparators)
+
+**Implementation Complete:** All domain comparison logic implemented with TDD. Comparators for SEO metadata, visual screenshots (via pixelmatch), HTTP headers, and performance metrics. Full page comparator orchestrates all comparisons and produces unified diff summaries.
 
 ### Phase 3: Crawler (60% 🟡)
 - [x] Playwright browser setup
@@ -431,17 +433,17 @@ Development follows the [API Implementation Plan](docs/api-implementation-plan/)
 - [ ] POST /api/v1/projects/:id/runs (explicit comparison run creation)
 - [ ] GET /api/v1/runs/:runId (run details with statistics)
 - [ ] GET /api/v1/runs/:runId/pages (pages list with filtering)
-- [ ] GET /api/v1/pages/:pageId/diff (detailed diff view) - **Blocked by Phase 2**
+- [ ] GET /api/v1/pages/:pageId/diff (detailed diff view) - **Ready to implement**
 
 ### Phase 6: Integration & Workflows (40% 🟡)
 - [x] ScanProcessor (orchestrates project → run → capture → storage)
 - [x] Single page baseline capture (sync mode)
 - [x] Multiple comparison runs per project
 - [x] Artifact persistence (screenshots, HTML, performance data)
-- [ ] Baseline vs run comparison workflow - **Next priority**
-- [ ] Diff generation and storage
+- [ ] Baseline vs run comparison workflow - **Ready to implement (Phase 2 complete)**
+- [ ] Diff generation and storage - **Ready to implement (Phase 2 complete)**
 - [ ] Multi-page crawl workflow - **Blocked by Phase 3 Crawlee**
-- [ ] Async task processing integration - **Blocked by Phase 4**
+- [ ] Async task processing integration
 
 ### Phase 7: Polish & Production Ready (50% 🟡)
 - [x] Rate limiting on all API endpoints
@@ -488,10 +490,17 @@ Development follows the [API Implementation Plan](docs/api-implementation-plan/)
 - Path traversal protection with symlink validation
 
 ✅ **Testing:**
-- Unit tests for domain logic (URL normalizer)
+- Unit tests for domain logic (URL normalizer, all comparators)
 - Integration tests with mock HTTP server
 - Repository layer tests
 - API endpoint tests
+
+✅ **Comparison Logic (Phase 2 Complete):**
+- SEO comparison (title, meta, canonical, robots, H1)
+- Visual comparison (pixelmatch integration)
+- HTTP header comparison
+- Performance metrics comparison
+- Full page comparison orchestration
 
 **Not yet available:**
 
@@ -501,17 +510,10 @@ Development follows the [API Implementation Plan](docs/api-implementation-plan/)
 - Domain boundary checking
 - Concurrent page processing
 
-❌ **Comparison & Diff:**
-- Baseline vs run comparison
-- Visual diff generation (pixelmatch)
-- SEO change detection
-- Performance delta calculation
+🟡 **Diff Integration (Ready to implement):**
+- Baseline vs run comparison workflow
+- Diff generation during comparison runs
 - Diff acceptance and muting
-
-❌ **Task Queue:**
-- Background task processing
-- Progress tracking
-- Retry logic and error recovery
 
 ❌ **Frontend UI:**
 - Vue 3 interface
