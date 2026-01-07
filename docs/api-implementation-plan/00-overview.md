@@ -55,10 +55,28 @@ This document outlines the implementation plan for three core API scenarios of D
 - **Snapshot ID**: UUID v4, generated per page per run
 
 ### Queue & Processing
-- Persistent queue using SQLite
-- Atomic task processing with resume capability
+
+**Queue Options (choose one):**
+
+| # | Solution | Pros | Cons | Container |
+|---|----------|------|------|-----------|
+| 1 | **SQLite (DB records)** | Zero dependencies, atomic, persistent, simple | Single-writer, no distributed workers | None |
+| 2 | **BullMQ + Redis** | Node.js native, job scheduling, retries, dashboard | Redis dependency | `redis:alpine` |
+| 3 | **PostgreSQL SKIP LOCKED** | ACID, if already using Postgres | Heavier than SQLite | `postgres:alpine` |
+| 4 | **Beanstalkd** | Simple protocol, lightweight, tubes | Less popular, fewer Node.js libs | `schickling/beanstalkd` |
+| 5 | **RabbitMQ (AMQP)** | Mature, reliable, routing, clustering | Heavier, more complex | `rabbitmq:alpine` |
+
+**Recommendation for MVP:** SQLite (option 1)
+- No additional containers
+- Sufficient for solo developer use case
+- Easy to migrate to Redis/BullMQ later if needed
+
+**Queue features required:**
+- Persistent task storage (survives restart)
+- Atomic task claiming (no double processing)
 - Task states: PENDING, IN_PROGRESS, COMPLETED, FAILED
 - Retry logic with configurable attempt limits
+- Resume capability after interruption
 
 ### Storage
 - SQLite database for metadata and relationships
