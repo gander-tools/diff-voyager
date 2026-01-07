@@ -5,10 +5,34 @@
 import type { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve, normalize, sep } from 'node:path';
 
 interface ArtifactRoutesOptions extends FastifyPluginOptions {
   artifactsDir: string;
+}
+
+/**
+ * Validates and constructs a safe file path within the artifacts directory.
+ * Prevents path traversal attacks by ensuring the resolved path stays within artifactsDir.
+ *
+ * @param artifactsDir - The base artifacts directory
+ * @param pageId - The page ID from the request (user input)
+ * @param filename - The filename to access
+ * @returns The validated absolute file path
+ * @throws Error if the path would escape the artifacts directory
+ */
+function getSafeFilePath(artifactsDir: string, pageId: string, filename: string): string {
+  // Normalize and resolve paths
+  const baseDir = resolve(normalize(artifactsDir));
+  const requestedPath = resolve(baseDir, normalize(pageId), normalize(filename));
+
+  // Check if the requested path starts with the base directory
+  // This prevents path traversal attacks (e.g., ../../../etc/passwd)
+  if (!requestedPath.startsWith(baseDir + sep) && requestedPath !== baseDir) {
+    throw new Error('Invalid path: Path traversal attempt detected');
+  }
+
+  return requestedPath;
 }
 
 export async function registerArtifactRoutes(
@@ -29,10 +53,21 @@ export async function registerArtifactRoutes(
       },
     },
     async (request, reply) => {
-    const { pageId } = request.params;
-    const filePath = join(artifactsDir, pageId, 'screenshot.png');
+      const { pageId } = request.params;
 
-    if (!existsSync(filePath)) {
+      let filePath: string;
+      try {
+        filePath = getSafeFilePath(artifactsDir, pageId, 'screenshot.png');
+      } catch (error) {
+        return reply.status(400).send({
+          error: {
+            code: 'INVALID_REQUEST',
+            message: 'Invalid page ID',
+          },
+        });
+      }
+
+      if (!existsSync(filePath)) {
       return reply.status(404).send({
         error: {
           code: 'NOT_FOUND',
@@ -62,7 +97,18 @@ export async function registerArtifactRoutes(
     },
     async (request, reply) => {
       const { pageId } = request.params;
-      const filePath = join(artifactsDir, pageId, 'baseline-screenshot.png');
+
+      let filePath: string;
+      try {
+        filePath = getSafeFilePath(artifactsDir, pageId, 'baseline-screenshot.png');
+      } catch (error) {
+        return reply.status(400).send({
+          error: {
+            code: 'INVALID_REQUEST',
+            message: 'Invalid page ID',
+          },
+        });
+      }
 
       if (!existsSync(filePath)) {
         return reply.status(404).send({
@@ -90,10 +136,21 @@ export async function registerArtifactRoutes(
       },
     },
     async (request, reply) => {
-    const { pageId } = request.params;
-    const filePath = join(artifactsDir, pageId, 'diff.png');
+      const { pageId } = request.params;
 
-    if (!existsSync(filePath)) {
+      let filePath: string;
+      try {
+        filePath = getSafeFilePath(artifactsDir, pageId, 'diff.png');
+      } catch (error) {
+        return reply.status(400).send({
+          error: {
+            code: 'INVALID_REQUEST',
+            message: 'Invalid page ID',
+          },
+        });
+      }
+
+      if (!existsSync(filePath)) {
       return reply.status(404).send({
         error: {
           code: 'NOT_FOUND',
@@ -122,10 +179,21 @@ export async function registerArtifactRoutes(
       },
     },
     async (request, reply) => {
-    const { pageId } = request.params;
-    const filePath = join(artifactsDir, pageId, 'page.har');
+      const { pageId } = request.params;
 
-    if (!existsSync(filePath)) {
+      let filePath: string;
+      try {
+        filePath = getSafeFilePath(artifactsDir, pageId, 'page.har');
+      } catch (error) {
+        return reply.status(400).send({
+          error: {
+            code: 'INVALID_REQUEST',
+            message: 'Invalid page ID',
+          },
+        });
+      }
+
+      if (!existsSync(filePath)) {
       return reply.status(404).send({
         error: {
           code: 'NOT_FOUND',
@@ -154,10 +222,21 @@ export async function registerArtifactRoutes(
       },
     },
     async (request, reply) => {
-    const { pageId } = request.params;
-    const filePath = join(artifactsDir, pageId, 'page.html');
+      const { pageId } = request.params;
 
-    if (!existsSync(filePath)) {
+      let filePath: string;
+      try {
+        filePath = getSafeFilePath(artifactsDir, pageId, 'page.html');
+      } catch (error) {
+        return reply.status(400).send({
+          error: {
+            code: 'INVALID_REQUEST',
+            message: 'Invalid page ID',
+          },
+        });
+      }
+
+      if (!existsSync(filePath)) {
       return reply.status(404).send({
         error: {
           code: 'NOT_FOUND',
