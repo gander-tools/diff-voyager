@@ -640,30 +640,66 @@ Phase 7 (Polish)
 ## Success Criteria
 
 ### Scenario 1 Complete When:
-- [x] POST /scans/single-page accepts URL and returns task ID
-- [x] Task processes and captures page
-- [x] Project and baseline created
-- [x] All artifacts stored
-- [x] Retrievable via Scenario 3 endpoints
+- [x] POST /api/v1/scans accepts URL and returns task ID ✅
+- [x] Task processes and captures page ✅ (sync mode implemented)
+- [x] Project and baseline created ✅
+- [x] All artifacts stored ✅ (screenshots, HTML, HAR)
+- [x] Retrievable via Scenario 3 endpoints ✅
+
+**Status: Scenario 1 COMPLETE for single-page scans in sync mode** ✅
 
 ### Scenario 2 Complete When:
-- [x] POST /scans/crawl accepts URL and crawl options
-- [x] Crawler discovers and captures all pages
-- [x] Progress trackable via task status
-- [x] All pages and artifacts stored
-- [x] Retrievable via Scenario 3 endpoints
+- [ ] POST /api/v1/scans with `crawl: true` accepts URL and crawl options 🟡 (endpoint exists, crawling not implemented)
+- [ ] Crawler discovers and captures all pages ❌ (Crawlee integration pending)
+- [ ] Progress trackable via task status ❌ (task queue pending)
+- [ ] All pages and artifacts stored ❌ (blocked by crawler)
+- [ ] Retrievable via Scenario 3 endpoints ❌ (blocked by crawler)
+
+**Status: Scenario 2 BLOCKED - Needs Phase 3 (Crawlee) and Phase 4 (Task Queue)** 🔴
 
 ### Scenario 3 Complete When:
-- [x] GET /projects returns project list
-- [x] GET /projects/:id returns full project details
-- [x] GET /runs/:id/pages returns pages with filtering
-- [x] GET /pages/:id returns page with snapshot
-- [x] GET /pages/:id/diff returns detailed diff
-- [x] GET /artifacts/:id/* returns binary artifacts
+- [ ] GET /api/v1/projects (list all projects) ❌ (not implemented yet)
+- [x] GET /api/v1/projects/:id returns full project details ✅
+- [ ] GET /api/v1/runs/:id (run details) ❌ (not implemented)
+- [ ] GET /api/v1/runs/:id/pages (pages list with filtering) ❌ (not implemented)
+- [ ] GET /api/v1/pages/:id (page with snapshot) ❌ (not implemented)
+- [ ] GET /api/v1/pages/:id/diff (detailed diff) ❌ (blocked by diff comparator)
+- [x] GET /api/v1/artifacts/:pageId/* returns binary artifacts ✅ (screenshot, HTML, HAR)
+
+**Status: Scenario 3 PARTIAL - Project retrieval works, diff viewing blocked** 🟡
 
 ### Overall Complete When:
-- [x] All unit tests pass (90%+ coverage)
-- [x] All integration tests pass
-- [x] API responds correctly to all documented requests
-- [x] Mock Server tests verify diff detection accuracy
-- [x] Performance acceptable for typical usage
+- [x] Unit tests exist and pass ✅ (4 test files)
+- [x] Integration tests with mock server ✅ (scan endpoints, multiple runs)
+- [ ] API responds correctly to all documented requests 🟡 (partial - some endpoints missing)
+- [ ] Mock Server tests verify diff detection accuracy ❌ (comparators not implemented)
+- [ ] Performance acceptable for typical usage 🟡 (single page works well, multi-page untested)
+
+---
+
+## Implementation Status Update (2026-01-07)
+
+**What's Working:**
+- ✅ Single page capture (sync and async modes)
+- ✅ Project creation with baseline runs
+- ✅ Multiple comparison runs per project
+- ✅ Full artifact capture and storage (screenshots, HTML, SEO, HAR)
+- ✅ Artifact retrieval via API
+- ✅ SQLite storage with proper schema
+- ✅ URL normalization
+- ✅ Security features (rate limiting, path traversal protection)
+- ✅ Swagger UI documentation at `/docs`
+
+**What's Not Working Yet:**
+- ❌ Multi-page crawling (Crawlee integration pending)
+- ❌ Diff comparison (all comparators pending)
+- ❌ Task queue and background processing
+- ❌ Most Scenario 3 retrieval endpoints
+- ❌ Frontend UI
+
+**Next Priorities:**
+1. **SEO Comparator** - Enable detection of SEO changes between runs
+2. **Visual Comparator** - Implement pixelmatch for screenshot diffs
+3. **Diff API endpoints** - GET /pages/:id/diff to view comparisons
+4. **Crawlee Integration** - Multi-page discovery and crawling
+5. **Task Queue** - Background processing for large crawls
