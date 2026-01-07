@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "@gander-tools/diff-voyager-shared": "*",
+    "better-sqlite3": "^11.7.0",
     "crawlee": "^3.12.3",
     "fastify": "^5.2.0",
     "pixelmatch": "^7.0.0",
@@ -44,9 +45,12 @@
     "pngjs": "^7.0.0"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^22.10.5",
     "@types/pixelmatch": "^5.2.6",
     "@types/pngjs": "^6.0.5",
+    "supertest": "^7.0.0",
+    "@types/supertest": "^6.0.2",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3",
     "vitest": "^4.0.0"
