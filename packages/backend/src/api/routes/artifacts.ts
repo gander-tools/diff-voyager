@@ -3,9 +3,8 @@
  */
 
 import type { FastifyInstance, FastifyPluginOptions } from 'fastify';
-import { readFile } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
-import { join, resolve, normalize, sep } from 'node:path';
+import { readFile, realpath, stat } from 'node:fs/promises';
+import { resolve, sep } from 'node:path';
 import { FILE_SYSTEM_RATE_LIMIT, LARGE_FILE_RATE_LIMIT } from '../middleware/rate-limiting.js';
 
 interface ArtifactRoutesOptions extends FastifyPluginOptions {
@@ -35,27 +34,71 @@ function sendErrorResponse(
 }
 
 /**
- * Validates and constructs a safe file path within the artifacts directory.
- * Prevents path traversal attacks by ensuring the resolved path stays within artifactsDir.
+ * Validates and securely accesses a file within the artifacts directory.
+ * Prevents path traversal attacks, symlink attacks, and directory traversal.
  *
  * @param artifactsDir - The base artifacts directory
  * @param pageId - The page ID from the request (user input)
  * @param filename - The filename to access
- * @returns The validated absolute file path
- * @throws Error if the path would escape the artifacts directory
+ * @returns Object with validated file path and file content
+ * @throws Error if validation fails or file doesn't exist
  */
-function getSafeFilePath(artifactsDir: string, pageId: string, filename: string): string {
-  // Normalize and resolve paths
-  const baseDir = resolve(normalize(artifactsDir));
-  const requestedPath = resolve(baseDir, normalize(pageId), normalize(filename));
+async function getSecureFile(
+  artifactsDir: string,
+  pageId: string,
+  filename: string
+): Promise<{ path: string; content: Buffer | string; isText: boolean }> {
+  // Validate inputs are not empty and don't contain null bytes
+  if (!pageId || pageId.trim() === '' || pageId.includes('\0')) {
+    throw new Error('Invalid path: pageId is invalid');
+  }
+  if (!filename || filename.trim() === '' || filename.includes('\0')) {
+    throw new Error('Invalid path: filename is invalid');
+  }
 
-  // Check if the requested path starts with the base directory
-  // This prevents path traversal attacks (e.g., ../../../etc/passwd)
-  if (!requestedPath.startsWith(baseDir + sep) && requestedPath !== baseDir) {
+  // Resolve base directory
+  const baseDir = resolve(artifactsDir);
+  const requestedPath = resolve(baseDir, pageId, filename);
+
+  // FIRST CHECK: Ensure requested path is within base directory (before resolving symlinks)
+  if (!requestedPath.startsWith(baseDir + sep)) {
     throw new Error('Invalid path: Path traversal attempt detected');
   }
 
-  return requestedPath;
+  // Check if file exists
+  let fileStat;
+  try {
+    fileStat = await stat(requestedPath);
+  } catch (error) {
+    throw new Error('File not found');
+  }
+
+  // Ensure it's a regular file (not directory, socket, etc.)
+  if (!fileStat.isFile()) {
+    throw new Error('Invalid path: Not a regular file');
+  }
+
+  // CRITICAL: Resolve symlinks and verify real path is still within baseDir
+  // This prevents symlink attacks where someone creates a symlink to /etc/passwd
+  let realPath: string;
+  try {
+    realPath = await realpath(requestedPath);
+  } catch (error) {
+    throw new Error('Invalid path: Cannot resolve file path');
+  }
+
+  // SECOND CHECK: Ensure the real path (after resolving symlinks) is within baseDir
+  if (!realPath.startsWith(baseDir + sep)) {
+    throw new Error('Invalid path: Symlink points outside artifacts directory');
+  }
+
+  // Determine if file should be read as text or binary
+  const isTextFile = filename.endsWith('.html') || filename.endsWith('.har');
+
+  // Read file content
+  const content = await readFile(realPath, isTextFile ? 'utf-8' : undefined);
+
+  return { path: realPath, content, isText: isTextFile };
 }
 
 export async function registerArtifactRoutes(
@@ -71,22 +114,19 @@ export async function registerArtifactRoutes(
     async (request, reply) => {
       const { pageId } = request.params;
 
-      let filePath: string;
       try {
-        filePath = getSafeFilePath(artifactsDir, pageId, 'screenshot.png');
+        const file = await getSecureFile(artifactsDir, pageId, 'screenshot.png');
+        return reply
+          .header('Content-Type', 'image/png')
+          .header('Content-Disposition', 'inline; filename="screenshot.png"')
+          .send(file.content);
       } catch (error) {
-        return sendErrorResponse(reply, 400, 'INVALID_REQUEST', 'Invalid page ID');
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        if (message.includes('not found')) {
+          return sendErrorResponse(reply, 404, 'NOT_FOUND', 'Screenshot not found');
+        }
+        return sendErrorResponse(reply, 400, 'INVALID_REQUEST', 'Invalid request');
       }
-
-      if (!existsSync(filePath)) {
-        return sendErrorResponse(reply, 404, 'NOT_FOUND', 'Screenshot not found');
-      }
-
-      const content = await readFile(filePath);
-      return reply
-        .header('Content-Type', 'image/png')
-        .header('Content-Disposition', 'inline; filename="screenshot.png"')
-        .send(content);
     }
   );
 
@@ -97,19 +137,16 @@ export async function registerArtifactRoutes(
     async (request, reply) => {
       const { pageId } = request.params;
 
-      let filePath: string;
       try {
-        filePath = getSafeFilePath(artifactsDir, pageId, 'baseline-screenshot.png');
+        const file = await getSecureFile(artifactsDir, pageId, 'baseline-screenshot.png');
+        return reply.header('Content-Type', 'image/png').send(file.content);
       } catch (error) {
-        return sendErrorResponse(reply, 400, 'INVALID_REQUEST', 'Invalid page ID');
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        if (message.includes('not found')) {
+          return sendErrorResponse(reply, 404, 'NOT_FOUND', 'Baseline screenshot not found');
+        }
+        return sendErrorResponse(reply, 400, 'INVALID_REQUEST', 'Invalid request');
       }
-
-      if (!existsSync(filePath)) {
-        return sendErrorResponse(reply, 404, 'NOT_FOUND', 'Baseline screenshot not found');
-      }
-
-      const content = await readFile(filePath);
-      return reply.header('Content-Type', 'image/png').send(content);
     }
   );
 
@@ -120,22 +157,19 @@ export async function registerArtifactRoutes(
     async (request, reply) => {
       const { pageId } = request.params;
 
-      let filePath: string;
       try {
-        filePath = getSafeFilePath(artifactsDir, pageId, 'diff.png');
+        const file = await getSecureFile(artifactsDir, pageId, 'diff.png');
+        return reply
+          .header('Content-Type', 'image/png')
+          .header('Content-Disposition', 'inline; filename="diff.png"')
+          .send(file.content);
       } catch (error) {
-        return sendErrorResponse(reply, 400, 'INVALID_REQUEST', 'Invalid page ID');
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        if (message.includes('not found')) {
+          return sendErrorResponse(reply, 404, 'NOT_FOUND', 'Diff image not found');
+        }
+        return sendErrorResponse(reply, 400, 'INVALID_REQUEST', 'Invalid request');
       }
-
-      if (!existsSync(filePath)) {
-        return sendErrorResponse(reply, 404, 'NOT_FOUND', 'Diff image not found');
-      }
-
-      const content = await readFile(filePath);
-      return reply
-        .header('Content-Type', 'image/png')
-        .header('Content-Disposition', 'inline; filename="diff.png"')
-        .send(content);
     }
   );
 
@@ -146,22 +180,19 @@ export async function registerArtifactRoutes(
     async (request, reply) => {
       const { pageId } = request.params;
 
-      let filePath: string;
       try {
-        filePath = getSafeFilePath(artifactsDir, pageId, 'page.har');
+        const file = await getSecureFile(artifactsDir, pageId, 'page.har');
+        return reply
+          .header('Content-Type', 'application/json')
+          .header('Content-Disposition', 'attachment; filename="page.har"')
+          .send(file.content);
       } catch (error) {
-        return sendErrorResponse(reply, 400, 'INVALID_REQUEST', 'Invalid page ID');
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        if (message.includes('not found')) {
+          return sendErrorResponse(reply, 404, 'NOT_FOUND', 'HAR file not found');
+        }
+        return sendErrorResponse(reply, 400, 'INVALID_REQUEST', 'Invalid request');
       }
-
-      if (!existsSync(filePath)) {
-        return sendErrorResponse(reply, 404, 'NOT_FOUND', 'HAR file not found');
-      }
-
-      const content = await readFile(filePath, 'utf-8');
-      return reply
-        .header('Content-Type', 'application/json')
-        .header('Content-Disposition', 'attachment; filename="page.har"')
-        .send(content);
     }
   );
 
@@ -172,19 +203,16 @@ export async function registerArtifactRoutes(
     async (request, reply) => {
       const { pageId } = request.params;
 
-      let filePath: string;
       try {
-        filePath = getSafeFilePath(artifactsDir, pageId, 'page.html');
+        const file = await getSecureFile(artifactsDir, pageId, 'page.html');
+        return reply.header('Content-Type', 'text/html; charset=utf-8').send(file.content);
       } catch (error) {
-        return sendErrorResponse(reply, 400, 'INVALID_REQUEST', 'Invalid page ID');
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        if (message.includes('not found')) {
+          return sendErrorResponse(reply, 404, 'NOT_FOUND', 'HTML file not found');
+        }
+        return sendErrorResponse(reply, 400, 'INVALID_REQUEST', 'Invalid request');
       }
-
-      if (!existsSync(filePath)) {
-        return sendErrorResponse(reply, 404, 'NOT_FOUND', 'HTML file not found');
-      }
-
-      const content = await readFile(filePath, 'utf-8');
-      return reply.header('Content-Type', 'text/html; charset=utf-8').send(content);
     }
   );
 }

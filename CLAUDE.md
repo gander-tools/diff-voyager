@@ -97,17 +97,41 @@ diff-voyager/
 
 2. **Path Traversal Prevention:**
    - NEVER use user input directly in file paths with `path.join()`, `fs.readFile()`, etc.
-   - ALWAYS validate and sanitize path components
-   - Use a validation function to ensure paths stay within allowed directories
-   - Example:
+   - ALWAYS validate inputs (check for empty strings, null bytes)
+   - ALWAYS validate requested paths stay within allowed directories
+   - ALWAYS resolve symlinks and validate the real path
+   - Example secure file access function:
      ```typescript
-     function getSafeFilePath(baseDir: string, userInput: string, filename: string): string {
-       const normalized = resolve(normalize(baseDir));
-       const requested = resolve(normalized, normalize(userInput), normalize(filename));
-       if (!requested.startsWith(normalized + sep)) {
+     async function getSecureFile(baseDir: string, userPath: string, filename: string) {
+       // Validate inputs (no empty strings, no null bytes)
+       if (!userPath || userPath.includes('\0') || !filename || filename.includes('\0')) {
+         throw new Error('Invalid path');
+       }
+
+       const base = resolve(baseDir);
+       const requested = resolve(base, userPath, filename);
+
+       // FIRST CHECK: Path must be within baseDir
+       if (!requested.startsWith(base + sep)) {
          throw new Error('Path traversal detected');
        }
-       return requested;
+
+       // Verify file exists and is a regular file
+       const fileStat = await stat(requested);
+       if (!fileStat.isFile()) {
+         throw new Error('Not a regular file');
+       }
+
+       // CRITICAL: Resolve symlinks and verify real path
+       const realPath = await realpath(requested);
+
+       // SECOND CHECK: Real path must still be within baseDir
+       // This prevents symlink attacks
+       if (!realPath.startsWith(base + sep)) {
+         throw new Error('Symlink points outside allowed directory');
+       }
+
+       return await readFile(realPath);
      }
      ```
 
