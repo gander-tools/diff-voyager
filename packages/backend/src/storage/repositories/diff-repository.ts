@@ -72,7 +72,7 @@ export class DiffRepository {
 
     const rows = stmt.all(runId) as DiffRow[];
 
-    return rows.map(row => this.rowToEntity(row));
+    return rows.map((row) => this.rowToEntity(row));
   }
 
   private rowToEntity(row: DiffRow): Diff {
