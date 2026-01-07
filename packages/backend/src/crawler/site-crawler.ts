@@ -3,9 +3,15 @@
  * Discovers and crawls multiple pages within a domain
  */
 
-import { CheerioCrawler, type CheerioCrawlerOptions } from 'crawlee';
-import type { CrawlProgress, CrawlResult, ProcessPageInput, ProcessPageResult, SiteCrawlerConfig } from './types.js';
+import { CheerioCrawler } from 'crawlee';
 import type { SinglePageProcessor } from './single-page-processor.js';
+import type {
+  CrawlProgress,
+  CrawlResult,
+  ProcessPageInput,
+  ProcessPageResult,
+  SiteCrawlerConfig,
+} from './types.js';
 
 export class SiteCrawler {
   private config: SiteCrawlerConfig;
@@ -58,7 +64,7 @@ export class SiteCrawler {
       maxRequestsPerCrawl: this.config.maxPages,
       maxConcurrency: this.config.concurrency,
 
-      async requestHandler({ request, $, enqueueLinks }) {
+      requestHandler: async ({ request, enqueueLinks }) => {
         const url = request.url;
 
         try {
@@ -113,7 +119,7 @@ export class SiteCrawler {
             onProgress({ ...this.progress });
           }
         }
-      }.bind(this),
+      },
 
       failedRequestHandler: async ({ request }, error) => {
         const errorMessage = error instanceof Error ? error.message : 'Request failed';
@@ -143,7 +149,8 @@ export class SiteCrawler {
    */
   private shouldCrawlUrl(url: string, baseDomain: string): boolean {
     try {
-      const parsed = new URL(url);
+      // Validate URL format
+      new URL(url);
 
       // Check if in same domain
       if (this.config.stayInDomain) {
