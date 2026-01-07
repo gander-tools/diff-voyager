@@ -8,7 +8,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 // Check if Playwright browsers are available
-const _PLAYWRIGHT_AVAILABLE = await checkPlaywrightAvailable();
+const PLAYWRIGHT_AVAILABLE = await checkPlaywrightAvailable();
 
 async function checkPlaywrightAvailable(): Promise<boolean> {
   try {
@@ -114,7 +114,7 @@ describe('POST /api/v1/scans', () => {
 
   // TODO: Fix sync scan response structure - currently returns incomplete data
   // See: https://github.com/gander-tools/diff-voyager/issues/XXX
-  it.skip('should return 200 with full result for sync scan', async () => {
+  it.skipIf(!PLAYWRIGHT_AVAILABLE)('should return 200 with full result for sync scan', async () => {
     const response = await app.inject({
       method: 'POST',
       url: '/api/v1/scans',
@@ -135,7 +135,7 @@ describe('POST /api/v1/scans', () => {
 
   // TODO: Fix sync scan response structure - currently returns incomplete data
   // See: https://github.com/gander-tools/diff-voyager/issues/XXX
-  it.skip('should accept optional configuration', async () => {
+  it.skipIf(!PLAYWRIGHT_AVAILABLE)('should accept optional configuration', async () => {
     const response = await app.inject({
       method: 'POST',
       url: '/api/v1/scans',
@@ -199,7 +199,7 @@ describe('GET /api/v1/projects/:projectId', () => {
 
   // TODO: Fix sync scan response structure - currently returns incomplete data
   // See: https://github.com/gander-tools/diff-voyager/issues/XXX
-  it.skip('should return project details after scan', async () => {
+  it.skipIf(!PLAYWRIGHT_AVAILABLE)('should return project details after scan', async () => {
     // Create a scan first
     const scanResponse = await app.inject({
       method: 'POST',
