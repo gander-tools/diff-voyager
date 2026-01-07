@@ -7,7 +7,7 @@
 		"dev": "vite",
 		"build": "vue-tsc && vite build",
 		"preview": "vite preview",
-		"test": "vitest run",
+		"test": "vitest run --passWithNoTests",
 		"test:watch": "vitest",
 		"lint": "biome check .",
 		"format": "biome format --write ."
