@@ -130,4 +130,233 @@ export async function registerPageRoutes(
       });
     },
   );
+
+  /**
+   * GET /pages/:pageId/diff
+   *
+   * Get detailed diff for a page comparing baseline and latest comparison run
+   */
+  app.get(
+    '/pages/:pageId/diff',
+    {
+      config: DATABASE_READ_RATE_LIMIT,
+      schema: {
+        tags: ['pages'],
+        description: 'Get detailed diff for a page',
+        params: {
+          type: 'object',
+          properties: {
+            pageId: {
+              type: 'string',
+              format: 'uuid',
+              description: 'Page ID',
+            },
+          },
+          required: ['pageId'],
+        },
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              hasChanges: { type: 'boolean' },
+              seoChanges: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    field: { type: 'string' },
+                    baseline: { type: 'string' },
+                    current: { type: 'string' },
+                  },
+                },
+              },
+              headerChanges: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    header: { type: 'string' },
+                    baseline: { type: 'string' },
+                    current: { type: 'string' },
+                  },
+                },
+              },
+              performanceChanges: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    metric: { type: 'string' },
+                    baseline: { type: 'number' },
+                    current: { type: 'number' },
+                  },
+                },
+              },
+              visualDiff: {
+                type: 'object',
+                nullable: true,
+                properties: {
+                  diffImageUrl: { type: 'string' },
+                  pixelDifference: { type: 'number' },
+                },
+              },
+            },
+            required: ['hasChanges', 'seoChanges', 'headerChanges', 'performanceChanges'],
+          },
+          404: {
+            type: 'object',
+            properties: {
+              error: {
+                type: 'object',
+                properties: {
+                  code: { type: 'string' },
+                  message: { type: 'string' },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      const { pageId } = request.params as { pageId: string };
+
+      // Find page
+      const page = await pageRepo.findById(pageId);
+
+      if (!page) {
+        return reply.code(404).send({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Page not found',
+          },
+        });
+      }
+
+      // Get all snapshots for this page
+      const allSnapshots = await snapshotRepo.findByPageId(pageId);
+
+      // Find baseline and comparison snapshots
+      const baselineSnapshot = allSnapshots.find((s) => s.runId && s.runId !== '');
+      const comparisonSnapshot = allSnapshots.find(
+        (s) => s.runId && s.runId !== '' && s.runId !== baselineSnapshot?.runId,
+      );
+
+      // If no comparison exists, return 404
+      if (!comparisonSnapshot) {
+        return reply.code(404).send({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'No comparison run found for this page',
+          },
+        });
+      }
+
+      // Compare SEO data
+      const seoChanges = [];
+      if (baselineSnapshot?.seoData && comparisonSnapshot.seoData) {
+        const baselineSeo = baselineSnapshot.seoData;
+        const currentSeo = comparisonSnapshot.seoData;
+
+        // Check title
+        if (baselineSeo.title !== currentSeo.title) {
+          seoChanges.push({
+            field: 'title',
+            baseline: baselineSeo.title || '',
+            current: currentSeo.title || '',
+          });
+        }
+
+        // Check description
+        if (baselineSeo.description !== currentSeo.description) {
+          seoChanges.push({
+            field: 'description',
+            baseline: baselineSeo.description || '',
+            current: currentSeo.description || '',
+          });
+        }
+      }
+
+      // Compare headers
+      const headerChanges = [];
+      if (baselineSnapshot?.headers && comparisonSnapshot.headers) {
+        const baselineHeaders = baselineSnapshot.headers;
+        const currentHeaders = comparisonSnapshot.headers;
+
+        // Get all unique header keys
+        const allHeaderKeys = new Set([
+          ...Object.keys(baselineHeaders),
+          ...Object.keys(currentHeaders),
+        ]);
+
+        for (const header of allHeaderKeys) {
+          const baselineValue = baselineHeaders[header];
+          const currentValue = currentHeaders[header];
+
+          if (baselineValue !== currentValue) {
+            headerChanges.push({
+              header,
+              baseline: baselineValue || '',
+              current: currentValue || '',
+            });
+          }
+        }
+      }
+
+      // Compare performance data
+      const performanceChanges = [];
+      if (baselineSnapshot?.performanceData && comparisonSnapshot.performanceData) {
+        const baselinePerf = baselineSnapshot.performanceData;
+        const currentPerf = comparisonSnapshot.performanceData;
+
+        // Check loadTime
+        if (baselinePerf.loadTime !== currentPerf.loadTime) {
+          performanceChanges.push({
+            metric: 'loadTime',
+            baseline: baselinePerf.loadTime || 0,
+            current: currentPerf.loadTime || 0,
+          });
+        }
+
+        // Check requestCount
+        if (baselinePerf.requestCount !== currentPerf.requestCount) {
+          performanceChanges.push({
+            metric: 'requestCount',
+            baseline: baselinePerf.requestCount || 0,
+            current: currentPerf.requestCount || 0,
+          });
+        }
+
+        // Check totalSize
+        if (baselinePerf.totalSize !== currentPerf.totalSize) {
+          performanceChanges.push({
+            metric: 'totalSize',
+            baseline: baselinePerf.totalSize || 0,
+            current: currentPerf.totalSize || 0,
+          });
+        }
+      }
+
+      // Determine if there are any changes
+      const hasChanges =
+        seoChanges.length > 0 ||
+        headerChanges.length > 0 ||
+        performanceChanges.length > 0 ||
+        baselineSnapshot?.htmlHash !== comparisonSnapshot.htmlHash;
+
+      // Return diff details
+      return reply.send({
+        hasChanges,
+        seoChanges,
+        headerChanges,
+        performanceChanges,
+        visualDiff: comparisonSnapshot.diffImagePath
+          ? {
+              diffImageUrl: `/api/v1/artifacts/${pageId}/diff`,
+              pixelDifference: 0, // TODO: Store this in snapshot
+            }
+          : null,
+      });
+    },
+  );
 }
