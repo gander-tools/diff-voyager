@@ -6,6 +6,7 @@ import type { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, resolve, normalize, sep } from 'node:path';
+import { FILE_SYSTEM_RATE_LIMIT, LARGE_FILE_RATE_LIMIT } from '../middleware/rate-limiting.js';
 
 interface ArtifactRoutesOptions extends FastifyPluginOptions {
   artifactsDir: string;
@@ -66,14 +67,7 @@ export async function registerArtifactRoutes(
   // Screenshot
   app.get<{ Params: { pageId: string } }>(
     '/artifacts/:pageId/screenshot',
-    {
-      config: {
-        rateLimit: {
-          max: 50,
-          timeWindow: '1 minute',
-        },
-      },
-    },
+    { config: FILE_SYSTEM_RATE_LIMIT },
     async (request, reply) => {
       const { pageId } = request.params;
 
@@ -99,14 +93,7 @@ export async function registerArtifactRoutes(
   // Baseline screenshot
   app.get<{ Params: { pageId: string } }>(
     '/artifacts/:pageId/baseline-screenshot',
-    {
-      config: {
-        rateLimit: {
-          max: 50,
-          timeWindow: '1 minute',
-        },
-      },
-    },
+    { config: FILE_SYSTEM_RATE_LIMIT },
     async (request, reply) => {
       const { pageId } = request.params;
 
@@ -129,14 +116,7 @@ export async function registerArtifactRoutes(
   // Diff image
   app.get<{ Params: { pageId: string } }>(
     '/artifacts/:pageId/diff',
-    {
-      config: {
-        rateLimit: {
-          max: 50,
-          timeWindow: '1 minute',
-        },
-      },
-    },
+    { config: FILE_SYSTEM_RATE_LIMIT },
     async (request, reply) => {
       const { pageId } = request.params;
 
@@ -162,14 +142,7 @@ export async function registerArtifactRoutes(
   // HAR file
   app.get<{ Params: { pageId: string } }>(
     '/artifacts/:pageId/har',
-    {
-      config: {
-        rateLimit: {
-          max: 30,
-          timeWindow: '1 minute',
-        },
-      },
-    },
+    { config: LARGE_FILE_RATE_LIMIT },
     async (request, reply) => {
       const { pageId } = request.params;
 
@@ -195,14 +168,7 @@ export async function registerArtifactRoutes(
   // HTML
   app.get<{ Params: { pageId: string } }>(
     '/artifacts/:pageId/html',
-    {
-      config: {
-        rateLimit: {
-          max: 30,
-          timeWindow: '1 minute',
-        },
-      },
-    },
+    { config: LARGE_FILE_RATE_LIMIT },
     async (request, reply) => {
       const { pageId } = request.params;
 
