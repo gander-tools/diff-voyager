@@ -39,6 +39,7 @@ export class TaskQueue {
     const taskId = randomUUID();
     const priority = options.priority ?? 'normal';
     const maxAttempts = options.maxAttempts ?? 3;
+    const createdAt = new Date().toISOString();
 
     const stmt = this.db.prepare(`
       INSERT INTO tasks (
@@ -48,8 +49,9 @@ export class TaskQueue {
         priority,
         payload_json,
         attempts,
-        max_attempts
-      ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        max_attempts,
+        created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     stmt.run(
@@ -60,6 +62,7 @@ export class TaskQueue {
       JSON.stringify(options.payload),
       0,
       maxAttempts,
+      createdAt,
     );
 
     return taskId;
@@ -95,16 +98,17 @@ export class TaskQueue {
       }
 
       // Update the task status to processing
+      const startedAt = new Date().toISOString();
       const updateStmt = this.db.prepare(`
         UPDATE tasks
         SET
           status = 'processing',
-          started_at = CURRENT_TIMESTAMP,
+          started_at = ?,
           attempts = attempts + 1
         WHERE id = ?
       `);
 
-      updateStmt.run(row.id);
+      updateStmt.run(startedAt, row.id);
 
       // Fetch the updated task
       const updatedRow = this.db
@@ -127,15 +131,16 @@ export class TaskQueue {
    * @param taskId - ID of the task to complete
    */
   complete(taskId: string): void {
+    const completedAt = new Date().toISOString();
     const stmt = this.db.prepare(`
       UPDATE tasks
       SET
         status = 'completed',
-        completed_at = CURRENT_TIMESTAMP
+        completed_at = ?
       WHERE id = ?
     `);
 
-    stmt.run(taskId);
+    stmt.run(completedAt, taskId);
   }
 
   /**
@@ -145,16 +150,17 @@ export class TaskQueue {
    * @param errorMessage - Description of the error
    */
   fail(taskId: string, errorMessage: string): void {
+    const completedAt = new Date().toISOString();
     const stmt = this.db.prepare(`
       UPDATE tasks
       SET
         status = 'failed',
         error_message = ?,
-        completed_at = CURRENT_TIMESTAMP
+        completed_at = ?
       WHERE id = ?
     `);
 
-    stmt.run(errorMessage, taskId);
+    stmt.run(errorMessage, completedAt, taskId);
   }
 
   /**
