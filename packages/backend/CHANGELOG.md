@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.1.5](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.4...diff-voyager-backend-v0.1.5) (2026-01-07)
+
+
+### Features
+
+* **backend:** add Full Page Comparator orchestrating all comparison logic ([96f0b79](https://github.com/gander-tools/diff-voyager/commit/96f0b7944bac71a9d51a54031f5eaf40fbb218f2))
+* **backend:** add Header Comparator for HTTP header change detection ([62f79a9](https://github.com/gander-tools/diff-voyager/commit/62f79a97733df5f4facd800b6f2769198d87cd2d))
+* **backend:** add Performance Comparator for load time and size metrics ([72ff54e](https://github.com/gander-tools/diff-voyager/commit/72ff54e9824b89cf2c855abae7cf8b9ead8cf978))
+* **backend:** add SEO Comparator for detecting SEO metadata changes ([30ea4c0](https://github.com/gander-tools/diff-voyager/commit/30ea4c077badad52606bd4517604b31a7728676d))
+* **backend:** add Visual Comparator for screenshot pixel-by-pixel diff ([5d3c92f](https://github.com/gander-tools/diff-voyager/commit/5d3c92f16e00e9b4740114da51fd45608ad6917b))
+
 ## [0.1.4](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.3...diff-voyager-backend-v0.1.4) (2026-01-07)
 
 
