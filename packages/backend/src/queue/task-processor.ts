@@ -3,8 +3,8 @@
  */
 
 import type { DatabaseInstance } from '../storage/database.js';
-import type { Task } from './types.js';
 import { TaskQueue } from './task-queue.js';
+import type { Task } from './types.js';
 
 /**
  * Task handler function type

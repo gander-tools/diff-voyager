@@ -2,13 +2,13 @@
  * Tests for task queue table migration
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Database from 'better-sqlite3';
+import { randomUUID } from 'node:crypto';
+import { mkdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { mkdirSync, rmSync } from 'node:fs';
-import { randomUUID } from 'node:crypto';
-import { createDatabase, closeDatabase } from '../../../src/storage/database.js';
+import type Database from 'better-sqlite3';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { closeDatabase, createDatabase } from '../../../src/storage/database.js';
 
 describe('Task Queue Migration', () => {
   let testDir: string;

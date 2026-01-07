@@ -2,15 +2,15 @@
  * Tests for PageTaskQueue
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Database from 'better-sqlite3';
+import { randomUUID } from 'node:crypto';
+import { mkdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { mkdirSync, rmSync } from 'node:fs';
-import { randomUUID } from 'node:crypto';
-import { createDatabase, closeDatabase } from '../../../src/storage/database.js';
+import type Database from 'better-sqlite3';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { PageTaskQueue } from '../../../src/queue/page-task-queue.js';
 import type { CapturePagePayload } from '../../../src/queue/types.js';
+import { closeDatabase, createDatabase } from '../../../src/storage/database.js';
 
 describe('PageTaskQueue.enqueueBatch()', () => {
   let testDir: string;

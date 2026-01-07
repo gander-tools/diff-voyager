@@ -2,15 +2,15 @@
  * Tests for TaskQueue.enqueue()
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Database from 'better-sqlite3';
+import { randomUUID } from 'node:crypto';
+import { mkdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { mkdirSync, rmSync } from 'node:fs';
-import { randomUUID } from 'node:crypto';
-import { createDatabase, closeDatabase } from '../../../src/storage/database.js';
+import type Database from 'better-sqlite3';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { TaskQueue } from '../../../src/queue/task-queue.js';
 import type { CapturePagePayload } from '../../../src/queue/types.js';
+import { closeDatabase, createDatabase } from '../../../src/storage/database.js';
 
 describe('TaskQueue.enqueue()', () => {
   let testDir: string;
@@ -326,8 +326,8 @@ describe('TaskQueue.dequeue()', () => {
     const after = Date.now();
 
     expect(task?.startedAt).toBeDefined();
-    expect(task!.startedAt!.getTime()).toBeGreaterThanOrEqual(before - 1000);
-    expect(task!.startedAt!.getTime()).toBeLessThanOrEqual(after + 1000);
+    expect(task?.startedAt?.getTime()).toBeGreaterThanOrEqual(before - 1000);
+    expect(task?.startedAt?.getTime()).toBeLessThanOrEqual(after + 1000);
   });
 
   it('should increment attempts counter', () => {
@@ -665,7 +665,7 @@ describe('TaskQueue.fail()', () => {
     const taskId = taskQueue.enqueue({ type: 'capture-page', payload });
     taskQueue.dequeue();
 
-    const longError = 'Error: '.repeat(100) + 'Very long error message with stack trace';
+    const longError = `${'Error: '.repeat(100)}Very long error message with stack trace`;
     taskQueue.fail(taskId, longError);
 
     const task = db.prepare('SELECT error_message FROM tasks WHERE id = ?').get(taskId) as {
