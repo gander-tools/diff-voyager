@@ -56,22 +56,26 @@ This document outlines the implementation plan for three core API scenarios of D
 
 ### Queue & Processing
 
-**Queue Options (choose one):**
+**Processing Options (choose one):**
 
 | # | Solution | Pros | Cons | Container |
 |---|----------|------|------|-----------|
-| 1 | **SQLite (DB records)** | Zero dependencies, atomic, persistent, simple | Single-writer, no distributed workers | None |
+| 0 | **Synchronous (no queue)** | Simplest, immediate result, works from CLI | Blocks request, no resume, timeout risk | None |
+| 1 | **SQLite (DB records)** | Zero dependencies, atomic, persistent, resumable | Single-writer, no distributed workers | None |
 | 2 | **BullMQ + Redis** | Node.js native, job scheduling, retries, dashboard | Redis dependency | `redis:alpine` |
 | 3 | **PostgreSQL SKIP LOCKED** | ACID, if already using Postgres | Heavier than SQLite | `postgres:alpine` |
 | 4 | **Beanstalkd** | Simple protocol, lightweight, tubes | Less popular, fewer Node.js libs | `schickling/beanstalkd` |
 | 5 | **RabbitMQ (AMQP)** | Mature, reliable, routing, clustering | Heavier, more complex | `rabbitmq:alpine` |
 
-**Recommendation for MVP:** SQLite (option 1)
-- No additional containers
-- Sufficient for solo developer use case
-- Easy to migrate to Redis/BullMQ later if needed
+**Option 0: Synchronous Processing**
+- API: `POST /scans?sync=true` - blocks until complete, returns full result
+- CLI: `diff-voyager scan https://example.com` - runs in foreground
+- Best for: single page scans, small crawls, CLI usage
+- Timeout: configurable (default 5 min for single page, 30 min for crawl)
 
-**Queue features required:**
+**Recommendation for MVP:** Start with option 0 (sync), add option 1 (SQLite queue) for large crawls
+
+**Queue features (if using options 1-5):**
 - Persistent task storage (survives restart)
 - Atomic task claiming (no double processing)
 - Task states: PENDING, IN_PROGRESS, COMPLETED, FAILED
