@@ -41,24 +41,215 @@ packages/
 git clone https://github.com/gander-tools/diff-voyager.git
 cd diff-voyager
 
-# Install dependencies
+# Install dependencies and build shared types
 npm install
 npm run setup
+
+# Install Playwright browsers (required for page capture)
+npx playwright install
 ```
 
-### Usage
+### Running the Backend API
 
 ```bash
-# Start backend API
+# Start backend server (default: http://localhost:3000)
 npm run dev:backend
 
-# In another terminal, start frontend
+# Or with custom configuration
+PORT=3001 DATA_DIR=./my-data npm run dev:backend
+```
+
+The API server will start with the following endpoints:
+- **`POST /api/v1/scans`** - Create a new scan (single page or crawl)
+- **`GET /api/v1/projects/:id`** - Get project details with pages
+- **`GET /api/v1/artifacts/:pageId/*`** - Get artifacts (screenshots, HTML, HAR)
+- **`GET /health`** - Health check
+
+**Interactive API Documentation**: Visit **`http://localhost:3000/docs`** for Swagger UI with live API testing.
+
+### Testing the API
+
+**Single page scan (synchronous mode):**
+```bash
+curl -X POST http://localhost:3000/api/v1/scans \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com",
+    "sync": true,
+    "name": "My Test Project"
+  }'
+```
+
+**Response:**
+```json
+{
+  "projectId": "uuid-here",
+  "runId": "uuid-here",
+  "status": "COMPLETED",
+  "message": "Scan completed successfully",
+  "projectUrl": "/api/v1/projects/uuid-here"
+}
+```
+
+**Asynchronous scan (returns immediately):**
+```bash
+curl -X POST http://localhost:3000/api/v1/scans \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com"}'
+```
+
+**Get project details:**
+```bash
+curl http://localhost:3000/api/v1/projects/{projectId}
+```
+
+### Frontend (Planned)
+
+```bash
+# Frontend development (coming soon)
 npm run dev:frontend
 ```
 
-Visit `http://localhost:5173` to access the UI.
+Visit `http://localhost:5173` to access the UI (when available).
 
-**API Documentation**: The backend exposes Swagger UI at `http://localhost:3000/docs` for interactive API documentation and testing.
+## Usage Examples
+
+### Example 1: Create a Baseline Scan
+
+Capture a single page with all artifacts (screenshot, HTML, SEO metadata):
+
+```bash
+curl -X POST http://localhost:3000/api/v1/scans \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com",
+    "sync": true,
+    "name": "Example.com Project",
+    "viewport": {"width": 1920, "height": 1080},
+    "collectHar": false,
+    "waitAfterLoad": 1000
+  }' | jq
+```
+
+**Response includes:**
+- `projectId` - Use this for subsequent scans of the same URL
+- `runId` - Identifier for this specific scan run
+- `status` - "COMPLETED" for successful sync scans
+- `projectUrl` - Endpoint to retrieve full project details
+
+### Example 2: Create a Comparison Run
+
+After making changes to your site, scan the same URL again to create a comparison run:
+
+```bash
+curl -X POST http://localhost:3000/api/v1/scans \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com",
+    "sync": true,
+    "name": "Example.com Project"
+  }' | jq
+```
+
+The system will automatically:
+- Detect this is the same project (based on normalized URL)
+- Create a new comparison run instead of a baseline
+- Store both snapshots for future comparison
+
+### Example 3: Get Project Details
+
+Retrieve all runs and pages for a project:
+
+```bash
+curl http://localhost:3000/api/v1/scans/projects/{projectId} | jq
+```
+
+**Response includes:**
+```json
+{
+  "project": {
+    "id": "uuid",
+    "name": "Example.com Project",
+    "baseUrl": "https://example.com",
+    "createdAt": "2024-01-07T12:00:00Z"
+  },
+  "pages": [
+    {
+      "id": "page-uuid",
+      "normalizedUrl": "https://example.com",
+      "snapshots": [
+        {
+          "runId": "run-uuid-1",
+          "isBaseline": true,
+          "capturedAt": "2024-01-07T12:00:00Z",
+          "httpStatus": 200,
+          "seo": {
+            "title": "Example Domain",
+            "metaDescription": "Example domain for documentation",
+            "canonical": "https://example.com",
+            "robots": "index,follow",
+            "h1": ["Example Domain"]
+          },
+          "hasScreenshot": true,
+          "hasHar": false
+        },
+        {
+          "runId": "run-uuid-2",
+          "isBaseline": false,
+          "capturedAt": "2024-01-07T13:00:00Z",
+          "httpStatus": 200,
+          "seo": {...},
+          "hasScreenshot": true,
+          "hasHar": false
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Example 4: Retrieve Artifacts
+
+Get the screenshot for a specific page:
+
+```bash
+# Get screenshot
+curl http://localhost:3000/api/v1/artifacts/{pageId}/screenshot.png \
+  --output screenshot.png
+
+# Get raw HTML
+curl http://localhost:3000/api/v1/artifacts/{pageId}/page.html \
+  --output page.html
+
+# Get performance data (if collectHar: true was used)
+curl http://localhost:3000/api/v1/artifacts/{pageId}/performance.har \
+  --output performance.har
+```
+
+### Example 5: Async Scan (Non-Blocking)
+
+For integration with external systems, use async mode:
+
+```bash
+curl -X POST http://localhost:3000/api/v1/scans \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com",
+    "sync": false
+  }' | jq
+```
+
+**Response:**
+```json
+{
+  "projectId": "uuid",
+  "status": "PENDING",
+  "message": "Scan queued for processing",
+  "projectUrl": "/api/v1/projects/uuid"
+}
+```
+
+Poll the project endpoint to check when processing is complete.
 
 ## Development
 
@@ -181,37 +372,39 @@ See [LICENSE](LICENSE) for details.
 
 Development follows the [API Implementation Plan](docs/api-implementation-plan/) with Test-Driven Development (TDD). Each phase builds on the previous, ensuring solid foundations.
 
-### Phase 0: Foundation Setup (90% ✅)
+### Phase 0: Foundation Setup (100% ✅)
 - [x] Test infrastructure (Vitest, MockServer, test helpers)
 - [x] HTML fixtures for SEO testing
 - [x] Shared TypeScript types (API requests/responses)
-- [ ] Build automation for shared package
+- [x] Build automation for shared package
 
-### Phase 1: Storage Layer (80% ✅)
+### Phase 1: Storage Layer (85% ✅)
 - [x] SQLite database schema with migrations
-- [x] ProjectRepository (create, findById, update)
-- [x] RunRepository (create, findById, updateStatus)
-- [x] PageRepository (create, findByUrl, findOrCreate)
+- [x] ProjectRepository (create, findById, findByBaseUrl)
+- [x] RunRepository (create, findById, findByProjectId, updateStatus)
+- [x] PageRepository (create, findById, findOrCreateByUrl)
 - [x] SnapshotRepository (create, findByPageAndRun)
-- [ ] DiffRepository (comparison results storage)
-- [ ] ArtifactStorage helper (file operations abstraction)
+- [x] Artifact file storage (screenshots, HTML, HAR)
+- [ ] DiffRepository (comparison results storage) - **Next priority**
+- [ ] Database indexes for query optimization
 
-### Phase 2: Domain Logic (20% 🟡)
+### Phase 2: Domain Logic (30% 🟡)
 - [x] URL Normalizer (path normalization, query handling, tracking parameter removal)
-- [ ] SEO Extractor & Comparator (title, meta, canonical, robots, headings)
+- [x] SEO data extraction (title, meta, canonical, robots, H1)
+- [ ] SEO Comparator (detect changes in meta tags and content) - **Next priority**
 - [ ] Visual Comparator (pixelmatch integration, diff image generation)
 - [ ] Header Comparator (HTTP header differences)
 - [ ] Performance Comparator (load time, request count, size deltas)
 - [ ] Full Page Comparator (orchestration of all comparators)
 
-### Phase 3: Crawler (50% 🟡)
+### Phase 3: Crawler (60% 🟡)
 - [x] Playwright browser setup
 - [x] Page capture (HTML, headers, status, redirects)
 - [x] Screenshot capture with configurable viewport
-- [x] SEO data extraction
+- [x] SEO data extraction during capture
 - [x] Performance metrics collection
-- [x] HAR file capture (configured)
-- [ ] Crawlee integration for multi-page discovery
+- [x] HAR file capture (optional)
+- [ ] Crawlee integration for multi-page discovery - **Next priority**
 - [ ] Link discovery and following
 - [ ] Domain boundary checking
 - [ ] Max pages limit and concurrency control
@@ -224,7 +417,9 @@ Development follows the [API Implementation Plan](docs/api-implementation-plan/)
 - [ ] Retry logic and error recovery
 - [ ] Graceful shutdown
 
-### Phase 5: API Layer (70% ✅)
+**Note:** Currently using synchronous processing (ASAP approach). Task queue will be needed for multi-page crawls.
+
+### Phase 5: API Layer (65% ✅)
 - [x] Fastify app with Swagger UI (`/docs`)
 - [x] Request validation and error handling
 - [x] Rate limiting and security headers
@@ -232,26 +427,28 @@ Development follows the [API Implementation Plan](docs/api-implementation-plan/)
 - [x] GET /api/v1/projects/:projectId (project details with pages)
 - [x] GET /api/v1/artifacts/:pageId/* (screenshots, HTML, HAR, diffs)
 - [x] GET /health (health check)
-- [ ] GET /api/v1/tasks/:taskId (task status and progress)
-- [ ] POST /api/v1/projects/:id/runs (create comparison run)
-- [ ] GET /api/v1/runs/:runId (run details)
+- [ ] GET /api/v1/tasks/:taskId (task status and progress) - **Needed for async mode**
+- [ ] POST /api/v1/projects/:id/runs (explicit comparison run creation)
+- [ ] GET /api/v1/runs/:runId (run details with statistics)
 - [ ] GET /api/v1/runs/:runId/pages (pages list with filtering)
-- [ ] GET /api/v1/pages/:pageId/diff (detailed diff view)
+- [ ] GET /api/v1/pages/:pageId/diff (detailed diff view) - **Blocked by Phase 2**
 
-### Phase 6: Integration & Workflows (30% 🟡)
+### Phase 6: Integration & Workflows (40% 🟡)
 - [x] ScanProcessor (orchestrates project → run → capture → storage)
 - [x] Single page baseline capture (sync mode)
+- [x] Multiple comparison runs per project
 - [x] Artifact persistence (screenshots, HTML, performance data)
-- [ ] Baseline vs run comparison workflow
+- [ ] Baseline vs run comparison workflow - **Next priority**
 - [ ] Diff generation and storage
-- [ ] Multi-page crawl workflow
-- [ ] Async task processing integration
+- [ ] Multi-page crawl workflow - **Blocked by Phase 3 Crawlee**
+- [ ] Async task processing integration - **Blocked by Phase 4**
 
-### Phase 7: Polish & Production Ready (40% 🟡)
+### Phase 7: Polish & Production Ready (50% 🟡)
 - [x] Rate limiting on all API endpoints
 - [x] Path traversal prevention with symlink protection
 - [x] Input validation and error sanitization
 - [x] Swagger/OpenAPI documentation
+- [x] Integration tests with mock server
 - [ ] Complete error scenario tests
 - [ ] Database query optimization and indexing
 - [ ] Performance benchmarking and optimization
@@ -264,21 +461,63 @@ Development follows the [API Implementation Plan](docs/api-implementation-plan/)
 - [ ] Mute rules configuration
 - [ ] Export functionality
 
-### Current Status: **Single Page Capture Working** ✅
+### Current Status: **Single Page Capture & Multiple Runs Working** ✅
 
-The system can currently:
-- ✅ Capture single pages with full artifacts
-- ✅ Extract SEO metadata and performance metrics
-- ✅ Store baselines in SQLite
-- ✅ Serve artifacts via REST API
-- ✅ Provide interactive API documentation
+**What's working now:**
 
-Not yet available:
-- ❌ Multi-page site crawling
-- ❌ Baseline vs run comparison
-- ❌ Visual/SEO diff generation
-- ❌ Background task processing
-- ❌ Frontend UI
+✅ **Page Capture & Storage:**
+- Single page scanning (sync and async modes)
+- HTML, HTTP headers, and status code capture
+- SEO metadata extraction (title, meta description, canonical, robots, H1)
+- Full-page screenshots with configurable viewport
+- Performance metrics collection
+- HAR file capture (optional)
+- SQLite database storage with proper schema
+
+✅ **Project Management:**
+- Project creation with baseline runs
+- Multiple comparison runs per project
+- URL normalization and duplicate detection
+- Artifact file storage and retrieval
+
+✅ **API & Documentation:**
+- RESTful API with Fastify
+- Swagger UI at `/docs` for interactive testing
+- Request validation and error handling
+- Rate limiting and security headers
+- Path traversal protection with symlink validation
+
+✅ **Testing:**
+- Unit tests for domain logic (URL normalizer)
+- Integration tests with mock HTTP server
+- Repository layer tests
+- API endpoint tests
+
+**Not yet available:**
+
+❌ **Crawling & Discovery:**
+- Multi-page site crawling with Crawlee
+- Link discovery and following
+- Domain boundary checking
+- Concurrent page processing
+
+❌ **Comparison & Diff:**
+- Baseline vs run comparison
+- Visual diff generation (pixelmatch)
+- SEO change detection
+- Performance delta calculation
+- Diff acceptance and muting
+
+❌ **Task Queue:**
+- Background task processing
+- Progress tracking
+- Retry logic and error recovery
+
+❌ **Frontend UI:**
+- Vue 3 interface
+- Visual diff review
+- Project and run management
+- Mute rules configuration
 
 ### Future Enhancements (Post-MVP)
 - CI/CD integration (GitHub Actions, GitLab CI)
