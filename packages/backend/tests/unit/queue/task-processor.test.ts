@@ -2,15 +2,15 @@
  * Tests for TaskProcessor
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Database from 'better-sqlite3';
+import { randomUUID } from 'node:crypto';
+import { mkdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { mkdirSync, rmSync } from 'node:fs';
-import { randomUUID } from 'node:crypto';
-import { createDatabase, closeDatabase } from '../../../src/storage/database.js';
+import type Database from 'better-sqlite3';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { TaskProcessor } from '../../../src/queue/task-processor.js';
 import type { CapturePagePayload } from '../../../src/queue/types.js';
+import { closeDatabase, createDatabase } from '../../../src/storage/database.js';
 
 describe('TaskProcessor', () => {
   let testDir: string;
@@ -36,7 +36,9 @@ describe('TaskProcessor', () => {
 
   describe('handler registration', () => {
     it('should register task handler', () => {
-      const handler = async () => {};
+      const handler = async () => {
+        // No-op handler for registration test
+      };
       processor.registerHandler('capture-page', handler);
       expect(true).toBe(true); // Handler registered successfully
     });
@@ -44,7 +46,9 @@ describe('TaskProcessor', () => {
 
   describe('start and stop', () => {
     it('should start processor', async () => {
-      const handler = async () => {};
+      const handler = async () => {
+        // No-op handler for start/stop test
+      };
       processor.registerHandler('capture-page', handler);
 
       // Start in background
@@ -60,7 +64,9 @@ describe('TaskProcessor', () => {
     });
 
     it('should stop processor gracefully', async () => {
-      const handler = async () => {};
+      const handler = async () => {
+        // No-op handler for graceful stop test
+      };
       processor.registerHandler('capture-page', handler);
 
       const startPromise = processor.start();
