@@ -280,4 +280,115 @@ describe('DiffRepository', () => {
       expect(diff.createdAt.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
     });
   });
+
+  describe('findByPageAndRun', () => {
+    it('should find diff by pageId and runId', async () => {
+      // Create a diff first
+      const created = await repo.create({
+        pageId,
+        runId: comparisonRunId,
+        baselineSnapshotId,
+        runSnapshotId: comparisonSnapshotId,
+        summary: {
+          totalChanges: 1,
+          criticalChanges: 0,
+          acceptedChanges: 0,
+          mutedChanges: 0,
+          changesByType: {
+            [DiffType.SEO]: 1,
+            [DiffType.VISUAL]: 0,
+            [DiffType.CONTENT]: 0,
+            [DiffType.PERFORMANCE]: 0,
+            [DiffType.HEADER]: 0,
+          },
+          thresholdExceeded: false,
+        },
+        changes: [
+          {
+            id: 'change-1',
+            type: DiffType.SEO,
+            severity: DiffSeverity.INFO,
+            status: DiffStatus.NEW,
+            description: 'Test change',
+            details: {},
+          },
+        ],
+      });
+
+      // Find it
+      const found = await repo.findByPageAndRun(pageId, comparisonRunId);
+
+      expect(found).not.toBeNull();
+      expect(found?.id).toBe(created.id);
+      expect(found?.pageId).toBe(pageId);
+      expect(found?.runId).toBe(comparisonRunId);
+      expect(found?.summary.totalChanges).toBe(1);
+      expect(found?.changes).toHaveLength(1);
+    });
+
+    it('should return null when diff not found', async () => {
+      const found = await repo.findByPageAndRun('non-existent-page', 'non-existent-run');
+      expect(found).toBeNull();
+    });
+
+    it('should deserialize JSON fields correctly', async () => {
+      const summary = {
+        totalChanges: 2,
+        criticalChanges: 1,
+        acceptedChanges: 0,
+        mutedChanges: 0,
+        changesByType: {
+          [DiffType.SEO]: 1,
+          [DiffType.VISUAL]: 1,
+          [DiffType.CONTENT]: 0,
+          [DiffType.PERFORMANCE]: 0,
+          [DiffType.HEADER]: 0,
+        },
+        visualDiffPercentage: 2.5,
+        visualDiffPixels: 1200,
+        thresholdExceeded: true,
+      };
+
+      const changes = [
+        {
+          id: 'change-1',
+          type: DiffType.SEO,
+          severity: DiffSeverity.CRITICAL,
+          status: DiffStatus.NEW,
+          description: 'Title changed',
+          details: {
+            field: 'title',
+            oldValue: 'Old Title',
+            newValue: 'New Title',
+          },
+        },
+        {
+          id: 'change-2',
+          type: DiffType.VISUAL,
+          severity: DiffSeverity.WARNING,
+          status: DiffStatus.NEW,
+          description: 'Visual difference',
+          details: {
+            metadata: {
+              diffPercentage: 2.5,
+            },
+          },
+        },
+      ];
+
+      await repo.create({
+        pageId,
+        runId: comparisonRunId,
+        baselineSnapshotId,
+        runSnapshotId: comparisonSnapshotId,
+        summary,
+        changes,
+      });
+
+      const found = await repo.findByPageAndRun(pageId, comparisonRunId);
+
+      expect(found?.summary).toEqual(summary);
+      expect(found?.changes).toEqual(changes);
+    });
+  });
 });

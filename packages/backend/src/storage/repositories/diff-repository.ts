@@ -51,6 +51,20 @@ export class DiffRepository {
     };
   }
 
+  async findByPageAndRun(pageId: string, runId: string): Promise<Diff | null> {
+    const stmt = this.db.prepare(`
+      SELECT * FROM diffs WHERE page_id = ? AND run_id = ?
+    `);
+
+    const row = stmt.get(pageId, runId) as DiffRow | undefined;
+
+    if (!row) {
+      return null;
+    }
+
+    return this.rowToEntity(row);
+  }
+
   private rowToEntity(row: DiffRow): Diff {
     return {
       id: row.id,
