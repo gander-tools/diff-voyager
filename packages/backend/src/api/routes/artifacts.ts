@@ -12,6 +12,28 @@ interface ArtifactRoutesOptions extends FastifyPluginOptions {
 }
 
 /**
+ * Sends an error response with standardized format.
+ *
+ * @param reply - Fastify reply object
+ * @param status - HTTP status code
+ * @param code - Error code
+ * @param message - Error message
+ */
+function sendErrorResponse(
+  reply: any,
+  status: number,
+  code: string,
+  message: string
+): void {
+  reply.status(status).send({
+    error: {
+      code,
+      message,
+    },
+  });
+}
+
+/**
  * Validates and constructs a safe file path within the artifacts directory.
  * Prevents path traversal attacks by ensuring the resolved path stays within artifactsDir.
  *
@@ -59,21 +81,11 @@ export async function registerArtifactRoutes(
       try {
         filePath = getSafeFilePath(artifactsDir, pageId, 'screenshot.png');
       } catch (error) {
-        return reply.status(400).send({
-          error: {
-            code: 'INVALID_REQUEST',
-            message: 'Invalid page ID',
-          },
-        });
+        return sendErrorResponse(reply, 400, 'INVALID_REQUEST', 'Invalid page ID');
       }
 
       if (!existsSync(filePath)) {
-        return reply.status(404).send({
-          error: {
-            code: 'NOT_FOUND',
-            message: 'Screenshot not found',
-          },
-        });
+        return sendErrorResponse(reply, 404, 'NOT_FOUND', 'Screenshot not found');
       }
 
       const content = await readFile(filePath);
@@ -102,21 +114,11 @@ export async function registerArtifactRoutes(
       try {
         filePath = getSafeFilePath(artifactsDir, pageId, 'baseline-screenshot.png');
       } catch (error) {
-        return reply.status(400).send({
-          error: {
-            code: 'INVALID_REQUEST',
-            message: 'Invalid page ID',
-          },
-        });
+        return sendErrorResponse(reply, 400, 'INVALID_REQUEST', 'Invalid page ID');
       }
 
       if (!existsSync(filePath)) {
-        return reply.status(404).send({
-          error: {
-            code: 'NOT_FOUND',
-            message: 'Baseline screenshot not found',
-          },
-        });
+        return sendErrorResponse(reply, 404, 'NOT_FOUND', 'Baseline screenshot not found');
       }
 
       const content = await readFile(filePath);
@@ -142,21 +144,11 @@ export async function registerArtifactRoutes(
       try {
         filePath = getSafeFilePath(artifactsDir, pageId, 'diff.png');
       } catch (error) {
-        return reply.status(400).send({
-          error: {
-            code: 'INVALID_REQUEST',
-            message: 'Invalid page ID',
-          },
-        });
+        return sendErrorResponse(reply, 400, 'INVALID_REQUEST', 'Invalid page ID');
       }
 
       if (!existsSync(filePath)) {
-        return reply.status(404).send({
-          error: {
-            code: 'NOT_FOUND',
-            message: 'Diff image not found',
-          },
-        });
+        return sendErrorResponse(reply, 404, 'NOT_FOUND', 'Diff image not found');
       }
 
       const content = await readFile(filePath);
@@ -185,21 +177,11 @@ export async function registerArtifactRoutes(
       try {
         filePath = getSafeFilePath(artifactsDir, pageId, 'page.har');
       } catch (error) {
-        return reply.status(400).send({
-          error: {
-            code: 'INVALID_REQUEST',
-            message: 'Invalid page ID',
-          },
-        });
+        return sendErrorResponse(reply, 400, 'INVALID_REQUEST', 'Invalid page ID');
       }
 
       if (!existsSync(filePath)) {
-        return reply.status(404).send({
-          error: {
-            code: 'NOT_FOUND',
-            message: 'HAR file not found',
-          },
-        });
+        return sendErrorResponse(reply, 404, 'NOT_FOUND', 'HAR file not found');
       }
 
       const content = await readFile(filePath, 'utf-8');
@@ -228,21 +210,11 @@ export async function registerArtifactRoutes(
       try {
         filePath = getSafeFilePath(artifactsDir, pageId, 'page.html');
       } catch (error) {
-        return reply.status(400).send({
-          error: {
-            code: 'INVALID_REQUEST',
-            message: 'Invalid page ID',
-          },
-        });
+        return sendErrorResponse(reply, 400, 'INVALID_REQUEST', 'Invalid page ID');
       }
 
       if (!existsSync(filePath)) {
-        return reply.status(404).send({
-          error: {
-            code: 'NOT_FOUND',
-            message: 'HTML file not found',
-          },
-        });
+        return sendErrorResponse(reply, 404, 'NOT_FOUND', 'HTML file not found');
       }
 
       const content = await readFile(filePath, 'utf-8');
