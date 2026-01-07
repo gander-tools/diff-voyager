@@ -435,7 +435,7 @@ Development follows the [API Implementation Plan](docs/api-implementation-plan/)
 - [ ] GET /api/v1/runs/:runId/pages (pages list with filtering)
 - [ ] GET /api/v1/pages/:pageId/diff (detailed diff view) - **Ready to implement**
 
-### Phase 6: Integration & Workflows (40% 🟡)
+### Phase 6: Integration & Workflows (50% 🟡)
 - [x] ScanProcessor (orchestrates project → run → capture → storage)
 - [x] Single page baseline capture (sync mode)
 - [x] Multiple comparison runs per project
@@ -443,7 +443,7 @@ Development follows the [API Implementation Plan](docs/api-implementation-plan/)
 - [ ] Baseline vs run comparison workflow - **Ready to implement (Phase 2 complete)**
 - [ ] Diff generation and storage - **Ready to implement (Phase 2 complete)**
 - [ ] Multi-page crawl workflow - **Blocked by Phase 3 Crawlee**
-- [ ] Async task processing integration
+- [x] Async task processing integration (Phase 4 task queue complete)
 
 ### Phase 7: Polish & Production Ready (50% 🟡)
 - [x] Rate limiting on all API endpoints
