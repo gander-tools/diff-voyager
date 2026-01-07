@@ -399,18 +399,22 @@ Development follows the [API Implementation Plan](docs/api-implementation-plan/)
 
 **Implementation Complete:** All domain comparison logic implemented with TDD. Comparators for SEO metadata, visual screenshots (via pixelmatch), HTTP headers, and performance metrics. Full page comparator orchestrates all comparisons and produces unified diff summaries.
 
-### Phase 3: Crawler (60% 🟡)
+### Phase 3: Crawler (100% ✅)
 - [x] Playwright browser setup
 - [x] Page capture (HTML, headers, status, redirects)
 - [x] Screenshot capture with configurable viewport
 - [x] SEO data extraction during capture
 - [x] Performance metrics collection
 - [x] HAR file capture (optional)
-- [ ] Crawlee integration for multi-page discovery - **Next priority**
-- [ ] Link discovery and following
-- [ ] Domain boundary checking
-- [ ] Max pages limit and concurrency control
-- [ ] URL filtering patterns (include/exclude)
+- [x] Browser manager for instance pooling
+- [x] Single page processor (orchestrates capture and storage)
+- [x] Crawlee integration for multi-page discovery
+- [x] Link discovery and following
+- [x] Domain boundary checking
+- [x] Max pages limit and concurrency control
+- [x] URL filtering patterns (include/exclude)
+
+**Implementation Complete:** Full crawler infrastructure with Playwright for page capture and Crawlee for multi-page site crawling. Includes browser pooling, single page processing orchestration, link discovery, domain filtering, concurrency control, and progress tracking. Ready for integration with scan endpoints.
 
 ### Phase 4: Task Queue (100% ✅)
 - [x] Task queue core (enqueue, dequeue, complete, fail)
@@ -442,7 +446,7 @@ Development follows the [API Implementation Plan](docs/api-implementation-plan/)
 - [x] Artifact persistence (screenshots, HTML, performance data)
 - [ ] Baseline vs run comparison workflow - **Ready to implement (Phase 2 complete)**
 - [ ] Diff generation and storage - **Ready to implement (Phase 2 complete)**
-- [ ] Multi-page crawl workflow - **Blocked by Phase 3 Crawlee**
+- [ ] Multi-page crawl workflow - **Ready to implement (Phase 3 complete)**
 - [x] Async task processing integration (Phase 4 task queue complete)
 
 ### Phase 7: Polish & Production Ready (50% 🟡)
@@ -463,7 +467,7 @@ Development follows the [API Implementation Plan](docs/api-implementation-plan/)
 - [ ] Mute rules configuration
 - [ ] Export functionality
 
-### Current Status: **Single Page Capture & Multiple Runs Working** ✅
+### Current Status: **Phase 3 Complete - Crawler Infrastructure Ready** ✅
 
 **What's working now:**
 
@@ -502,13 +506,17 @@ Development follows the [API Implementation Plan](docs/api-implementation-plan/)
 - Performance metrics comparison
 - Full page comparison orchestration
 
-**Not yet available:**
-
-❌ **Crawling & Discovery:**
+✅ **Crawler Infrastructure (Phase 3 Complete):**
+- Browser manager for instance pooling
+- Single page processor orchestration
 - Multi-page site crawling with Crawlee
 - Link discovery and following
-- Domain boundary checking
-- Concurrent page processing
+- Domain boundary checking (same-domain, subdomain support)
+- Concurrent page processing with configurable limits
+- URL filtering (include/exclude patterns)
+- Progress tracking and callbacks
+
+**Not yet available:**
 
 🟡 **Diff Integration (Ready to implement):**
 - Baseline vs run comparison workflow
