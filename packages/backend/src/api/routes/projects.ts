@@ -49,6 +49,104 @@ export async function registerProjectRoutes(
   const pageRepo = new PageRepository(db);
   const snapshotRepo = new SnapshotRepository(db);
 
+  /**
+   * GET /projects
+   *
+   * List all projects with pagination
+   */
+  app.get<{
+    Querystring: {
+      limit?: number;
+      offset?: number;
+    };
+  }>(
+    '/projects',
+    {
+      config: DATABASE_READ_RATE_LIMIT,
+      schema: {
+        tags: ['projects'],
+        description: 'List all projects with pagination',
+        querystring: {
+          type: 'object',
+          properties: {
+            limit: {
+              type: 'integer',
+              description: 'Maximum number of projects to return',
+              minimum: 1,
+              maximum: 100,
+              default: 50,
+            },
+            offset: {
+              type: 'integer',
+              description: 'Number of projects to skip',
+              minimum: 0,
+              default: 0,
+            },
+          },
+        },
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              projects: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string' },
+                    name: { type: 'string' },
+                    description: { type: 'string' },
+                    baseUrl: { type: 'string' },
+                    status: { type: 'string' },
+                    createdAt: { type: 'string', format: 'date-time' },
+                    updatedAt: { type: 'string', format: 'date-time' },
+                  },
+                },
+              },
+              pagination: {
+                type: 'object',
+                properties: {
+                  total: { type: 'integer' },
+                  limit: { type: 'integer' },
+                  offset: { type: 'integer' },
+                  hasMore: { type: 'boolean' },
+                },
+                required: ['total', 'limit', 'offset', 'hasMore'],
+              },
+            },
+            required: ['projects', 'pagination'],
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      const { limit, offset } = request.query;
+
+      const { projects, total } = await projectRepo.findAll({
+        limit: limit || 50,
+        offset: offset || 0,
+      });
+
+      return reply.send({
+        projects: projects.map((p) => ({
+          id: p.id,
+          name: p.name,
+          description: p.description,
+          baseUrl: p.baseUrl,
+          status: p.status,
+          createdAt: p.createdAt.toISOString(),
+          updatedAt: p.updatedAt.toISOString(),
+        })),
+        pagination: {
+          total,
+          limit: limit || 50,
+          offset: offset || 0,
+          hasMore: (offset || 0) + (limit || 50) < total,
+        },
+      });
+    },
+  );
+
   app.get<{
     Params: { projectId: string };
     Querystring: GetProjectQuery;

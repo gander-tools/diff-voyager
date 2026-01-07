@@ -81,6 +81,30 @@ export class ProjectRepository {
     return this.rowToEntity(row);
   }
 
+  async findAll(
+    options: { limit?: number; offset?: number } = {},
+  ): Promise<{ projects: ProjectEntity[]; total: number }> {
+    const limit = options.limit || 50;
+    const offset = options.offset || 0;
+
+    // Get total count
+    const countStmt = this.db.prepare('SELECT COUNT(*) as count FROM projects');
+    const countRow = countStmt.get() as { count: number };
+    const total = countRow.count;
+
+    // Get paginated projects (newest first)
+    const projectsStmt = this.db.prepare(`
+      SELECT * FROM projects
+      ORDER BY created_at DESC
+      LIMIT ? OFFSET ?
+    `);
+
+    const rows = projectsStmt.all(limit, offset) as ProjectRow[];
+    const projects = rows.map((row) => this.rowToEntity(row));
+
+    return { projects, total };
+  }
+
   async updateStatus(id: string, status: RunStatus): Promise<void> {
     const now = new Date().toISOString();
     const stmt = this.db.prepare(`
