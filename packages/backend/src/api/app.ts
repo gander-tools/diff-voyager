@@ -3,6 +3,7 @@
  */
 
 import Fastify, { type FastifyInstance } from 'fastify';
+import rateLimit from '@fastify/rate-limit';
 import { API_BASE_PATH } from '@gander-tools/diff-voyager-shared';
 import type { DatabaseInstance } from '../storage/database.js';
 import { registerScanRoutes } from './routes/scans.js';
@@ -17,6 +18,13 @@ export interface AppConfig {
 export async function createApp(config: AppConfig): Promise<FastifyInstance> {
   const app = Fastify({
     logger: false,
+  });
+
+  // Register rate limiting plugin
+  await app.register(rateLimit, {
+    global: false, // We'll apply it selectively to specific routes
+    max: 100,
+    timeWindow: '1 minute',
   });
 
   // Error handler

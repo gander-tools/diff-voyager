@@ -18,7 +18,17 @@ export async function registerArtifactRoutes(
   const { artifactsDir } = options;
 
   // Screenshot
-  app.get<{ Params: { pageId: string } }>('/artifacts/:pageId/screenshot', async (request, reply) => {
+  app.get<{ Params: { pageId: string } }>(
+    '/artifacts/:pageId/screenshot',
+    {
+      config: {
+        rateLimit: {
+          max: 50,
+          timeWindow: '1 minute',
+        },
+      },
+    },
+    async (request, reply) => {
     const { pageId } = request.params;
     const filePath = join(artifactsDir, pageId, 'screenshot.png');
 
@@ -31,16 +41,25 @@ export async function registerArtifactRoutes(
       });
     }
 
-    const content = await readFile(filePath);
-    return reply
-      .header('Content-Type', 'image/png')
-      .header('Content-Disposition', 'inline; filename="screenshot.png"')
-      .send(content);
-  });
+      const content = await readFile(filePath);
+      return reply
+        .header('Content-Type', 'image/png')
+        .header('Content-Disposition', 'inline; filename="screenshot.png"')
+        .send(content);
+    }
+  );
 
   // Baseline screenshot
   app.get<{ Params: { pageId: string } }>(
     '/artifacts/:pageId/baseline-screenshot',
+    {
+      config: {
+        rateLimit: {
+          max: 50,
+          timeWindow: '1 minute',
+        },
+      },
+    },
     async (request, reply) => {
       const { pageId } = request.params;
       const filePath = join(artifactsDir, pageId, 'baseline-screenshot.png');
@@ -60,7 +79,17 @@ export async function registerArtifactRoutes(
   );
 
   // Diff image
-  app.get<{ Params: { pageId: string } }>('/artifacts/:pageId/diff', async (request, reply) => {
+  app.get<{ Params: { pageId: string } }>(
+    '/artifacts/:pageId/diff',
+    {
+      config: {
+        rateLimit: {
+          max: 50,
+          timeWindow: '1 minute',
+        },
+      },
+    },
+    async (request, reply) => {
     const { pageId } = request.params;
     const filePath = join(artifactsDir, pageId, 'diff.png');
 
@@ -73,15 +102,26 @@ export async function registerArtifactRoutes(
       });
     }
 
-    const content = await readFile(filePath);
-    return reply
-      .header('Content-Type', 'image/png')
-      .header('Content-Disposition', 'inline; filename="diff.png"')
-      .send(content);
-  });
+      const content = await readFile(filePath);
+      return reply
+        .header('Content-Type', 'image/png')
+        .header('Content-Disposition', 'inline; filename="diff.png"')
+        .send(content);
+    }
+  );
 
   // HAR file
-  app.get<{ Params: { pageId: string } }>('/artifacts/:pageId/har', async (request, reply) => {
+  app.get<{ Params: { pageId: string } }>(
+    '/artifacts/:pageId/har',
+    {
+      config: {
+        rateLimit: {
+          max: 30,
+          timeWindow: '1 minute',
+        },
+      },
+    },
+    async (request, reply) => {
     const { pageId } = request.params;
     const filePath = join(artifactsDir, pageId, 'page.har');
 
@@ -94,15 +134,26 @@ export async function registerArtifactRoutes(
       });
     }
 
-    const content = await readFile(filePath, 'utf-8');
-    return reply
-      .header('Content-Type', 'application/json')
-      .header('Content-Disposition', 'attachment; filename="page.har"')
-      .send(content);
-  });
+      const content = await readFile(filePath, 'utf-8');
+      return reply
+        .header('Content-Type', 'application/json')
+        .header('Content-Disposition', 'attachment; filename="page.har"')
+        .send(content);
+    }
+  );
 
   // HTML
-  app.get<{ Params: { pageId: string } }>('/artifacts/:pageId/html', async (request, reply) => {
+  app.get<{ Params: { pageId: string } }>(
+    '/artifacts/:pageId/html',
+    {
+      config: {
+        rateLimit: {
+          max: 30,
+          timeWindow: '1 minute',
+        },
+      },
+    },
+    async (request, reply) => {
     const { pageId } = request.params;
     const filePath = join(artifactsDir, pageId, 'page.html');
 
@@ -115,7 +166,8 @@ export async function registerArtifactRoutes(
       });
     }
 
-    const content = await readFile(filePath, 'utf-8');
-    return reply.header('Content-Type', 'text/html; charset=utf-8').send(content);
-  });
+      const content = await readFile(filePath, 'utf-8');
+      return reply.header('Content-Type', 'text/html; charset=utf-8').send(content);
+    }
+  );
 }
