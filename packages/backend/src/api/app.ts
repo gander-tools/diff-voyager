@@ -9,6 +9,7 @@ import { API_BASE_PATH } from '@gander-tools/diff-voyager-shared';
 import Fastify, { type FastifyInstance } from 'fastify';
 import type { DatabaseInstance } from '../storage/database.js';
 import { registerArtifactRoutes } from './routes/artifacts.js';
+import { registerPageRoutes } from './routes/pages.js';
 import { registerProjectRoutes } from './routes/projects.js';
 import { registerRunRoutes } from './routes/runs.js';
 import { registerScanRoutes } from './routes/scans.js';
@@ -49,6 +50,7 @@ export async function createApp(config: AppConfig): Promise<FastifyInstance> {
         { name: 'scans', description: 'Scan and crawl operations' },
         { name: 'projects', description: 'Project management' },
         { name: 'runs', description: 'Comparison runs' },
+        { name: 'pages', description: 'Page details and diffs' },
         { name: 'tasks', description: 'Task status and monitoring' },
         { name: 'artifacts', description: 'Access captured artifacts' },
         { name: 'health', description: 'Health check' },
@@ -121,6 +123,10 @@ export async function createApp(config: AppConfig): Promise<FastifyInstance> {
     db: config.db,
   });
   await app.register(registerRunRoutes, {
+    prefix: API_BASE_PATH,
+    db: config.db,
+  });
+  await app.register(registerPageRoutes, {
     prefix: API_BASE_PATH,
     db: config.db,
   });
