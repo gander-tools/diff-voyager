@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.8](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.7...diff-voyager-backend-v0.1.8) (2026-01-07)
+
+
+### Features
+
+* **api:** implement GET /pages/:pageId endpoint (partial) ([54a6ce8](https://github.com/gander-tools/diff-voyager/commit/54a6ce8994e1c1493fc46cc44f1c7a8331c211f3))
+* **api:** implement GET /pages/:pageId/diff endpoint ([8004c0b](https://github.com/gander-tools/diff-voyager/commit/8004c0b89aa99f6e72ef802a43677018f5cc5ee6))
+* **api:** implement GET /projects endpoint with pagination ([ab528fc](https://github.com/gander-tools/diff-voyager/commit/ab528fcb7f3c10206860470ed00e64b69e6e684f))
+* **api:** implement GET /projects/:projectId/runs endpoint ([1f60303](https://github.com/gander-tools/diff-voyager/commit/1f60303ea1a369696af9786425ad691935a3ccb8))
+* **api:** implement GET /runs/:runId endpoint ([d789956](https://github.com/gander-tools/diff-voyager/commit/d789956623e3ef61043bcae5b757ea716ad5063b))
+* **api:** implement GET /runs/:runId/pages endpoint with filtering ([3631790](https://github.com/gander-tools/diff-voyager/commit/3631790bd9d11307fb95392ccae2be6ce42661a4))
+* **api:** implement GET /tasks/:taskId endpoint ([2014cab](https://github.com/gander-tools/diff-voyager/commit/2014cabf64cb7f62cf0f1f5ea615ec5b5654ff79))
+
 ## [0.1.7](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.6...diff-voyager-backend-v0.1.7) (2026-01-07)
 
 
