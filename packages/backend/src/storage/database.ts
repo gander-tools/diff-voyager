@@ -52,6 +52,16 @@ function runMigrations(db: DatabaseInstance): void {
     applyTaskQueueSchema(db);
     db.prepare('INSERT INTO migrations (name) VALUES (?)').run('002-task-queue');
   }
+
+  // Check if snapshot baseline migration was applied
+  const applied003 = db
+    .prepare('SELECT 1 FROM migrations WHERE name = ?')
+    .get('003-snapshot-baseline');
+
+  if (!applied003) {
+    applySnapshotBaselineMigration(db);
+    db.prepare('INSERT INTO migrations (name) VALUES (?)').run('003-snapshot-baseline');
+  }
 }
 
 /**
@@ -167,6 +177,15 @@ function applyTaskQueueSchema(db: DatabaseInstance): void {
 
     -- Index on type for filtering by task type
     CREATE INDEX idx_tasks_type ON tasks(type);
+  `);
+}
+
+/**
+ * Add is_baseline column to snapshots table
+ */
+function applySnapshotBaselineMigration(db: DatabaseInstance): void {
+  db.exec(`
+    ALTER TABLE snapshots ADD COLUMN is_baseline INTEGER NOT NULL DEFAULT 0;
   `);
 }
 
