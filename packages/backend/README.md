@@ -19,16 +19,87 @@ This package provides the core crawling engine and local HTTP API for Diff Voyag
 - **Persistent Storage**: SQLite-based queue and artifact storage
 - **Resume Capability**: Continue interrupted crawls
 
+## Requirements
+
+- Node.js v22 or v24
+- npm v10 or v11
+
 ## Installation
+
+For development:
+
+```bash
+# From the repository root
+cd packages/backend
+
+# Install dependencies
+npm install
+
+# Install Playwright browsers (required for crawling)
+npx playwright install chromium
+```
+
+For production:
 
 ```bash
 npm install @gander-tools/diff-voyager-backend
 ```
 
-## Requirements
+## Development
 
-- Node.js v22 or v24
-- npm v10 or v11
+### Running the Development Server
+
+Start the backend API server in development mode with hot-reload:
+
+```bash
+npm run dev
+```
+
+The API will be available at `http://localhost:3001` by default.
+
+### Building
+
+Build the TypeScript source to JavaScript:
+
+```bash
+npm run build
+```
+
+Built files will be output to the `dist/` directory.
+
+### Testing
+
+Run all tests:
+
+```bash
+npm test
+```
+
+Run tests in watch mode (recommended during development):
+
+```bash
+npm run test:watch
+```
+
+Test structure:
+- `tests/unit/` - Unit tests for domain logic, repositories
+- `tests/integration/` - Integration tests for API endpoints and crawler
+- `tests/helpers/` - Test utilities and factories
+- `tests/fixtures/` - Test data and HTML fixtures
+
+### Linting and Formatting
+
+Check code with Biome:
+
+```bash
+npm run lint
+```
+
+Format code with Biome:
+
+```bash
+npm run format
+```
 
 ## Usage
 

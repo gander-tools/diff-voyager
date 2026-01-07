@@ -1,36 +1,36 @@
 {
-  "bootstrap-sha": "72de797780e610baba626bb57b7a33f9fe43eb61",
-  "packages": {
-    "packages/shared": {
-      "package-name": "@gander-tools/diff-voyager-shared",
-      "changelog-path": "CHANGELOG.md",
-      "release-type": "node",
-      "bump-minor-pre-major": true,
-      "bump-patch-for-minor-pre-major": true,
-      "draft": false,
-      "prerelease": false,
-      "initial-version": "0.1.0"
-    },
-    "packages/backend": {
-      "package-name": "@gander-tools/diff-voyager-backend",
-      "changelog-path": "CHANGELOG.md",
-      "release-type": "node",
-      "bump-minor-pre-major": true,
-      "bump-patch-for-minor-pre-major": true,
-      "draft": false,
-      "prerelease": false,
-      "initial-version": "0.1.0"
-    },
-    "packages/frontend": {
-      "package-name": "@gander-tools/diff-voyager-frontend",
-      "changelog-path": "CHANGELOG.md",
-      "release-type": "node",
-      "bump-minor-pre-major": true,
-      "bump-patch-for-minor-pre-major": true,
-      "draft": false,
-      "prerelease": false,
-      "initial-version": "0.1.0"
-    }
-  },
-  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json"
+	"bootstrap-sha": "72de797780e610baba626bb57b7a33f9fe43eb61",
+	"packages": {
+		"packages/shared": {
+			"package-name": "@gander-tools/diff-voyager-shared",
+			"changelog-path": "CHANGELOG.md",
+			"release-type": "node",
+			"bump-minor-pre-major": true,
+			"bump-patch-for-minor-pre-major": true,
+			"draft": false,
+			"prerelease": false,
+			"initial-version": "0.1.0"
+		},
+		"packages/backend": {
+			"package-name": "@gander-tools/diff-voyager-backend",
+			"changelog-path": "CHANGELOG.md",
+			"release-type": "node",
+			"bump-minor-pre-major": true,
+			"bump-patch-for-minor-pre-major": true,
+			"draft": false,
+			"prerelease": false,
+			"initial-version": "0.1.0"
+		},
+		"packages/frontend": {
+			"package-name": "@gander-tools/diff-voyager-frontend",
+			"changelog-path": "CHANGELOG.md",
+			"release-type": "node",
+			"bump-minor-pre-major": true,
+			"bump-patch-for-minor-pre-major": true,
+			"draft": false,
+			"prerelease": false,
+			"initial-version": "0.1.0"
+		}
+	},
+	"$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json"
 }

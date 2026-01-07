@@ -1,54 +1,59 @@
 {
-  "name": "@gander-tools/diff-voyager-backend",
-  "version": "0.1.1",
-  "description": "Backend crawler and API for Diff Voyager",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsc",
-    "dev": "tsx watch src/index.ts",
-    "start": "node dist/index.js",
-    "clean": "rm -rf dist",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "lint": "biome check .",
-    "format": "biome format --write ."
-  },
-  "keywords": [
-    "diff-voyager",
-    "backend",
-    "crawler",
-    "api"
-  ],
-  "author": "Adam Gąsowski (https://github.com/gander)",
-  "license": "GPL-3.0",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/gander-tools/diff-voyager.git",
-    "directory": "packages/backend"
-  },
-  "bugs": {
-    "url": "https://github.com/gander-tools/diff-voyager/issues"
-  },
-  "homepage": "https://github.com/gander-tools/diff-voyager#readme",
-  "engines": {
-    "node": "^22.0.0 || ^24.0.0",
-    "npm": "^10.0.0 || ^11.0.0"
-  },
-  "dependencies": {
-    "@gander-tools/diff-voyager-shared": "*",
-    "crawlee": "^3.12.3",
-    "fastify": "^5.2.0",
-    "pixelmatch": "^7.0.0",
-    "playwright": "^1.49.1",
-    "pngjs": "^7.0.0"
-  },
-  "devDependencies": {
-    "@types/node": "^22.10.5",
-    "@types/pixelmatch": "^5.2.6",
-    "@types/pngjs": "^6.0.5",
-    "tsx": "^4.19.2",
-    "typescript": "^5.7.3",
-    "vitest": "^4.0.0"
-  }
+	"name": "@gander-tools/diff-voyager-backend",
+	"version": "0.1.1",
+	"description": "Backend crawler and API for Diff Voyager",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"scripts": {
+		"build": "tsc",
+		"dev": "tsx watch src/index.ts",
+		"start": "node dist/index.js",
+		"clean": "rm -rf dist",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"lint": "biome check .",
+		"format": "biome format --write ."
+	},
+	"keywords": [
+		"diff-voyager",
+		"backend",
+		"crawler",
+		"api"
+	],
+	"author": "Adam Gąsowski (https://github.com/gander)",
+	"license": "GPL-3.0",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gander-tools/diff-voyager.git",
+		"directory": "packages/backend"
+	},
+	"bugs": {
+		"url": "https://github.com/gander-tools/diff-voyager/issues"
+	},
+	"homepage": "https://github.com/gander-tools/diff-voyager#readme",
+	"engines": {
+		"node": "^22.0.0 || ^24.0.0",
+		"npm": "^10.0.0 || ^11.0.0"
+	},
+	"dependencies": {
+		"@fastify/rate-limit": "^10.3.0",
+		"@gander-tools/diff-voyager-shared": "*",
+		"better-sqlite3": "^11.7.0",
+		"crawlee": "^3.12.3",
+		"fastify": "^5.2.0",
+		"pixelmatch": "^7.0.0",
+		"playwright": "^1.49.1",
+		"pngjs": "^7.0.0"
+	},
+	"devDependencies": {
+		"@types/better-sqlite3": "^7.6.12",
+		"@types/node": "^22.10.5",
+		"@types/pixelmatch": "^5.2.6",
+		"@types/pngjs": "^6.0.5",
+		"@types/supertest": "^6.0.2",
+		"supertest": "^7.0.0",
+		"tsx": "^4.19.2",
+		"typescript": "^5.7.3",
+		"vitest": "^4.0.0"
+	}
 }

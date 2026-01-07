@@ -40,12 +40,12 @@ lerna-debug.log*
 .cache/
 
 # Diff Voyager specific
-data/
-storage/
-artifacts/
-screenshots/
-har-files/
-diff-images/
+/data/
+/storage/
+/artifacts/
+/screenshots/
+/har-files/
+/diff-images/
 
 # Frontend
 packages/frontend/dist-ssr
