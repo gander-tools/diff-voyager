@@ -474,3 +474,203 @@ describe('TaskQueue.dequeue()', () => {
     expect(task).toBeNull();
   });
 });
+
+describe('TaskQueue.complete()', () => {
+  let testDir: string;
+  let dbPath: string;
+  let db: Database.Database;
+  let taskQueue: TaskQueue;
+
+  beforeEach(() => {
+    testDir = join(tmpdir(), `diff-voyager-test-${randomUUID()}`);
+    mkdirSync(testDir, { recursive: true });
+    dbPath = join(testDir, 'test.db');
+    db = createDatabase({ dbPath, artifactsDir: join(testDir, 'artifacts') });
+    taskQueue = new TaskQueue(db);
+  });
+
+  afterEach(() => {
+    closeDatabase(db);
+    rmSync(testDir, { recursive: true, force: true });
+  });
+
+  it('should mark task as completed', () => {
+    const payload: CapturePagePayload = {
+      runId: 'run-123',
+      pageId: 'page-456',
+      url: 'https://example.com',
+      projectId: 'project-789',
+      isBaseline: true,
+      config: {},
+    };
+
+    const taskId = taskQueue.enqueue({ type: 'capture-page', payload });
+    taskQueue.dequeue(); // Move to processing
+
+    taskQueue.complete(taskId);
+
+    const task = db.prepare('SELECT status FROM tasks WHERE id = ?').get(taskId) as {
+      status: string;
+    };
+    expect(task.status).toBe('completed');
+  });
+
+  it('should set completed_at timestamp', () => {
+    const payload: CapturePagePayload = {
+      runId: 'run-123',
+      pageId: 'page-456',
+      url: 'https://example.com',
+      projectId: 'project-789',
+      isBaseline: true,
+      config: {},
+    };
+
+    const taskId = taskQueue.enqueue({ type: 'capture-page', payload });
+    taskQueue.dequeue();
+
+    const before = Date.now();
+    taskQueue.complete(taskId);
+    const after = Date.now();
+
+    const task = db.prepare('SELECT completed_at FROM tasks WHERE id = ?').get(taskId) as {
+      completed_at: string;
+    };
+    const completedAt = new Date(task.completed_at).getTime();
+
+    expect(completedAt).toBeGreaterThanOrEqual(before - 1000);
+    expect(completedAt).toBeLessThanOrEqual(after + 1000);
+  });
+
+  it('should not affect other tasks', () => {
+    const payload: CapturePagePayload = {
+      runId: 'run-123',
+      pageId: 'page-456',
+      url: 'https://example.com',
+      projectId: 'project-789',
+      isBaseline: true,
+      config: {},
+    };
+
+    const taskId1 = taskQueue.enqueue({ type: 'capture-page', payload });
+    const taskId2 = taskQueue.enqueue({ type: 'capture-page', payload });
+
+    taskQueue.dequeue(); // Process first task
+    taskQueue.complete(taskId1);
+
+    const task2 = db.prepare('SELECT status FROM tasks WHERE id = ?').get(taskId2) as {
+      status: string;
+    };
+    expect(task2.status).toBe('pending');
+  });
+});
+
+describe('TaskQueue.fail()', () => {
+  let testDir: string;
+  let dbPath: string;
+  let db: Database.Database;
+  let taskQueue: TaskQueue;
+
+  beforeEach(() => {
+    testDir = join(tmpdir(), `diff-voyager-test-${randomUUID()}`);
+    mkdirSync(testDir, { recursive: true });
+    dbPath = join(testDir, 'test.db');
+    db = createDatabase({ dbPath, artifactsDir: join(testDir, 'artifacts') });
+    taskQueue = new TaskQueue(db);
+  });
+
+  afterEach(() => {
+    closeDatabase(db);
+    rmSync(testDir, { recursive: true, force: true });
+  });
+
+  it('should mark task as failed', () => {
+    const payload: CapturePagePayload = {
+      runId: 'run-123',
+      pageId: 'page-456',
+      url: 'https://example.com',
+      projectId: 'project-789',
+      isBaseline: true,
+      config: {},
+    };
+
+    const taskId = taskQueue.enqueue({ type: 'capture-page', payload });
+    taskQueue.dequeue();
+
+    taskQueue.fail(taskId, 'Test error message');
+
+    const task = db.prepare('SELECT status FROM tasks WHERE id = ?').get(taskId) as {
+      status: string;
+    };
+    expect(task.status).toBe('failed');
+  });
+
+  it('should store error message', () => {
+    const payload: CapturePagePayload = {
+      runId: 'run-123',
+      pageId: 'page-456',
+      url: 'https://example.com',
+      projectId: 'project-789',
+      isBaseline: true,
+      config: {},
+    };
+
+    const taskId = taskQueue.enqueue({ type: 'capture-page', payload });
+    taskQueue.dequeue();
+
+    const errorMessage = 'Page capture failed: timeout';
+    taskQueue.fail(taskId, errorMessage);
+
+    const task = db.prepare('SELECT error_message FROM tasks WHERE id = ?').get(taskId) as {
+      error_message: string;
+    };
+    expect(task.error_message).toBe(errorMessage);
+  });
+
+  it('should set completed_at timestamp', () => {
+    const payload: CapturePagePayload = {
+      runId: 'run-123',
+      pageId: 'page-456',
+      url: 'https://example.com',
+      projectId: 'project-789',
+      isBaseline: true,
+      config: {},
+    };
+
+    const taskId = taskQueue.enqueue({ type: 'capture-page', payload });
+    taskQueue.dequeue();
+
+    const before = Date.now();
+    taskQueue.fail(taskId, 'Test error');
+    const after = Date.now();
+
+    const task = db.prepare('SELECT completed_at FROM tasks WHERE id = ?').get(taskId) as {
+      completed_at: string;
+    };
+    const completedAt = new Date(task.completed_at).getTime();
+
+    expect(completedAt).toBeGreaterThanOrEqual(before - 1000);
+    expect(completedAt).toBeLessThanOrEqual(after + 1000);
+  });
+
+  it('should handle long error messages', () => {
+    const payload: CapturePagePayload = {
+      runId: 'run-123',
+      pageId: 'page-456',
+      url: 'https://example.com',
+      projectId: 'project-789',
+      isBaseline: true,
+      config: {},
+    };
+
+    const taskId = taskQueue.enqueue({ type: 'capture-page', payload });
+    taskQueue.dequeue();
+
+    const longError = 'Error: '.repeat(100) + 'Very long error message with stack trace';
+    taskQueue.fail(taskId, longError);
+
+    const task = db.prepare('SELECT error_message FROM tasks WHERE id = ?').get(taskId) as {
+      error_message: string;
+    };
+    expect(task.error_message).toBe(longError);
+  });
+});

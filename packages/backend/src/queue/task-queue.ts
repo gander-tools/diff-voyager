@@ -122,6 +122,42 @@ export class TaskQueue {
   }
 
   /**
+   * Mark a task as completed
+   *
+   * @param taskId - ID of the task to complete
+   */
+  complete(taskId: string): void {
+    const stmt = this.db.prepare(`
+      UPDATE tasks
+      SET
+        status = 'completed',
+        completed_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `);
+
+    stmt.run(taskId);
+  }
+
+  /**
+   * Mark a task as failed with an error message
+   *
+   * @param taskId - ID of the task that failed
+   * @param errorMessage - Description of the error
+   */
+  fail(taskId: string, errorMessage: string): void {
+    const stmt = this.db.prepare(`
+      UPDATE tasks
+      SET
+        status = 'failed',
+        error_message = ?,
+        completed_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `);
+
+    stmt.run(errorMessage, taskId);
+  }
+
+  /**
    * Convert database row to Task object
    */
   private rowToTask(row: TaskRow): Task {
