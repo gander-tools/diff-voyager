@@ -207,6 +207,23 @@ export class TaskQueue {
   }
 
   /**
+   * Find a task by ID
+   *
+   * @param taskId - ID of the task to find
+   * @returns The task or null if not found
+   */
+  findById(taskId: string): Task | null {
+    const stmt = this.db.prepare<[string], TaskRow>('SELECT * FROM tasks WHERE id = ?');
+    const row = stmt.get(taskId);
+
+    if (!row) {
+      return null;
+    }
+
+    return this.rowToTask(row);
+  }
+
+  /**
    * Get task progress statistics
    *
    * @returns Progress statistics

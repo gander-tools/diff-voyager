@@ -11,6 +11,7 @@ import type { DatabaseInstance } from '../storage/database.js';
 import { registerArtifactRoutes } from './routes/artifacts.js';
 import { registerProjectRoutes } from './routes/projects.js';
 import { registerScanRoutes } from './routes/scans.js';
+import { registerTaskRoutes } from './routes/tasks.js';
 
 export interface AppConfig {
   db: DatabaseInstance;
@@ -46,6 +47,7 @@ export async function createApp(config: AppConfig): Promise<FastifyInstance> {
       tags: [
         { name: 'scans', description: 'Scan and crawl operations' },
         { name: 'projects', description: 'Project management' },
+        { name: 'tasks', description: 'Task status and monitoring' },
         { name: 'artifacts', description: 'Access captured artifacts' },
         { name: 'health', description: 'Health check' },
       ],
@@ -113,6 +115,10 @@ export async function createApp(config: AppConfig): Promise<FastifyInstance> {
     artifactsDir: config.artifactsDir,
   });
   await app.register(registerProjectRoutes, {
+    prefix: API_BASE_PATH,
+    db: config.db,
+  });
+  await app.register(registerTaskRoutes, {
     prefix: API_BASE_PATH,
     db: config.db,
   });
