@@ -650,12 +650,12 @@ Phase 7 (Polish)
 
 ### Scenario 2 Complete When:
 - [ ] POST /api/v1/scans with `crawl: true` accepts URL and crawl options 🟡 (endpoint exists, crawling not implemented)
-- [ ] Crawler discovers and captures all pages ❌ (Crawlee integration pending)
-- [ ] Progress trackable via task status ❌ (task queue pending)
+- [ ] Crawler discovers and captures all pages ❌ (Crawlee integration pending - Phase 3)
+- [x] Progress trackable via task status ✅ (task queue complete - Phase 4)
 - [ ] All pages and artifacts stored ❌ (blocked by crawler)
 - [ ] Retrievable via Scenario 3 endpoints ❌ (blocked by crawler)
 
-**Status: Scenario 2 BLOCKED - Needs Phase 3 (Crawlee) and Phase 4 (Task Queue)** 🔴
+**Status: Scenario 2 BLOCKED - Needs Phase 3 (Crawlee integration only)** 🟡
 
 ### Scenario 3 Complete When:
 - [ ] GET /api/v1/projects (list all projects) ❌ (not implemented yet)
@@ -663,16 +663,17 @@ Phase 7 (Polish)
 - [ ] GET /api/v1/runs/:id (run details) ❌ (not implemented)
 - [ ] GET /api/v1/runs/:id/pages (pages list with filtering) ❌ (not implemented)
 - [ ] GET /api/v1/pages/:id (page with snapshot) ❌ (not implemented)
-- [ ] GET /api/v1/pages/:id/diff (detailed diff) ❌ (blocked by diff comparator)
+- [ ] GET /api/v1/pages/:id/diff (detailed diff) 🟡 (comparators ready, endpoint & storage needed)
 - [x] GET /api/v1/artifacts/:pageId/* returns binary artifacts ✅ (screenshot, HTML, HAR)
 
-**Status: Scenario 3 PARTIAL - Project retrieval works, diff viewing blocked** 🟡
+**Status: Scenario 3 PARTIAL - Project retrieval works, diff comparators ready but need integration** 🟡
 
 ### Overall Complete When:
-- [x] Unit tests exist and pass ✅ (4 test files)
+- [x] Unit tests exist and pass ✅ (comprehensive test coverage for domain logic)
 - [x] Integration tests with mock server ✅ (scan endpoints, multiple runs)
 - [ ] API responds correctly to all documented requests 🟡 (partial - some endpoints missing)
-- [ ] Mock Server tests verify diff detection accuracy ❌ (comparators not implemented)
+- [x] Comparators implemented and tested ✅ (Phase 2 complete - all comparators done)
+- [ ] Diff detection integrated into workflow 🟡 (comparators ready, need workflow integration)
 - [ ] Performance acceptable for typical usage 🟡 (single page works well, multi-page untested)
 
 ---
@@ -689,17 +690,29 @@ Phase 7 (Polish)
 - ✅ URL normalization
 - ✅ Security features (rate limiting, path traversal protection)
 - ✅ Swagger UI documentation at `/docs`
+- ✅ **Phase 2 Complete:** All comparison logic implemented:
+  - ✅ SEO Comparator (title, meta, canonical, robots, H1 changes)
+  - ✅ Visual Comparator (pixelmatch integration, diff image generation)
+  - ✅ Header Comparator (HTTP header differences)
+  - ✅ Performance Comparator (load time, request count, size deltas)
+  - ✅ Full Page Comparator (orchestrates all comparators)
+- ✅ **Phase 4 Complete:** Task queue system fully implemented:
+  - ✅ Task queue core (enqueue, dequeue, complete, fail)
+  - ✅ Page task queue with batch operations
+  - ✅ Task processor with background processing loop
+  - ✅ Retry logic and stale task recovery
+  - ✅ Graceful shutdown
 
 **What's Not Working Yet:**
-- ❌ Multi-page crawling (Crawlee integration pending)
-- ❌ Diff comparison (all comparators pending)
-- ❌ Task queue and background processing
-- ❌ Most Scenario 3 retrieval endpoints
+- ❌ Multi-page crawling (Crawlee integration pending - Phase 3)
+- 🟡 Diff workflow integration (comparators ready, need workflow implementation)
+- 🟡 DiffRepository for storing comparison results (Phase 1 remaining)
+- ❌ Most Scenario 3 retrieval endpoints (GET /runs/:id, GET /pages/:id, etc.)
 - ❌ Frontend UI
 
 **Next Priorities:**
-1. **SEO Comparator** - Enable detection of SEO changes between runs
-2. **Visual Comparator** - Implement pixelmatch for screenshot diffs
-3. **Diff API endpoints** - GET /pages/:id/diff to view comparisons
-4. **Crawlee Integration** - Multi-page discovery and crawling
-5. **Task Queue** - Background processing for large crawls
+1. **DiffRepository** - Complete Phase 1 by implementing diff storage
+2. **Diff Workflow Integration** - Connect comparators to scan workflow (Phase 6)
+3. **Diff API endpoints** - GET /api/v1/pages/:id/diff to view comparisons
+4. **Additional Scenario 3 endpoints** - Complete project/run/page retrieval APIs
+5. **Crawlee Integration** - Multi-page discovery and crawling (Phase 3)
