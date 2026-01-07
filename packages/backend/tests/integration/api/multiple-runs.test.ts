@@ -20,9 +20,7 @@ import {
   createDatabase,
   type DatabaseInstance,
 } from '../../../src/storage/database.js';
-import { PageRepository } from '../../../src/storage/repositories/page-repository.js';
 import { RunRepository } from '../../../src/storage/repositories/run-repository.js';
-import { SnapshotRepository } from '../../../src/storage/repositories/snapshot-repository.js';
 import { HTML_FIXTURES } from '../../fixtures/html/index.js';
 import { MockServer } from '../../helpers/mock-server.js';
 
@@ -35,8 +33,6 @@ describe('Multiple runs scenario', () => {
   let artifactsDir: string;
 
   let runRepo: RunRepository;
-  let pageRepo: PageRepository;
-  let snapshotRepo: SnapshotRepository;
 
   beforeAll(async () => {
     // Setup test directory
@@ -52,8 +48,6 @@ describe('Multiple runs scenario', () => {
 
     // Create repositories
     runRepo = new RunRepository(db);
-    pageRepo = new PageRepository(db);
-    snapshotRepo = new SnapshotRepository(db);
 
     // Create app
     app = await createApp({ db, artifactsDir });
