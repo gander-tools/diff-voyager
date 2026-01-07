@@ -149,6 +149,10 @@ npm run build:backend
 npm run setup
 ```
 
+```shell
+npx playwright install
+```
+
 ### Running the API Server
 ```bash
 # Start backend server (default port 3000)
