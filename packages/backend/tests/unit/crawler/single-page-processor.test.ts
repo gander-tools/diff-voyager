@@ -144,8 +144,8 @@ describe('SinglePageProcessor', () => {
       expect(snapshot?.pageId).toBe(result.pageId);
       expect(snapshot?.runId).toBe(runId);
       expect(snapshot?.httpStatus).toBe(200);
-      expect(snapshot?.seo).toBeDefined();
-      expect(snapshot?.seo.title).toBeDefined();
+      expect(snapshot?.seoData).toBeDefined();
+      expect(snapshot?.seoData.title).toBeDefined();
     });
 
     it('should extract SEO data during capture', async () => {
@@ -166,11 +166,11 @@ describe('SinglePageProcessor', () => {
       expect(result.success).toBe(true);
 
       const snapshot = await snapshotRepository.findById(result.snapshotId);
-      expect(snapshot?.seo).toBeDefined();
-      expect(snapshot?.seo.title).toBeTruthy();
-      expect(snapshot?.seo.metaDescription).toBeTruthy();
-      expect(snapshot?.seo.h1).toBeDefined();
-      expect(Array.isArray(snapshot?.seo.h1)).toBe(true);
+      expect(snapshot?.seoData).toBeDefined();
+      expect(snapshot?.seoData.title).toBeTruthy();
+      expect(snapshot?.seoData.metaDescription).toBeTruthy();
+      expect(snapshot?.seoData.h1).toBeDefined();
+      expect(Array.isArray(snapshot?.seoData.h1)).toBe(true);
     });
 
     it('should handle 404 pages gracefully', async () => {
