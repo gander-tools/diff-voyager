@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.2...diff-voyager-backend-v0.1.3) (2026-01-07)
+
+
+### Bug Fixes
+
+* **tests:** use PLAYWRIGHT_AVAILABLE for conditional test skipping ([#63](https://github.com/gander-tools/diff-voyager/issues/63)) ([9c947e7](https://github.com/gander-tools/diff-voyager/commit/9c947e7d68c52828f23e42839cbce6075f71163e))
+
 ## [0.1.2](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.1...diff-voyager-backend-v0.1.2) (2026-01-07)
 
 
