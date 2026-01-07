@@ -177,28 +177,117 @@ GNU General Public License v3.0 (GPL-3.0)
 
 See [LICENSE](LICENSE) for details.
 
-## Roadmap
+## MVP Process
 
-### MVP (In Progress)
-- [x] Project initialization and structure
-- [ ] Domain model implementation
-- [ ] Crawler with Crawlee + Playwright
-- [ ] Screenshot and visual diff engine
-- [ ] SEO metadata extraction
-- [ ] HAR file capture and performance metrics
-- [ ] Local API with Fastify
+Development follows the [API Implementation Plan](docs/api-implementation-plan/) with Test-Driven Development (TDD). Each phase builds on the previous, ensuring solid foundations.
+
+### Phase 0: Foundation Setup (90% ✅)
+- [x] Test infrastructure (Vitest, MockServer, test helpers)
+- [x] HTML fixtures for SEO testing
+- [x] Shared TypeScript types (API requests/responses)
+- [ ] Build automation for shared package
+
+### Phase 1: Storage Layer (80% ✅)
+- [x] SQLite database schema with migrations
+- [x] ProjectRepository (create, findById, update)
+- [x] RunRepository (create, findById, updateStatus)
+- [x] PageRepository (create, findByUrl, findOrCreate)
+- [x] SnapshotRepository (create, findByPageAndRun)
+- [ ] DiffRepository (comparison results storage)
+- [ ] ArtifactStorage helper (file operations abstraction)
+
+### Phase 2: Domain Logic (20% 🟡)
+- [x] URL Normalizer (path normalization, query handling, tracking parameter removal)
+- [ ] SEO Extractor & Comparator (title, meta, canonical, robots, headings)
+- [ ] Visual Comparator (pixelmatch integration, diff image generation)
+- [ ] Header Comparator (HTTP header differences)
+- [ ] Performance Comparator (load time, request count, size deltas)
+- [ ] Full Page Comparator (orchestration of all comparators)
+
+### Phase 3: Crawler (50% 🟡)
+- [x] Playwright browser setup
+- [x] Page capture (HTML, headers, status, redirects)
+- [x] Screenshot capture with configurable viewport
+- [x] SEO data extraction
+- [x] Performance metrics collection
+- [x] HAR file capture (configured)
+- [ ] Crawlee integration for multi-page discovery
+- [ ] Link discovery and following
+- [ ] Domain boundary checking
+- [ ] Max pages limit and concurrency control
+- [ ] URL filtering patterns (include/exclude)
+
+### Phase 4: Task Queue (0% 🔴)
+- [ ] Task queue core (enqueue, dequeue, complete, fail)
+- [ ] Page task queue (batch operations, progress tracking)
+- [ ] Task processor (background processing loop)
+- [ ] Retry logic and error recovery
+- [ ] Graceful shutdown
+
+### Phase 5: API Layer (70% ✅)
+- [x] Fastify app with Swagger UI (`/docs`)
+- [x] Request validation and error handling
+- [x] Rate limiting and security headers
+- [x] POST /api/v1/scans (create scan with sync/async mode)
+- [x] GET /api/v1/projects/:projectId (project details with pages)
+- [x] GET /api/v1/artifacts/:pageId/* (screenshots, HTML, HAR, diffs)
+- [x] GET /health (health check)
+- [ ] GET /api/v1/tasks/:taskId (task status and progress)
+- [ ] POST /api/v1/projects/:id/runs (create comparison run)
+- [ ] GET /api/v1/runs/:runId (run details)
+- [ ] GET /api/v1/runs/:runId/pages (pages list with filtering)
+- [ ] GET /api/v1/pages/:pageId/diff (detailed diff view)
+
+### Phase 6: Integration & Workflows (30% 🟡)
+- [x] ScanProcessor (orchestrates project → run → capture → storage)
+- [x] Single page baseline capture (sync mode)
+- [x] Artifact persistence (screenshots, HTML, performance data)
+- [ ] Baseline vs run comparison workflow
+- [ ] Diff generation and storage
+- [ ] Multi-page crawl workflow
+- [ ] Async task processing integration
+
+### Phase 7: Polish & Production Ready (40% 🟡)
+- [x] Rate limiting on all API endpoints
+- [x] Path traversal prevention with symlink protection
+- [x] Input validation and error sanitization
+- [x] Swagger/OpenAPI documentation
+- [ ] Complete error scenario tests
+- [ ] Database query optimization and indexing
+- [ ] Performance benchmarking and optimization
+- [ ] Connection pooling
+
+### Frontend Development (Planned)
 - [ ] Vue 3 UI with project and run management
-- [ ] Diff review and acceptance workflow
-- [ ] Mute rules and filters
+- [ ] Diff review interface (visual, SEO, performance)
+- [ ] Diff acceptance and muting workflow
+- [ ] Mute rules configuration
 - [ ] Export functionality
 
-### Future Enhancements
+### Current Status: **Single Page Capture Working** ✅
+
+The system can currently:
+- ✅ Capture single pages with full artifacts
+- ✅ Extract SEO metadata and performance metrics
+- ✅ Store baselines in SQLite
+- ✅ Serve artifacts via REST API
+- ✅ Provide interactive API documentation
+
+Not yet available:
+- ❌ Multi-page site crawling
+- ❌ Baseline vs run comparison
+- ❌ Visual/SEO diff generation
+- ❌ Background task processing
+- ❌ Frontend UI
+
+### Future Enhancements (Post-MVP)
 - CI/CD integration (GitHub Actions, GitLab CI)
-- SEO tool integration
-- Advanced visual diff algorithms
-- Multi-user support
+- SEO tool integration (Lighthouse, Screaming Frog)
+- Advanced visual diff algorithms (structural comparison)
+- Multi-user support and authentication
 - Docker deployment
 - Email/Slack notifications
+- Project templates and presets
 
 ## Support
 
