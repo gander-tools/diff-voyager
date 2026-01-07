@@ -350,12 +350,18 @@ Asynchronous task processing system:
 - **Task Processor** - Background processing loop with retry logic and stale task recovery
 - **Graceful Shutdown** - Clean process termination
 
-### 🟡 Phase 3: Crawler (PARTIAL)
+### ✅ Phase 3: Crawler (COMPLETE)
 
-- **Page Capturer** - ✅ Single page capture with Playwright
-- **Artifact Generation** - ✅ Screenshots, HTML, HAR files
-- **SEO Extraction** - ✅ Full metadata extraction
-- **Crawlee Integration** - ❌ Multi-page discovery (not yet implemented)
+All crawler components are fully implemented and tested:
+
+- **Browser Manager** - Browser instance pooling with race condition handling
+- **Page Capturer** - Single page capture with Playwright (HTML, screenshots, SEO, performance)
+- **Artifact Generation** - Screenshots, HTML, performance metrics
+- **SEO Extraction** - Full metadata extraction (title, meta, canonical, robots, H1/H2)
+- **Crawlee Integration** - Multi-page URL discovery with same-domain strategy
+- **URL Discovery** - Integrated into ScanProcessor for crawl: true scenarios
+
+**Test Coverage:** BrowserManager (17 tests), PageCapturer (24 tests), integration tests for crawl mode
 
 ### 🟡 Phase 5: API Layer (PARTIAL)
 
@@ -386,16 +392,17 @@ Vue 3 frontend is planned but not yet implemented.
 
 **What Works:**
 - ✅ Single page scanning (sync and async)
+- ✅ Multi-page crawling (crawl: true discovers linked pages)
 - ✅ Project creation with automatic baseline runs
 - ✅ Multiple comparison runs per project
 - ✅ Full artifact capture and retrieval
 - ✅ Secure file access with path traversal protection
 - ✅ Rate limiting on file operations
 - ✅ Comprehensive storage layer with diff tracking
+- ✅ Browser instance pooling for efficient page capture
 - ✅ All comparison algorithms ready (SEO, visual, headers, performance)
 
 **What's Not Working Yet:**
-- ❌ Multi-page crawling (Crawlee integration)
 - ❌ Diff comparison workflow (comparators ready, integration pending)
 - ❌ Diff retrieval API endpoints
 - ❌ Frontend UI
@@ -404,8 +411,7 @@ Vue 3 frontend is planned but not yet implemented.
 
 1. **Phase 6** - Integrate diff comparators into scan workflow
 2. **Phase 5** - Implement remaining API endpoints for diff retrieval
-3. **Phase 3** - Complete Crawlee integration for multi-page crawling
-4. **Frontend** - Begin Vue 3 UI development
+3. **Frontend** - Begin Vue 3 UI development
 
 ## Typical Workflow
 
@@ -509,7 +515,7 @@ Development follows the [API Implementation Plan](docs/api-implementation-plan/)
 - [x] Max pages limit and concurrency control
 - [x] URL filtering patterns (include/exclude)
 
-**Implementation Complete:** Full crawler infrastructure with Playwright for page capture and Crawlee for multi-page site crawling. Includes browser pooling, single page processing orchestration, link discovery, domain filtering, concurrency control, and progress tracking. Ready for integration with scan endpoints.
+**Implementation Complete:** Full crawler infrastructure with Playwright for page capture and Crawlee for multi-page site crawling. Includes browser pooling with race condition handling (17 tests), comprehensive page capture testing (24 tests), and URL discovery integrated into ScanProcessor. Multi-page crawling is fully functional through the API with crawl: true parameter.
 
 ### Phase 4: Task Queue (100% ✅)
 - [x] Task queue core (enqueue, dequeue, complete, fail)
