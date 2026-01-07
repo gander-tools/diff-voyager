@@ -68,13 +68,13 @@ export async function registerArtifactRoutes(
       }
 
       if (!existsSync(filePath)) {
-      return reply.status(404).send({
-        error: {
-          code: 'NOT_FOUND',
-          message: 'Screenshot not found',
-        },
-      });
-    }
+        return reply.status(404).send({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Screenshot not found',
+          },
+        });
+      }
 
       const content = await readFile(filePath);
       return reply
@@ -151,13 +151,13 @@ export async function registerArtifactRoutes(
       }
 
       if (!existsSync(filePath)) {
-      return reply.status(404).send({
-        error: {
-          code: 'NOT_FOUND',
-          message: 'Diff image not found',
-        },
-      });
-    }
+        return reply.status(404).send({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Diff image not found',
+          },
+        });
+      }
 
       const content = await readFile(filePath);
       return reply
@@ -194,13 +194,13 @@ export async function registerArtifactRoutes(
       }
 
       if (!existsSync(filePath)) {
-      return reply.status(404).send({
-        error: {
-          code: 'NOT_FOUND',
-          message: 'HAR file not found',
-        },
-      });
-    }
+        return reply.status(404).send({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'HAR file not found',
+          },
+        });
+      }
 
       const content = await readFile(filePath, 'utf-8');
       return reply
@@ -237,13 +237,13 @@ export async function registerArtifactRoutes(
       }
 
       if (!existsSync(filePath)) {
-      return reply.status(404).send({
-        error: {
-          code: 'NOT_FOUND',
-          message: 'HTML file not found',
-        },
-      });
-    }
+        return reply.status(404).send({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'HTML file not found',
+          },
+        });
+      }
 
       const content = await readFile(filePath, 'utf-8');
       return reply.header('Content-Type', 'text/html; charset=utf-8').send(content);
