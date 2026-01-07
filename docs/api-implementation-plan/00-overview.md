@@ -56,24 +56,55 @@ This document outlines the implementation plan for three core API scenarios of D
 
 ### Queue & Processing
 
-**Processing Options (choose one):**
+**Processing Options:**
 
 | # | Solution | Pros | Cons | Container |
 |---|----------|------|------|-----------|
-| 0 | **Synchronous (no queue)** | Simplest, immediate result, works from CLI | Blocks request, no resume, timeout risk | None |
-| 1 | **SQLite (DB records)** | Zero dependencies, atomic, persistent, resumable | Single-writer, no distributed workers | None |
-| 2 | **BullMQ + Redis** | Node.js native, job scheduling, retries, dashboard | Redis dependency | `redis:alpine` |
-| 3 | **PostgreSQL SKIP LOCKED** | ACID, if already using Postgres | Heavier than SQLite | `postgres:alpine` |
-| 4 | **Beanstalkd** | Simple protocol, lightweight, tubes | Less popular, fewer Node.js libs | `schickling/beanstalkd` |
-| 5 | **RabbitMQ (AMQP)** | Mature, reliable, routing, clustering | Heavier, more complex | `rabbitmq:alpine` |
+| **0** | **⚡ Synchronous (no queue)** | Simplest, immediate result, works from CLI | Blocks request, no resume, timeout risk | None |
+| 1 | SQLite (DB records) | Zero dependencies, atomic, persistent, resumable | Single-writer, no distributed workers | None |
+| 2 | BullMQ + Redis | Node.js native, job scheduling, retries, dashboard | Redis dependency | `redis:alpine` |
+| 3 | PostgreSQL SKIP LOCKED | ACID, if already using Postgres | Heavier than SQLite | `postgres:alpine` |
+| 4 | Beanstalkd | Simple protocol, lightweight, tubes | Less popular, fewer Node.js libs | `schickling/beanstalkd` |
+| 5 | RabbitMQ (AMQP) | Mature, reliable, routing, clustering | Heavier, more complex | `rabbitmq:alpine` |
 
-**Option 0: Synchronous Processing**
-- API: `POST /scans?sync=true` - blocks until complete, returns full result
-- CLI: `diff-voyager scan https://example.com` - runs in foreground
-- Best for: single page scans, small crawls, CLI usage
-- Timeout: configurable (default 5 min for single page, 30 min for crawl)
+---
 
-**Recommendation for MVP:** Start with option 0 (sync), add option 1 (SQLite queue) for large crawls
+## ⚡ ASAP Scenario (Simplest MVP)
+
+**Stack:** Synchronous processing (option 0) + SQLite + File system
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  ASAP: No queue, no containers, immediate results       │
+├─────────────────────────────────────────────────────────┤
+│  Processing:  Synchronous (blocks until complete)       │
+│  Database:    SQLite (single file)                      │
+│  Artifacts:   Local file system                         │
+│  Containers:  None required                             │
+└─────────────────────────────────────────────────────────┘
+```
+
+**How it works:**
+1. `POST /scans` with `sync: true` (or default for CLI)
+2. Request blocks while Playwright captures page(s)
+3. Results saved to SQLite + file system
+4. Full response returned immediately
+
+**Ideal for:**
+- Single page scans
+- Small crawls (< 50 pages)
+- CLI usage
+- Local development
+- Quick validation
+
+**Limitations:**
+- HTTP timeout risk for large crawls
+- No resume after interruption
+- No progress tracking during execution
+
+**Upgrade path:** Add SQLite queue (option 1) when needed for large crawls
+
+---
 
 **Queue features (if using options 1-5):**
 - Persistent task storage (survives restart)
@@ -83,9 +114,9 @@ This document outlines the implementation plan for three core API scenarios of D
 - Resume capability after interruption
 
 ### Storage
-- SQLite database for metadata and relationships
-- File system for artifacts (screenshots, diffs, HARs)
-- Structured directory layout per project/run
+- **SQLite** database for metadata and relationships (single file, zero config)
+- **File system** for artifacts (screenshots, diffs, HARs)
+- Structured directory layout per project
 
 ### Response Format
 - All endpoints return JSON
