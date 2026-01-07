@@ -35,31 +35,168 @@ export async function registerScanRoutes(
 
 	app.post<{ Body: CreateScanRequest }>(
 		"/scans",
-		{ config: EXPENSIVE_OPERATION_RATE_LIMIT },
+		{
+			config: EXPENSIVE_OPERATION_RATE_LIMIT,
+			schema: {
+				tags: ["scans"],
+				description: "Create a new scan or crawl",
+				body: {
+					type: "object",
+					required: ["url"],
+					properties: {
+						url: {
+							type: "string",
+							format: "uri",
+							description: "URL to scan or crawl",
+						},
+						sync: {
+							type: "boolean",
+							description: "Wait for scan to complete before returning",
+							default: false,
+						},
+						name: {
+							type: "string",
+							description: "Project name",
+						},
+						description: {
+							type: "string",
+							description: "Project description",
+						},
+						crawl: {
+							type: "boolean",
+							description: "Crawl entire site instead of single page",
+							default: false,
+						},
+						maxPages: {
+							type: "integer",
+							description: "Maximum pages to crawl",
+							minimum: 1,
+						},
+						viewport: {
+							type: "object",
+							properties: {
+								width: { type: "integer", minimum: 320 },
+								height: { type: "integer", minimum: 240 },
+							},
+						},
+						collectHar: {
+							type: "boolean",
+							description: "Collect HAR files for performance analysis",
+							default: false,
+						},
+						waitAfterLoad: {
+							type: "integer",
+							description: "Milliseconds to wait after page load",
+							minimum: 0,
+						},
+						visualDiffThreshold: {
+							type: "number",
+							description: "Visual diff pixel threshold (0-1)",
+							minimum: 0,
+							maximum: 1,
+						},
+					},
+				},
+				response: {
+					200: {
+						description: "Sync scan completed - returns full project details",
+						type: "object",
+						properties: {
+							id: { type: "string" },
+							name: { type: "string" },
+							description: { type: "string" },
+							baseUrl: { type: "string" },
+							config: {
+								type: "object",
+								properties: {
+									crawl: { type: "boolean" },
+									viewport: {
+										type: "object",
+										properties: {
+											width: { type: "integer" },
+											height: { type: "integer" },
+										},
+									},
+									visualDiffThreshold: { type: "number" },
+									maxPages: { type: "integer" },
+								},
+							},
+							status: { type: "string" },
+							createdAt: { type: "string", format: "date-time" },
+							updatedAt: { type: "string", format: "date-time" },
+							statistics: {
+								type: "object",
+								properties: {
+									totalPages: { type: "integer" },
+									completedPages: { type: "integer" },
+									errorPages: { type: "integer" },
+									changedPages: { type: "integer" },
+									unchangedPages: { type: "integer" },
+									totalDifferences: { type: "integer" },
+									criticalDifferences: { type: "integer" },
+									acceptedDifferences: { type: "integer" },
+									mutedDifferences: { type: "integer" },
+								},
+							},
+							pages: {
+								type: "array",
+								items: {
+									type: "object",
+									properties: {
+										id: { type: "string" },
+										url: { type: "string" },
+										originalUrl: { type: "string" },
+										status: { type: "string" },
+										httpStatus: { type: "integer" },
+										capturedAt: { type: "string", format: "date-time" },
+										seoData: { type: "object" },
+										httpHeaders: { type: "object" },
+										performanceData: { type: "object" },
+										artifacts: { type: "object" },
+										diff: { type: "object", nullable: true },
+									},
+								},
+							},
+							pagination: {
+								type: "object",
+								properties: {
+									totalPages: { type: "integer" },
+									limit: { type: "integer" },
+									offset: { type: "integer" },
+									hasMore: { type: "boolean" },
+								},
+							},
+						},
+					},
+					202: {
+						description: "Async scan accepted",
+						type: "object",
+						properties: {
+							projectId: { type: "string" },
+							status: { type: "string" },
+							projectUrl: { type: "string" },
+						},
+					},
+					400: {
+						description: "Validation error",
+						type: "object",
+						properties: {
+							error: {
+								type: "object",
+								properties: {
+									code: { type: "string" },
+									message: { type: "string" },
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 		async (request, reply) => {
 			const body = request.body;
 
-			// Validation
-			if (!body.url) {
-				return reply.status(400).send({
-					error: {
-						code: "VALIDATION_ERROR",
-						message: "URL is required",
-					},
-				});
-			}
-
-			try {
-				new URL(body.url);
-			} catch {
-				return reply.status(400).send({
-					error: {
-						code: "VALIDATION_ERROR",
-						message: "Invalid URL format",
-					},
-				});
-			}
-
+			// URL is validated by Fastify schema
 			const url = new URL(body.url);
 			const viewport = body.viewport || DEFAULT_VIEWPORT;
 			const visualDiffThreshold =

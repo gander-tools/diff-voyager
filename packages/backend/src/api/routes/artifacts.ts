@@ -113,7 +113,43 @@ export async function registerArtifactRoutes(
 	// Screenshot
 	app.get<{ Params: { pageId: string } }>(
 		"/artifacts/:pageId/screenshot",
-		{ config: FILE_SYSTEM_RATE_LIMIT },
+		{
+			config: FILE_SYSTEM_RATE_LIMIT,
+			schema: {
+				tags: ["artifacts"],
+				description: "Get page screenshot (PNG)",
+				params: {
+					type: "object",
+					required: ["pageId"],
+					properties: {
+						pageId: {
+							type: "string",
+							description: "Page ID",
+						},
+					},
+				},
+				response: {
+					200: {
+						description: "Screenshot image",
+						type: "string",
+						format: "binary",
+					},
+					404: {
+						description: "Screenshot not found",
+						type: "object",
+						properties: {
+							error: {
+								type: "object",
+								properties: {
+									code: { type: "string" },
+									message: { type: "string" },
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 		async (request, reply) => {
 			const { pageId } = request.params;
 
@@ -151,7 +187,43 @@ export async function registerArtifactRoutes(
 	// Baseline screenshot
 	app.get<{ Params: { pageId: string } }>(
 		"/artifacts/:pageId/baseline-screenshot",
-		{ config: FILE_SYSTEM_RATE_LIMIT },
+		{
+			config: FILE_SYSTEM_RATE_LIMIT,
+			schema: {
+				tags: ["artifacts"],
+				description: "Get baseline screenshot (PNG)",
+				params: {
+					type: "object",
+					required: ["pageId"],
+					properties: {
+						pageId: {
+							type: "string",
+							description: "Page ID",
+						},
+					},
+				},
+				response: {
+					200: {
+						description: "Baseline screenshot image",
+						type: "string",
+						format: "binary",
+					},
+					404: {
+						description: "Baseline screenshot not found",
+						type: "object",
+						properties: {
+							error: {
+								type: "object",
+								properties: {
+									code: { type: "string" },
+									message: { type: "string" },
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 		async (request, reply) => {
 			const { pageId } = request.params;
 
@@ -186,7 +258,43 @@ export async function registerArtifactRoutes(
 	// Diff image
 	app.get<{ Params: { pageId: string } }>(
 		"/artifacts/:pageId/diff",
-		{ config: FILE_SYSTEM_RATE_LIMIT },
+		{
+			config: FILE_SYSTEM_RATE_LIMIT,
+			schema: {
+				tags: ["artifacts"],
+				description: "Get visual diff image (PNG)",
+				params: {
+					type: "object",
+					required: ["pageId"],
+					properties: {
+						pageId: {
+							type: "string",
+							description: "Page ID",
+						},
+					},
+				},
+				response: {
+					200: {
+						description: "Diff image",
+						type: "string",
+						format: "binary",
+					},
+					404: {
+						description: "Diff image not found",
+						type: "object",
+						properties: {
+							error: {
+								type: "object",
+								properties: {
+									code: { type: "string" },
+									message: { type: "string" },
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 		async (request, reply) => {
 			const { pageId } = request.params;
 
@@ -220,7 +328,42 @@ export async function registerArtifactRoutes(
 	// HAR file
 	app.get<{ Params: { pageId: string } }>(
 		"/artifacts/:pageId/har",
-		{ config: LARGE_FILE_RATE_LIMIT },
+		{
+			config: LARGE_FILE_RATE_LIMIT,
+			schema: {
+				tags: ["artifacts"],
+				description: "Get HAR (HTTP Archive) file for performance analysis",
+				params: {
+					type: "object",
+					required: ["pageId"],
+					properties: {
+						pageId: {
+							type: "string",
+							description: "Page ID",
+						},
+					},
+				},
+				response: {
+					200: {
+						description: "HAR file (JSON)",
+						type: "object",
+					},
+					404: {
+						description: "HAR file not found",
+						type: "object",
+						properties: {
+							error: {
+								type: "object",
+								properties: {
+									code: { type: "string" },
+									message: { type: "string" },
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 		async (request, reply) => {
 			const { pageId } = request.params;
 
@@ -254,7 +397,42 @@ export async function registerArtifactRoutes(
 	// HTML
 	app.get<{ Params: { pageId: string } }>(
 		"/artifacts/:pageId/html",
-		{ config: LARGE_FILE_RATE_LIMIT },
+		{
+			config: LARGE_FILE_RATE_LIMIT,
+			schema: {
+				tags: ["artifacts"],
+				description: "Get captured HTML content",
+				params: {
+					type: "object",
+					required: ["pageId"],
+					properties: {
+						pageId: {
+							type: "string",
+							description: "Page ID",
+						},
+					},
+				},
+				response: {
+					200: {
+						description: "HTML content",
+						type: "string",
+					},
+					404: {
+						description: "HTML file not found",
+						type: "object",
+						properties: {
+							error: {
+								type: "object",
+								properties: {
+									code: { type: "string" },
+									message: { type: "string" },
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 		async (request, reply) => {
 			const { pageId } = request.params;
 

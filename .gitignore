@@ -46,6 +46,7 @@ lerna-debug.log*
 /screenshots/
 /har-files/
 /diff-images/
+packages/backend/data/
 
 # Frontend
 packages/frontend/dist-ssr
