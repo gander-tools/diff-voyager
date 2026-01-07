@@ -512,7 +512,7 @@ describe('DiffRepository', () => {
       });
 
       // Wait a bit to ensure different timestamps
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Create a second page and diff
       const page2 = await pageRepo.create({
