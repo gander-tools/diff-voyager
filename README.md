@@ -312,6 +312,101 @@ npm run build:frontend
 npm run build:shared
 ```
 
+## Implementation Status
+
+Diff Voyager is actively under development following the [API Implementation Plan](docs/api-implementation-plan/00-overview.md). Here's the current status:
+
+### ✅ Phase 1: Storage Layer (COMPLETE)
+
+All storage components are fully implemented and tested:
+
+- **Database Schema** - SQLite with 3 migrations applied (projects, runs, pages, snapshots, diffs, tasks)
+- **Project Repository** - CRUD operations for projects
+- **Run Repository** - Run management with baseline tracking
+- **Page Repository** - Page tracking with URL normalization
+- **Snapshot Repository** - Page snapshot storage with full artifact metadata
+- **Diff Repository** - Comparison result storage (NEW in this release)
+- **Artifact Storage** - File-based artifact storage (screenshots, HTML, HAR)
+
+**Test Coverage:** 100% of repositories have comprehensive unit tests
+
+### ✅ Phase 2: Domain Logic (COMPLETE)
+
+All comparison logic is implemented:
+
+- **URL Normalizer** - Consistent URL normalization
+- **SEO Comparator** - Detects changes in title, meta, canonical, robots, H1/H2
+- **Visual Comparator** - Pixel-by-pixel diff with pixelmatch
+- **Header Comparator** - HTTP header difference detection
+- **Performance Comparator** - Load time, request count, size delta analysis
+- **Page Comparator** - Orchestrates all comparators for full page comparison
+
+### ✅ Phase 4: Task Queue (COMPLETE)
+
+Asynchronous task processing system:
+
+- **Task Queue Core** - Enqueue, dequeue, complete, fail operations
+- **Page Task Queue** - Batch operations for multi-page processing
+- **Task Processor** - Background processing loop with retry logic and stale task recovery
+- **Graceful Shutdown** - Clean process termination
+
+### 🟡 Phase 3: Crawler (PARTIAL)
+
+- **Page Capturer** - ✅ Single page capture with Playwright
+- **Artifact Generation** - ✅ Screenshots, HTML, HAR files
+- **SEO Extraction** - ✅ Full metadata extraction
+- **Crawlee Integration** - ❌ Multi-page discovery (not yet implemented)
+
+### 🟡 Phase 5: API Layer (PARTIAL)
+
+Implemented endpoints:
+
+- ✅ `POST /api/v1/scans` - Create scan (single page, sync/async modes)
+- ✅ `GET /api/v1/projects/:id` - Get project details with pages
+- ✅ `GET /api/v1/artifacts/:pageId/*` - Retrieve artifacts (screenshot, HTML, HAR)
+- ✅ `GET /health` - Health check
+- ✅ `GET /docs` - Swagger UI
+
+Missing endpoints:
+
+- ❌ `GET /api/v1/runs/:id` - Run details
+- ❌ `GET /api/v1/pages/:id` - Page details with snapshot
+- ❌ `GET /api/v1/pages/:id/diff` - Detailed diff view
+
+### ❌ Phase 6: Integration & Workflows (NOT STARTED)
+
+- ❌ Diff workflow integration (comparators ready, workflow implementation pending)
+- ❌ Multi-page crawl workflow
+
+### ❌ Frontend UI (NOT STARTED)
+
+Vue 3 frontend is planned but not yet implemented.
+
+### Current Capabilities
+
+**What Works:**
+- ✅ Single page scanning (sync and async)
+- ✅ Project creation with automatic baseline runs
+- ✅ Multiple comparison runs per project
+- ✅ Full artifact capture and retrieval
+- ✅ Secure file access with path traversal protection
+- ✅ Rate limiting on file operations
+- ✅ Comprehensive storage layer with diff tracking
+- ✅ All comparison algorithms ready (SEO, visual, headers, performance)
+
+**What's Not Working Yet:**
+- ❌ Multi-page crawling (Crawlee integration)
+- ❌ Diff comparison workflow (comparators ready, integration pending)
+- ❌ Diff retrieval API endpoints
+- ❌ Frontend UI
+
+### Next Priorities
+
+1. **Phase 6** - Integrate diff comparators into scan workflow
+2. **Phase 5** - Implement remaining API endpoints for diff retrieval
+3. **Phase 3** - Complete Crawlee integration for multi-page crawling
+4. **Frontend** - Begin Vue 3 UI development
+
 ## Typical Workflow
 
 1. **Create Project**: Set up a new project with your website's base URL
