@@ -65,6 +65,16 @@ export class DiffRepository {
     return this.rowToEntity(row);
   }
 
+  async findByRun(runId: string): Promise<Diff[]> {
+    const stmt = this.db.prepare(`
+      SELECT * FROM diffs WHERE run_id = ? ORDER BY created_at DESC
+    `);
+
+    const rows = stmt.all(runId) as DiffRow[];
+
+    return rows.map(row => this.rowToEntity(row));
+  }
+
   private rowToEntity(row: DiffRow): Diff {
     return {
       id: row.id,

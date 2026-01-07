@@ -391,4 +391,193 @@ describe('DiffRepository', () => {
       expect(found?.changes).toEqual(changes);
     });
   });
+
+  describe('findByRun', () => {
+    it('should find all diffs for a run', async () => {
+      // Create a second page for testing multiple diffs
+      const page2 = await pageRepo.create({
+        projectId,
+        normalizedUrl: '/test-page-2',
+        originalUrl: 'http://localhost:3456/test-page-2',
+      });
+
+      const baselineSnapshot2 = await snapshotRepo.create({
+        pageId: page2.id,
+        runId: baselineRunId,
+        isBaseline: true,
+        capturedAt: new Date(),
+        httpStatus: 200,
+        htmlHash: 'hash3',
+        headers: {},
+        seo: {},
+        hasScreenshot: false,
+        hasHar: false,
+        hasDiff: false,
+      });
+
+      const comparisonSnapshot2 = await snapshotRepo.create({
+        pageId: page2.id,
+        runId: comparisonRunId,
+        isBaseline: false,
+        capturedAt: new Date(),
+        httpStatus: 200,
+        htmlHash: 'hash4',
+        headers: {},
+        seo: {},
+        hasScreenshot: false,
+        hasHar: false,
+        hasDiff: false,
+      });
+
+      // Create two diffs for the same run
+      await repo.create({
+        pageId,
+        runId: comparisonRunId,
+        baselineSnapshotId,
+        runSnapshotId: comparisonSnapshotId,
+        summary: {
+          totalChanges: 1,
+          criticalChanges: 0,
+          acceptedChanges: 0,
+          mutedChanges: 0,
+          changesByType: {
+            [DiffType.SEO]: 1,
+            [DiffType.VISUAL]: 0,
+            [DiffType.CONTENT]: 0,
+            [DiffType.PERFORMANCE]: 0,
+            [DiffType.HEADER]: 0,
+          },
+          thresholdExceeded: false,
+        },
+        changes: [],
+      });
+
+      await repo.create({
+        pageId: page2.id,
+        runId: comparisonRunId,
+        baselineSnapshotId: baselineSnapshot2.id,
+        runSnapshotId: comparisonSnapshot2.id,
+        summary: {
+          totalChanges: 2,
+          criticalChanges: 1,
+          acceptedChanges: 0,
+          mutedChanges: 0,
+          changesByType: {
+            [DiffType.SEO]: 2,
+            [DiffType.VISUAL]: 0,
+            [DiffType.CONTENT]: 0,
+            [DiffType.PERFORMANCE]: 0,
+            [DiffType.HEADER]: 0,
+          },
+          thresholdExceeded: false,
+        },
+        changes: [],
+      });
+
+      // Find all diffs for the run
+      const diffs = await repo.findByRun(comparisonRunId);
+
+      expect(diffs).toHaveLength(2);
+      expect(diffs[0].runId).toBe(comparisonRunId);
+      expect(diffs[1].runId).toBe(comparisonRunId);
+    });
+
+    it('should return empty array when no diffs', async () => {
+      const diffs = await repo.findByRun('non-existent-run');
+      expect(diffs).toEqual([]);
+    });
+
+    it('should order by created_at DESC', async () => {
+      // Create first diff
+      const diff1 = await repo.create({
+        pageId,
+        runId: comparisonRunId,
+        baselineSnapshotId,
+        runSnapshotId: comparisonSnapshotId,
+        summary: {
+          totalChanges: 1,
+          criticalChanges: 0,
+          acceptedChanges: 0,
+          mutedChanges: 0,
+          changesByType: {
+            [DiffType.SEO]: 1,
+            [DiffType.VISUAL]: 0,
+            [DiffType.CONTENT]: 0,
+            [DiffType.PERFORMANCE]: 0,
+            [DiffType.HEADER]: 0,
+          },
+          thresholdExceeded: false,
+        },
+        changes: [],
+      });
+
+      // Wait a bit to ensure different timestamps
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      // Create a second page and diff
+      const page2 = await pageRepo.create({
+        projectId,
+        normalizedUrl: '/test-page-2',
+        originalUrl: 'http://localhost:3456/test-page-2',
+      });
+
+      const baselineSnapshot2 = await snapshotRepo.create({
+        pageId: page2.id,
+        runId: baselineRunId,
+        isBaseline: true,
+        capturedAt: new Date(),
+        httpStatus: 200,
+        htmlHash: 'hash3',
+        headers: {},
+        seo: {},
+        hasScreenshot: false,
+        hasHar: false,
+        hasDiff: false,
+      });
+
+      const comparisonSnapshot2 = await snapshotRepo.create({
+        pageId: page2.id,
+        runId: comparisonRunId,
+        isBaseline: false,
+        capturedAt: new Date(),
+        httpStatus: 200,
+        htmlHash: 'hash4',
+        headers: {},
+        seo: {},
+        hasScreenshot: false,
+        hasHar: false,
+        hasDiff: false,
+      });
+
+      const diff2 = await repo.create({
+        pageId: page2.id,
+        runId: comparisonRunId,
+        baselineSnapshotId: baselineSnapshot2.id,
+        runSnapshotId: comparisonSnapshot2.id,
+        summary: {
+          totalChanges: 2,
+          criticalChanges: 1,
+          acceptedChanges: 0,
+          mutedChanges: 0,
+          changesByType: {
+            [DiffType.SEO]: 2,
+            [DiffType.VISUAL]: 0,
+            [DiffType.CONTENT]: 0,
+            [DiffType.PERFORMANCE]: 0,
+            [DiffType.HEADER]: 0,
+          },
+          thresholdExceeded: false,
+        },
+        changes: [],
+      });
+
+      // Find all diffs - should be ordered DESC by created_at
+      const diffs = await repo.findByRun(comparisonRunId);
+
+      expect(diffs).toHaveLength(2);
+      // Most recent diff (diff2) should be first
+      expect(diffs[0].id).toBe(diff2.id);
+      expect(diffs[1].id).toBe(diff1.id);
+    });
+  });
 });
