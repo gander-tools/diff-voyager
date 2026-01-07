@@ -78,6 +78,7 @@ Create a new scan task. The `crawl` parameter determines whether to scan only th
 |-------|------|----------|---------|-------------|
 | `url` | string | Yes | - | Starting URL for the scan |
 | `crawl` | boolean | No | `false` | **false** = scan only this URL (Scenario 1), **true** = discover and crawl all pages in domain (Scenario 2) |
+| `sync` | boolean | No | `false` | **true** = block until complete and return full result, **false** = return immediately with projectId |
 | `name` | string | No | Auto-generated | Project name |
 | `description` | string | No | null | Project description |
 | `profile` | RunProfile | No | `VISUAL_SEO` | Data collection profile |
@@ -112,57 +113,32 @@ Create a new scan task. The `crawl` parameter determines whether to scan only th
 }
 ```
 
-**Response: 202 Accepted**
+**Example: Synchronous Single Page (blocks until complete)**
 
 ```json
 {
-  "taskId": "550e8400-e29b-41d4-a716-446655440000",
-  "projectId": "550e8400-e29b-41d4-a716-446655440001",
-  "runId": "550e8400-e29b-41d4-a716-446655440002",
-  "status": "PENDING",
-  "crawl": false,
-  "statusUrl": "/api/v1/tasks/550e8400-e29b-41d4-a716-446655440000",
-  "projectUrl": "/api/v1/projects/550e8400-e29b-41d4-a716-446655440001"
+  "url": "https://example.com/page",
+  "sync": true
 }
 ```
 
 ---
 
-## Task Status
+### Response Formats
 
-### GET /tasks/:taskId
-
-Get task processing status.
-
-**Response: 200 OK**
+**Async Response: 202 Accepted** (when `sync: false` or omitted)
 
 ```json
 {
-  "taskId": "550e8400-e29b-41d4-a716-446655440000",
   "projectId": "550e8400-e29b-41d4-a716-446655440001",
-  "runId": "550e8400-e29b-41d4-a716-446655440002",
-  "type": "SINGLE_PAGE",
-  "status": "IN_PROGRESS",
-  "progress": {
-    "totalPages": 1,
-    "completedPages": 0,
-    "failedPages": 0,
-    "currentPage": "https://example.com/page"
-  },
-  "createdAt": "2025-01-07T10:00:00Z",
-  "startedAt": "2025-01-07T10:00:01Z",
-  "completedAt": null,
-  "estimatedTimeRemaining": null,
-  "errorMessage": null
+  "status": "PENDING",
+  "projectUrl": "/api/v1/projects/550e8400-e29b-41d4-a716-446655440001"
 }
 ```
 
-**Status Values:**
-- `PENDING` - Task queued, not started
-- `IN_PROGRESS` - Task is being processed
-- `COMPLETED` - Task finished successfully
-- `FAILED` - Task failed (see errorMessage)
-- `CANCELLED` - Task was cancelled
+**Sync Response: 200 OK** (when `sync: true`)
+
+Returns full project with pages and diffs (same format as `GET /projects/:projectId`)
 
 ---
 
