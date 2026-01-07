@@ -144,27 +144,7 @@ export async function registerScanRoutes(
 		async (request, reply) => {
 			const body = request.body;
 
-			// Validation
-			if (!body.url) {
-				return reply.status(400).send({
-					error: {
-						code: "VALIDATION_ERROR",
-						message: "URL is required",
-					},
-				});
-			}
-
-			try {
-				new URL(body.url);
-			} catch {
-				return reply.status(400).send({
-					error: {
-						code: "VALIDATION_ERROR",
-						message: "Invalid URL format",
-					},
-				});
-			}
-
+			// URL is validated by Fastify schema
 			const url = new URL(body.url);
 			const viewport = body.viewport || DEFAULT_VIEWPORT;
 			const visualDiffThreshold =

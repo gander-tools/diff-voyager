@@ -80,7 +80,7 @@ describe("POST /api/v1/scans", () => {
 		expect(response.statusCode).toBe(400);
 		const body = JSON.parse(response.body);
 		expect(body.error.code).toBe("VALIDATION_ERROR");
-		expect(body.error.message).toBe("URL is required");
+		expect(body.error.message).toContain("must have required property 'url'");
 	});
 
 	it("should return 400 for invalid URL format", async () => {
@@ -93,7 +93,7 @@ describe("POST /api/v1/scans", () => {
 		expect(response.statusCode).toBe(400);
 		const body = JSON.parse(response.body);
 		expect(body.error.code).toBe("VALIDATION_ERROR");
-		expect(body.error.message).toBe("Invalid URL format");
+		expect(body.error.message).toContain('must match format "uri"');
 	});
 
 	it("should return 202 for async scan request", async () => {
