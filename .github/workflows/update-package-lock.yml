@@ -1,0 +1,64 @@
+name: Update package-lock.json
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'package.json'
+      - 'packages/*/package.json'
+
+# Prevent concurrent runs
+concurrency:
+  group: update-package-lock
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  update-package-lock:
+    name: Update package-lock.json
+    runs-on: ubuntu-latest
+    # Skip if commit is from github-actions bot to prevent loops
+    if: github.actor != 'github-actions[bot]'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          # Use default GITHUB_TOKEN
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # Fetch full history to allow push
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version: '22'
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Update package-lock.json
+        id: update
+        run: |
+          # Install dependencies to update package-lock.json
+          npm install --package-lock-only
+
+          # Check if package-lock.json was modified
+          if git diff --exit-code package-lock.json > /dev/null 2>&1; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "✓ package-lock.json is already up to date"
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "✓ package-lock.json updated"
+          fi
+
+      - name: Commit and push changes
+        if: steps.update.outputs.changed == 'true'
+        run: |
+          git add package-lock.json
+          git commit -m "chore(ci): update package-lock.json from package.json changes"
+          git push origin main
