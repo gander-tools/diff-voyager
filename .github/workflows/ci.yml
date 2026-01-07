@@ -5,9 +5,23 @@ on:
     branches:
       - main
       - 'claude/**'
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.vscode/**'
+      - '.idea/**'
+      - 'LICENSE'
+      - '.gitignore'
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.vscode/**'
+      - '.idea/**'
+      - 'LICENSE'
+      - '.gitignore'
 
 # Cancel in-progress runs for the same PR/branch
 concurrency:
