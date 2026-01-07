@@ -2,25 +2,13 @@
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "allowedTools": ["Skill"],
   "hooks": {
-    "SessionStart": [
-      {
-        "matcher": "startup",
-        "hooks": [
-          {
-            "command": "npm install -g npm@11.7.0 && cd \"$CLAUDE_PROJECT_DIR\" && npm install",
-            "timeout": 300000,
-            "type": "command"
-          }
-        ]
-      }
-    ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write",
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"$CLAUDE_PROJECT_DIR\" && npm run check:fix",
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && npx -y biome check --write .",
             "timeout": 120000
           }
         ]
