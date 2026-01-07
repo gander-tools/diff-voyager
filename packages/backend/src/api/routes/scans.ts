@@ -99,19 +99,71 @@ export async function registerScanRoutes(
 				},
 				response: {
 					200: {
-						description: "Sync scan completed",
+						description: "Sync scan completed - returns full project details",
 						type: "object",
 						properties: {
-							projectId: { type: "string" },
-							runId: { type: "string" },
-							status: { type: "string" },
-							pageCount: { type: "integer" },
-							artifacts: {
+							id: { type: "string" },
+							name: { type: "string" },
+							description: { type: "string" },
+							baseUrl: { type: "string" },
+							config: {
 								type: "object",
 								properties: {
-									screenshots: { type: "integer" },
-									htmlFiles: { type: "integer" },
-									harFiles: { type: "integer" },
+									crawl: { type: "boolean" },
+									viewport: {
+										type: "object",
+										properties: {
+											width: { type: "integer" },
+											height: { type: "integer" },
+										},
+									},
+									visualDiffThreshold: { type: "number" },
+									maxPages: { type: "integer" },
+								},
+							},
+							status: { type: "string" },
+							createdAt: { type: "string", format: "date-time" },
+							updatedAt: { type: "string", format: "date-time" },
+							statistics: {
+								type: "object",
+								properties: {
+									totalPages: { type: "integer" },
+									completedPages: { type: "integer" },
+									errorPages: { type: "integer" },
+									changedPages: { type: "integer" },
+									unchangedPages: { type: "integer" },
+									totalDifferences: { type: "integer" },
+									criticalDifferences: { type: "integer" },
+									acceptedDifferences: { type: "integer" },
+									mutedDifferences: { type: "integer" },
+								},
+							},
+							pages: {
+								type: "array",
+								items: {
+									type: "object",
+									properties: {
+										id: { type: "string" },
+										url: { type: "string" },
+										originalUrl: { type: "string" },
+										status: { type: "string" },
+										httpStatus: { type: "integer" },
+										capturedAt: { type: "string", format: "date-time" },
+										seoData: { type: "object" },
+										httpHeaders: { type: "object" },
+										performanceData: { type: "object" },
+										artifacts: { type: "object" },
+										diff: { type: "object", nullable: true },
+									},
+								},
+							},
+							pagination: {
+								type: "object",
+								properties: {
+									totalPages: { type: "integer" },
+									limit: { type: "integer" },
+									offset: { type: "integer" },
+									hasMore: { type: "boolean" },
 								},
 							},
 						},
