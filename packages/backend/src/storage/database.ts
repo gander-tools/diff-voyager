@@ -2,8 +2,8 @@
  * SQLite database setup and management
  */
 
-import Database from "better-sqlite3";
-import type { StorageConfig } from "./types.js";
+import Database from 'better-sqlite3';
+import type { StorageConfig } from './types.js';
 
 export type DatabaseInstance = Database.Database;
 
@@ -11,23 +11,23 @@ export type DatabaseInstance = Database.Database;
  * Initialize database with schema
  */
 export function createDatabase(config: StorageConfig): DatabaseInstance {
-	const db = new Database(config.dbPath);
+  const db = new Database(config.dbPath);
 
-	// Enable WAL mode for better concurrent access
-	db.pragma("journal_mode = WAL");
+  // Enable WAL mode for better concurrent access
+  db.pragma('journal_mode = WAL');
 
-	// Run migrations
-	runMigrations(db);
+  // Run migrations
+  runMigrations(db);
 
-	return db;
+  return db;
 }
 
 /**
  * Run database migrations
  */
 function runMigrations(db: DatabaseInstance): void {
-	// Create migrations tracking table
-	db.exec(`
+  // Create migrations tracking table
+  db.exec(`
     CREATE TABLE IF NOT EXISTS migrations (
       id INTEGER PRIMARY KEY,
       name TEXT NOT NULL UNIQUE,
@@ -35,24 +35,20 @@ function runMigrations(db: DatabaseInstance): void {
     )
   `);
 
-	// Check if initial schema migration was applied
-	const applied = db
-		.prepare("SELECT 1 FROM migrations WHERE name = ?")
-		.get("001-initial-schema");
+  // Check if initial schema migration was applied
+  const applied = db.prepare('SELECT 1 FROM migrations WHERE name = ?').get('001-initial-schema');
 
-	if (!applied) {
-		applyInitialSchema(db);
-		db.prepare("INSERT INTO migrations (name) VALUES (?)").run(
-			"001-initial-schema",
-		);
-	}
+  if (!applied) {
+    applyInitialSchema(db);
+    db.prepare('INSERT INTO migrations (name) VALUES (?)').run('001-initial-schema');
+  }
 }
 
 /**
  * Apply initial schema migration
  */
 function applyInitialSchema(db: DatabaseInstance): void {
-	db.exec(`
+  db.exec(`
     -- Projects table
     CREATE TABLE projects (
       id TEXT PRIMARY KEY,
@@ -137,5 +133,5 @@ function applyInitialSchema(db: DatabaseInstance): void {
  * Close database connection
  */
 export function closeDatabase(db: DatabaseInstance): void {
-	db.close();
+  db.close();
 }
