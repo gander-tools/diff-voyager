@@ -11,7 +11,7 @@ import {
 } from "@gander-tools/diff-voyager-shared";
 import type { Database } from "better-sqlite3";
 import { PageCapturer } from "../crawler/page-capturer.js";
-import { UrlNormalizer } from "../domain/url-normalizer.js";
+import * as UrlNormalizer from "../domain/url-normalizer.js";
 import type { PageRepository } from "../storage/repositories/page-repository.js";
 import type { ProjectRepository } from "../storage/repositories/project-repository.js";
 import type { RunRepository } from "../storage/repositories/run-repository.js";

@@ -36,7 +36,7 @@ export class MockServer {
 	private requestLog: RequestLogEntry[] = [];
 	private port: number;
 
-	constructor(private config: MockServerConfig) {
+	constructor(config: MockServerConfig) {
 		this.port = config.port || 0; // 0 = random available port
 		for (const route of config.routes) {
 			const key = `${route.method || "GET"}:${route.path}`;
