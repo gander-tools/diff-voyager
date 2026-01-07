@@ -319,6 +319,139 @@ export async function registerProjectRoutes(
     },
   );
 
+  /**
+   * GET /projects/:projectId/runs
+   *
+   * List all runs for a project
+   */
+  app.get<{
+    Params: { projectId: string };
+    Querystring: {
+      limit?: number;
+      offset?: number;
+    };
+  }>(
+    '/projects/:projectId/runs',
+    {
+      config: DATABASE_READ_RATE_LIMIT,
+      schema: {
+        tags: ['projects'],
+        description: 'List all runs for a project',
+        params: {
+          type: 'object',
+          properties: {
+            projectId: {
+              type: 'string',
+              format: 'uuid',
+              description: 'Project ID',
+            },
+          },
+          required: ['projectId'],
+        },
+        querystring: {
+          type: 'object',
+          properties: {
+            limit: {
+              type: 'integer',
+              description: 'Maximum number of runs to return',
+              minimum: 1,
+              maximum: 100,
+              default: 50,
+            },
+            offset: {
+              type: 'integer',
+              description: 'Number of runs to skip',
+              minimum: 0,
+              default: 0,
+            },
+          },
+        },
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              runs: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string', format: 'uuid' },
+                    projectId: { type: 'string', format: 'uuid' },
+                    isBaseline: { type: 'boolean' },
+                    status: { type: 'string' },
+                    createdAt: { type: 'string', format: 'date-time' },
+                  },
+                },
+              },
+              pagination: {
+                type: 'object',
+                properties: {
+                  total: { type: 'integer' },
+                  limit: { type: 'integer' },
+                  offset: { type: 'integer' },
+                  hasMore: { type: 'boolean' },
+                },
+                required: ['total', 'limit', 'offset', 'hasMore'],
+              },
+            },
+            required: ['runs', 'pagination'],
+          },
+          404: {
+            type: 'object',
+            properties: {
+              error: {
+                type: 'object',
+                properties: {
+                  code: { type: 'string' },
+                  message: { type: 'string' },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      const { projectId } = request.params;
+      const { limit, offset } = request.query;
+
+      // Verify project exists
+      const project = await projectRepo.findById(projectId);
+      if (!project) {
+        return reply.status(404).send({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Project not found',
+          },
+        });
+      }
+
+      // Get all runs for this project (already sorted by createdAt DESC)
+      const allRuns = await runRepo.findByProjectId(projectId);
+
+      // Apply pagination
+      const actualLimit = limit || 50;
+      const actualOffset = offset || 0;
+      const paginatedRuns = allRuns.slice(actualOffset, actualOffset + actualLimit);
+
+      return reply.send({
+        runs: paginatedRuns.map((run) => ({
+          id: run.id,
+          projectId: run.projectId,
+          isBaseline: run.isBaseline,
+          status: run.status,
+          createdAt: run.createdAt.toISOString(),
+        })),
+        pagination: {
+          total: allRuns.length,
+          limit: actualLimit,
+          offset: actualOffset,
+          hasMore: actualOffset + actualLimit < allRuns.length,
+        },
+      });
+    },
+  );
+
   // POST /projects/:projectId/runs - Create a new comparison run for existing project
   app.post<{
     Params: { projectId: string };
