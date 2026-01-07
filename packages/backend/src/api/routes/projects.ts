@@ -1,9 +1,10 @@
 /**
- * Project API routes (GET /projects/:projectId)
+ * Project API routes (GET /projects/:projectId, POST /projects/:projectId/runs)
  */
 
 import {
   DEFAULT_PAGE_LIMIT,
+  DEFAULT_VIEWPORT,
   type GetProjectQuery,
   type PageResponse,
   PageStatus,
@@ -16,10 +17,26 @@ import { PageRepository } from '../../storage/repositories/page-repository.js';
 import { ProjectRepository } from '../../storage/repositories/project-repository.js';
 import { RunRepository } from '../../storage/repositories/run-repository.js';
 import { SnapshotRepository } from '../../storage/repositories/snapshot-repository.js';
-import { DATABASE_READ_RATE_LIMIT } from '../middleware/rate-limiting.js';
+import {
+  DATABASE_READ_RATE_LIMIT,
+  EXPENSIVE_OPERATION_RATE_LIMIT,
+} from '../middleware/rate-limiting.js';
 
 interface ProjectRoutesOptions extends FastifyPluginOptions {
   db: Database;
+}
+
+interface CreateRunRequest {
+  url: string;
+  viewport?: { width: number; height: number };
+  collectHar?: boolean;
+  waitAfterLoad?: number;
+}
+
+interface CreateRunResponse {
+  runId: string;
+  status: string;
+  runUrl: string;
 }
 
 export async function registerProjectRoutes(
@@ -201,6 +218,120 @@ export async function registerProjectRoutes(
       };
 
       return reply.status(200).send(response);
+    },
+  );
+
+  // POST /projects/:projectId/runs - Create a new comparison run for existing project
+  app.post<{
+    Params: { projectId: string };
+    Body: CreateRunRequest;
+  }>(
+    '/projects/:projectId/runs',
+    {
+      config: EXPENSIVE_OPERATION_RATE_LIMIT,
+      schema: {
+        tags: ['projects'],
+        description: 'Create a new comparison run for an existing project',
+        params: {
+          type: 'object',
+          required: ['projectId'],
+          properties: {
+            projectId: {
+              type: 'string',
+              description: 'Project ID',
+            },
+          },
+        },
+        body: {
+          type: 'object',
+          required: ['url'],
+          properties: {
+            url: {
+              type: 'string',
+              format: 'uri',
+              description: 'URL to scan',
+            },
+            viewport: {
+              type: 'object',
+              properties: {
+                width: { type: 'integer', minimum: 320 },
+                height: { type: 'integer', minimum: 240 },
+              },
+            },
+            collectHar: {
+              type: 'boolean',
+              description: 'Collect HAR files for performance analysis',
+              default: false,
+            },
+            waitAfterLoad: {
+              type: 'integer',
+              description: 'Milliseconds to wait after page load',
+              minimum: 0,
+            },
+          },
+        },
+        response: {
+          202: {
+            description: 'Comparison run accepted',
+            type: 'object',
+            properties: {
+              runId: { type: 'string' },
+              status: { type: 'string' },
+              runUrl: { type: 'string' },
+            },
+          },
+          404: {
+            description: 'Project not found',
+            type: 'object',
+            properties: {
+              error: {
+                type: 'object',
+                properties: {
+                  code: { type: 'string' },
+                  message: { type: 'string' },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      const { projectId } = request.params;
+      const body = request.body;
+
+      // Verify project exists
+      const project = await projectRepo.findById(projectId);
+      if (!project) {
+        return reply.status(404).send({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Project not found',
+          },
+        });
+      }
+
+      // URL is validated by Fastify schema
+      const viewport = body.viewport || DEFAULT_VIEWPORT;
+
+      // Create comparison run (not baseline)
+      const run = await runRepo.create({
+        projectId,
+        isBaseline: false,
+        config: {
+          viewport,
+          captureScreenshots: true,
+          captureHar: body.collectHar || false,
+        },
+      });
+
+      const response: CreateRunResponse = {
+        runId: run.id,
+        status: 'PENDING',
+        runUrl: `/api/v1/projects/${projectId}/runs/${run.id}`,
+      };
+
+      return reply.status(202).send(response);
     },
   );
 }
