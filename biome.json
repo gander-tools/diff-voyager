@@ -15,7 +15,12 @@
       "!**/build",
       "!**/coverage",
       "!**/.git",
-      "!**/*.min.js"
+      "!**/*.min.js",
+      "!.release-please-manifest.json",
+      "!package.json",
+      "!release-please-config.json",
+      "!renovate.json",
+      "!.claude/settings.json"
     ]
   },
   "formatter": {
