@@ -11,8 +11,8 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   BrowserManager,
   PageCapturer,
-  SinglePageProcessor,
   type ProcessPageInput,
+  SinglePageProcessor,
 } from '../../../src/crawler/index.js';
 import {
   closeDatabase,
