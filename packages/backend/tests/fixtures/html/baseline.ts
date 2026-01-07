@@ -44,3 +44,22 @@ export const BASELINE_MINIMAL = `<!DOCTYPE html>
   <h1>Minimal</h1>
 </body>
 </html>`;
+
+export const BASELINE_FULL_SEO = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Full SEO Test Page</title>
+  <meta name="description" content="This is a comprehensive test page with full SEO metadata">
+  <link rel="canonical" href="http://localhost:3456/seo-page">
+  <meta name="robots" content="index, follow">
+  <meta property="og:title" content="Full SEO Test Page">
+  <meta property="og:description" content="Open Graph description">
+</head>
+<body>
+  <h1>Main SEO Heading</h1>
+  <h2>Secondary Heading</h2>
+  <p>This page contains comprehensive SEO metadata for testing purposes.</p>
+  <p>Multiple paragraphs ensure we capture content properly.</p>
+</body>
+</html>`;

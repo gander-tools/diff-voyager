@@ -12,6 +12,7 @@ export const HTML_FIXTURES = {
     simple: baseline.BASELINE_SIMPLE,
     withLinks: baseline.BASELINE_WITH_LINKS,
     minimal: baseline.BASELINE_MINIMAL,
+    fullSeo: baseline.BASELINE_FULL_SEO,
   },
   comparison: {
     contentChange: comparison.CONTENT_CHANGE,
