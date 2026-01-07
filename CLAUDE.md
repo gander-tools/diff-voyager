@@ -23,7 +23,7 @@ diff-voyager/
 ### Technology Stack
 
 **Backend:**
-- Node.js v22 with TypeScript
+- Node.js with TypeScript
 - Crawlee + Playwright for browser automation and crawling
 - Persistent queue and storage (SQLite planned)
 - Local HTTP API for frontend communication

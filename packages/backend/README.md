@@ -22,7 +22,6 @@ This package provides the core crawling engine and local HTTP API for Diff Voyag
 ## Requirements
 
 - Node.js v22 or v24
-- npm v10 or v11
 
 ## Installation
 
