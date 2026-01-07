@@ -4,7 +4,24 @@
 
 import { randomUUID } from 'node:crypto';
 import type { DatabaseInstance } from '../storage/database.js';
-import type { CreateTaskOptions } from './types.js';
+import type { CreateTaskOptions, Task } from './types.js';
+
+/**
+ * Database row representation of a task
+ */
+interface TaskRow {
+  id: string;
+  type: string;
+  status: string;
+  priority: string;
+  payload_json: string;
+  attempts: number;
+  max_attempts: number;
+  error_message: string | null;
+  created_at: string;
+  started_at: string | null;
+  completed_at: string | null;
+}
 
 /**
  * TaskQueue manages the lifecycle of tasks in the queue
@@ -46,5 +63,80 @@ export class TaskQueue {
     );
 
     return taskId;
+  }
+
+  /**
+   * Get next pending task from the queue and mark it as processing
+   *
+   * @returns The next task or null if queue is empty
+   */
+  dequeue(): Task | null {
+    // Use a transaction to atomically select and update the task
+    const dequeueTransaction = this.db.transaction(() => {
+      // Select the next pending task with highest priority
+      const selectStmt = this.db.prepare<[], TaskRow>(`
+        SELECT *
+        FROM tasks
+        WHERE status = 'pending'
+        ORDER BY
+          CASE priority
+            WHEN 'high' THEN 3
+            WHEN 'normal' THEN 2
+            WHEN 'low' THEN 1
+          END DESC,
+          created_at ASC
+        LIMIT 1
+      `);
+
+      const row = selectStmt.get();
+
+      if (!row) {
+        return null;
+      }
+
+      // Update the task status to processing
+      const updateStmt = this.db.prepare(`
+        UPDATE tasks
+        SET
+          status = 'processing',
+          started_at = CURRENT_TIMESTAMP,
+          attempts = attempts + 1
+        WHERE id = ?
+      `);
+
+      updateStmt.run(row.id);
+
+      // Fetch the updated task
+      const updatedRow = this.db
+        .prepare<[string], TaskRow>('SELECT * FROM tasks WHERE id = ?')
+        .get(row.id);
+
+      if (!updatedRow) {
+        return null;
+      }
+
+      return this.rowToTask(updatedRow);
+    });
+
+    return dequeueTransaction();
+  }
+
+  /**
+   * Convert database row to Task object
+   */
+  private rowToTask(row: TaskRow): Task {
+    return {
+      id: row.id,
+      type: row.type as Task['type'],
+      status: row.status as Task['status'],
+      priority: row.priority as Task['priority'],
+      payload: JSON.parse(row.payload_json),
+      attempts: row.attempts,
+      maxAttempts: row.max_attempts,
+      error: row.error_message ?? undefined,
+      createdAt: new Date(row.created_at),
+      startedAt: row.started_at ? new Date(row.started_at) : undefined,
+      completedAt: row.completed_at ? new Date(row.completed_at) : undefined,
+    };
   }
 }
