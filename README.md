@@ -410,14 +410,14 @@ Development follows the [API Implementation Plan](docs/api-implementation-plan/)
 - [ ] Max pages limit and concurrency control
 - [ ] URL filtering patterns (include/exclude)
 
-### Phase 4: Task Queue (0% 🔴)
-- [ ] Task queue core (enqueue, dequeue, complete, fail)
-- [ ] Page task queue (batch operations, progress tracking)
-- [ ] Task processor (background processing loop)
-- [ ] Retry logic and error recovery
-- [ ] Graceful shutdown
+### Phase 4: Task Queue (100% ✅)
+- [x] Task queue core (enqueue, dequeue, complete, fail)
+- [x] Page task queue (batch operations, progress tracking)
+- [x] Task processor (background processing loop)
+- [x] Retry logic and error recovery
+- [x] Graceful shutdown
 
-**Note:** Currently using synchronous processing (ASAP approach). Task queue will be needed for multi-page crawls.
+**Implementation Complete:** SQLite-based task queue with full retry logic, priority scheduling, stale task recovery, batch operations, and background task processor with graceful shutdown. Ready for async multi-page crawls.
 
 ### Phase 5: API Layer (65% ✅)
 - [x] Fastify app with Swagger UI (`/docs`)
