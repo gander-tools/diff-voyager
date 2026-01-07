@@ -1,0 +1,213 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'claude/**'
+  pull_request:
+    branches:
+      - main
+
+# Cancel in-progress runs for the same PR/branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  # Detect which packages changed to optimize test runs
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      shared: ${{ steps.filter.outputs.shared }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Check for file changes
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'packages/backend/**'
+              - 'packages/shared/**'
+              - 'package.json'
+              - 'package-lock.json'
+            frontend:
+              - 'packages/frontend/**'
+              - 'packages/shared/**'
+              - 'package.json'
+              - 'package-lock.json'
+            shared:
+              - 'packages/shared/**'
+              - 'package.json'
+              - 'package-lock.json'
+
+  # Shared package tests
+  test-shared:
+    name: Test Shared Package
+    needs: changes
+    if: needs.changes.outputs.shared == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build shared package
+        run: npm run build:shared
+
+      - name: Run shared tests
+        run: npm run test:shared
+
+  # Backend tests
+  test-backend:
+    name: Test Backend
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ['22', '24']
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build shared package
+        run: npm run build:shared
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+        working-directory: packages/backend
+
+      - name: Run backend tests
+        run: npm run test:backend
+
+      - name: Upload test coverage
+        if: matrix.node-version == '22'
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.5.0
+        with:
+          name: backend-coverage
+          path: packages/backend/coverage/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  # Frontend tests
+  test-frontend:
+    name: Test Frontend
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build shared package
+        run: npm run build:shared
+
+      - name: Run frontend tests
+        run: npm run test:frontend
+
+      - name: Upload test coverage
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.5.0
+        with:
+          name: frontend-coverage
+          path: packages/frontend/coverage/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  # Linting and formatting check
+  lint:
+    name: Lint & Format Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Biome check
+        run: npm run check
+
+  # Security audit
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: '22'
+
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+  # Status check - all tests must pass
+  ci-status:
+    name: CI Status Check
+    runs-on: ubuntu-latest
+    needs: [test-shared, test-backend, test-frontend, lint, security]
+    if: always()
+    steps:
+      - name: Check all jobs status
+        run: |
+          if [[ "${{ needs.test-shared.result }}" == "failure" ]] || \
+             [[ "${{ needs.test-backend.result }}" == "failure" ]] || \
+             [[ "${{ needs.test-frontend.result }}" == "failure" ]] || \
+             [[ "${{ needs.lint.result }}" == "failure" ]]; then
+            echo "❌ One or more CI jobs failed"
+            exit 1
+          elif [[ "${{ needs.test-shared.result }}" == "skipped" ]] && \
+               [[ "${{ needs.test-backend.result }}" == "skipped" ]] && \
+               [[ "${{ needs.test-frontend.result }}" == "skipped" ]]; then
+            echo "⚠️  All test jobs were skipped - no changes detected"
+            exit 0
+          else
+            echo "✅ All CI jobs passed or were skipped appropriately"
+            exit 0
+          fi
