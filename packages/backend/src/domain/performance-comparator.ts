@@ -101,9 +101,12 @@ export function compare(
       continue;
     }
 
-    // Both values present
-    const bv = baselineValue!;
-    const cv = currentValue!;
+    // Both values present (verified by previous conditionals)
+    if (baselineValue === undefined || currentValue === undefined) {
+      continue;
+    }
+    const bv = baselineValue;
+    const cv = currentValue;
 
     // Calculate percentage change
     const changePercentage = calculateChangePercentage(bv, cv);

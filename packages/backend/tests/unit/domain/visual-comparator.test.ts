@@ -132,7 +132,10 @@ describe('VisualComparator', () => {
       expect(result.diffImage).toBeDefined();
       expect(result.diffImage).toBeInstanceOf(Buffer);
       // Verify it's a valid PNG
-      const diffPng = PNG.sync.read(result.diffImage!);
+      if (!result.diffImage) {
+        throw new Error('diffImage is undefined');
+      }
+      const diffPng = PNG.sync.read(result.diffImage);
       expect(diffPng.width).toBe(100);
       expect(diffPng.height).toBe(100);
     });
