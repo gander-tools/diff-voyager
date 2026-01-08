@@ -42,7 +42,7 @@
 		"@gander-tools/diff-voyager-shared": "*",
 		"better-sqlite3": "^12.0.0",
 		"crawlee": "^3.12.3",
-		"drizzle-orm": "^0.36.0",
+		"drizzle-orm": "^0.45.0",
 		"fastify": "^5.2.0",
 		"pixelmatch": "^7.0.0",
 		"playwright": "^1.49.1",
