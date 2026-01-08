@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { Dashboard, Filter, FolderOpen, PlaylistAdd, Settings } from '@vicons/tabler';
+import { Dashboard, Filter, Folder, PlaylistAdd, Settings } from '@vicons/tabler';
 import type { MenuOption } from 'naive-ui';
-import { NIcon } from 'naive-ui';
+import { NIcon, NLayoutSider, NMenu } from 'naive-ui';
 import { computed, h } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
@@ -10,9 +10,9 @@ import { useUiStore } from '@/stores/ui';
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
-const _uiStore = useUiStore();
+const uiStore = useUiStore();
 
-const _menuOptions = computed<MenuOption[]>(() => [
+const menuOptions = computed<MenuOption[]>(() => [
   {
     label: t('nav.dashboard'),
     key: '/',
@@ -21,7 +21,7 @@ const _menuOptions = computed<MenuOption[]>(() => [
   {
     label: t('nav.projects'),
     key: '/projects',
-    icon: () => h(NIcon, null, { default: () => h(FolderOpen) }),
+    icon: () => h(NIcon, null, { default: () => h(Folder) }),
   },
   {
     label: t('nav.runs'),
@@ -40,7 +40,7 @@ const _menuOptions = computed<MenuOption[]>(() => [
   },
 ]);
 
-const _activeKey = computed(() => {
+const activeKey = computed(() => {
   // Match the current route path to menu key
   const path = route.path;
 
@@ -56,7 +56,7 @@ const _activeKey = computed(() => {
   return '/';
 });
 
-function _handleMenuSelect(key: string) {
+function handleMenuSelect(key: string) {
   router.push(key);
 }
 </script>
