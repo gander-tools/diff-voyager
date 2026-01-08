@@ -174,9 +174,15 @@ describe('GET /api/v1/runs/:runId', () => {
       hasDiff: false,
     });
 
+    // Update first snapshot to completed status
+    await snapshotRepo.update(snapshot1.id, {
+      status: PageStatus.COMPLETED,
+      httpStatus: 200,
+    });
+
     // Update second snapshot to error status
     await snapshotRepo.update(snapshot2.id, {
-      status: 'error',
+      status: PageStatus.ERROR,
       httpStatus: 404,
     });
 
