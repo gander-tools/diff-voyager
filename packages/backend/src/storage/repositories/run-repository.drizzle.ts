@@ -25,7 +25,7 @@ export class RunRepositoryDrizzle implements IRunRepository {
     await this.db.insert(runs).values({
       id,
       projectId: input.projectId,
-      isBaseline: input.isBaseline ? 1 : 0,
+      isBaseline: input.isBaseline,
       status: RunStatus.NEW,
       configJson: JSON.stringify(input.config),
       statisticsJson: null,
@@ -106,7 +106,7 @@ export class RunRepositoryDrizzle implements IRunRepository {
     return {
       id: row.id,
       projectId: row.projectId,
-      isBaseline: row.isBaseline === 1,
+      isBaseline: row.isBaseline,
       status: row.status as RunStatus,
       config: JSON.parse(row.configJson),
       statistics: row.statisticsJson ? JSON.parse(row.statisticsJson) : null,
