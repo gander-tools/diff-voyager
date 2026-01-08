@@ -28,8 +28,8 @@
 ## Progress
 
 **Last Updated:** 2026-01-08
-**Current Task:** Phase 1 complete! Ready for Phase 2 (remaining repositories)
-**Completed:** 19/19 tasks (100% - Phase 0 and Phase 1 complete!)
+**Current Task:** Phase 2.1 complete! Ready for Phase 2.2 (RunRepository)
+**Completed:** 21/25 tasks (84% - Phase 0, Phase 1, and Phase 2.1 complete!)
 
 **Phase 1 Summary:**
 ✅ PageRepository fully migrated to Drizzle ORM with:
@@ -40,8 +40,17 @@
 - Security: automatic prepared statements (Drizzle default)
 - Documentation updated in CLAUDE.md
 
-**Next Steps:** Phase 2 will migrate remaining repositories following the same pattern:
-ProjectRepository → RunRepository → TaskQueue → SnapshotRepository → DiffRepository
+**Phase 2.1 Summary:**
+✅ ProjectRepository fully migrated to Drizzle ORM with:
+- IProjectRepository interface for dual implementation
+- Comprehensive unit tests (13 tests passing)
+- Full implementation with JSON config support and pagination
+- Comparison tests proving equivalence (13 tests passing)
+- Type-safe JSON serialization/deserialization
+- Automatic updatedAt timestamp management
+
+**Next Steps:** Continue Phase 2:
+RunRepository → TaskQueue → SnapshotRepository → DiffRepository
 
 ## Notes
 
