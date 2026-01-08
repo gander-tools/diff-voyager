@@ -123,9 +123,11 @@ export async function registerPageRoutes(
         httpHeaders: latestSnapshot?.headers,
         performanceData: latestSnapshot?.performanceData,
         artifacts: {
-          screenshotUrl: `/api/v1/artifacts/${page.id}/screenshot`,
-          harUrl: `/api/v1/artifacts/${page.id}/har`,
-          htmlUrl: `/api/v1/artifacts/${page.id}/html`,
+          screenshotUrl: latestSnapshot?.screenshotPath
+            ? `/api/v1/artifacts/${page.id}/screenshot`
+            : undefined,
+          harUrl: latestSnapshot?.harPath ? `/api/v1/artifacts/${page.id}/har` : undefined,
+          htmlUrl: latestSnapshot?.htmlPath ? `/api/v1/artifacts/${page.id}/html` : undefined,
         },
       });
     },
