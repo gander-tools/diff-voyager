@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.6](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.5...diff-voyager-frontend-v0.1.6) (2026-01-08)
+
+
+### Bug Fixes
+
+* **frontend:** disable Biome noUnusedVariables/noUnusedImports for Vue files ([c9a4486](https://github.com/gander-tools/diff-voyager/commit/c9a44860ddc5b471a3732c857b96a59fdaefa76c))
+
 ## [0.1.5](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.4...diff-voyager-frontend-v0.1.5) (2026-01-08)
 
 
