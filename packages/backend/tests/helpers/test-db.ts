@@ -8,6 +8,7 @@ import { existsSync, unlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import Database from 'better-sqlite3';
+import { createDrizzleDb, type DrizzleDb } from '../../src/storage/drizzle/db.js';
 
 export type TestDatabase = Database.Database;
 
@@ -35,4 +36,13 @@ export async function cleanupTestDb(db: TestDatabase): Promise<void> {
   if (existsSync(`${dbPath}-shm`)) {
     unlinkSync(`${dbPath}-shm`);
   }
+}
+
+/**
+ * Create a Drizzle test database instance
+ * Returns a type-safe Drizzle DB for testing
+ */
+export async function createDrizzleTestDb(): Promise<DrizzleDb> {
+  const sqliteDb = await createTestDb();
+  return createDrizzleDb(sqliteDb);
 }
