@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.9](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.8...diff-voyager-backend-v0.1.9) (2026-01-08)
+
+
+### Features
+
+* **backend:** create Drizzle DB helper and test utilities ([d6f5c68](https://github.com/gander-tools/diff-voyager/commit/d6f5c681259e7458df78886e913253a6ac24cb9a))
+* **backend:** define Drizzle schemas for all tables ([f9a1197](https://github.com/gander-tools/diff-voyager/commit/f9a1197331e96fc0d05d47f3234e421a90e9979c))
+* **backend:** implement DiffRepository with Drizzle ORM - FINAL MIGRATION ([e251db1](https://github.com/gander-tools/diff-voyager/commit/e251db19c176e11fef1bbd0a7073b03c92bb8b7d))
+* **backend:** implement PageRepository with Drizzle ORM ([69c9afd](https://github.com/gander-tools/diff-voyager/commit/69c9afd2842196a57a6bca834ac858604ea5d53e))
+* **backend:** implement ProjectRepository with Drizzle ORM ([a956875](https://github.com/gander-tools/diff-voyager/commit/a956875f0a292f3c84be0ea46d72823bc273bb66))
+* **backend:** implement RunRepository with Drizzle ORM ([8d5d097](https://github.com/gander-tools/diff-voyager/commit/8d5d097773342d20f26b5bc2a18c855bc5f123c4))
+* **backend:** implement SnapshotRepository with Drizzle ORM ([f2d9207](https://github.com/gander-tools/diff-voyager/commit/f2d9207a8bfbf4bd6b83ae57fd29baeb4da02822))
+* **backend:** implement TaskQueue with Drizzle ORM ([acc61d9](https://github.com/gander-tools/diff-voyager/commit/acc61d9a3a3e713e98bf53e97ffe8ca05246bd39))
+
 ## [0.1.8](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.7...diff-voyager-backend-v0.1.8) (2026-01-07)
 
 
