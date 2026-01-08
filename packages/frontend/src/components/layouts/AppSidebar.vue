@@ -50,7 +50,7 @@ const activeKey = computed(() => {
   // Exact matches
   if (path === vueRoutes.dashboard()) return vueRoutes.dashboard();
   if (path === vueRoutes.settings()) return vueRoutes.settings();
-  if (path === vueRoutes.rules() || path.startsWith(vueRoutes.rules() + '/'))
+  if (path === vueRoutes.rules() || path.startsWith(`${vueRoutes.rules()}/`))
     return vueRoutes.rules();
 
   // Prefix matches
