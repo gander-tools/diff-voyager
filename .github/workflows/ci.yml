@@ -87,8 +87,35 @@ jobs:
       - name: Build shared package
         run: npm run build:shared
 
-      - name: Run shared tests
-        run: npm run test:shared
+      - name: Run shared tests with coverage
+        run: npm run test:coverage:shared
+
+      - name: Display coverage summary
+        if: always()
+        run: |
+          echo "## 📊 Shared Package Coverage" >> $GITHUB_STEP_SUMMARY
+          if [ -f packages/shared/coverage/coverage-summary.json ]; then
+            node -e "
+              const data = require('./packages/shared/coverage/coverage-summary.json');
+              const total = data.total;
+              console.log('| Metric | Coverage |');
+              console.log('|--------|----------|');
+              console.log('| Lines | ' + total.lines.pct + '% |');
+              console.log('| Statements | ' + total.statements.pct + '% |');
+              console.log('| Functions | ' + total.functions.pct + '% |');
+              console.log('| Branches | ' + total.branches.pct + '% |');
+            " >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No coverage data available (no tests or coverage not generated)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload test coverage
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: shared-coverage
+          path: packages/shared/coverage/
+          retention-days: 7
+          if-no-files-found: ignore
 
   # Backend tests
   test-backend:
@@ -119,8 +146,27 @@ jobs:
         run: npx playwright install chromium --with-deps
         working-directory: packages/backend
 
-      - name: Run backend tests
-        run: npm run test:backend
+      - name: Run backend tests with coverage
+        run: npm run test:coverage:backend
+
+      - name: Display coverage summary
+        if: always() && matrix.node-version == '22'
+        run: |
+          echo "## 📊 Backend Package Coverage" >> $GITHUB_STEP_SUMMARY
+          if [ -f packages/backend/coverage/coverage-summary.json ]; then
+            node -e "
+              const data = require('./packages/backend/coverage/coverage-summary.json');
+              const total = data.total;
+              console.log('| Metric | Coverage |');
+              console.log('|--------|----------|');
+              console.log('| Lines | ' + total.lines.pct + '% |');
+              console.log('| Statements | ' + total.statements.pct + '% |');
+              console.log('| Functions | ' + total.functions.pct + '% |');
+              console.log('| Branches | ' + total.branches.pct + '% |');
+            " >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No coverage data available" >> $GITHUB_STEP_SUMMARY
+          fi
 
       - name: Upload test coverage
         if: matrix.node-version == '22'
@@ -153,8 +199,27 @@ jobs:
       - name: Build shared package
         run: npm run build:shared
 
-      - name: Run frontend tests
-        run: npm run test:frontend
+      - name: Run frontend tests with coverage
+        run: npm run test:coverage:frontend
+
+      - name: Display coverage summary
+        if: always()
+        run: |
+          echo "## 📊 Frontend Package Coverage" >> $GITHUB_STEP_SUMMARY
+          if [ -f packages/frontend/coverage/coverage-summary.json ]; then
+            node -e "
+              const data = require('./packages/frontend/coverage/coverage-summary.json');
+              const total = data.total;
+              console.log('| Metric | Coverage |');
+              console.log('|--------|----------|');
+              console.log('| Lines | ' + total.lines.pct + '% |');
+              console.log('| Statements | ' + total.statements.pct + '% |');
+              console.log('| Functions | ' + total.functions.pct + '% |');
+              console.log('| Branches | ' + total.branches.pct + '% |');
+            " >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No coverage data available (no tests or coverage not generated)" >> $GITHUB_STEP_SUMMARY
+          fi
 
       - name: Upload test coverage
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0

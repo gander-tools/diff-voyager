@@ -10,6 +10,13 @@ export default mergeConfig(
       exclude: [...configDefaults.exclude, 'tests/e2e/**'],
       include: ['tests/unit/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
       root: fileURLToPath(new URL('./', import.meta.url)),
+      coverage: {
+        provider: 'v8',
+        reporter: ['text', 'text-summary', 'json', 'json-summary', 'html'],
+        include: ['src/**/*.{ts,vue}'],
+        exclude: ['src/**/*.d.ts', 'src/main.ts'],
+        reportsDirectory: './coverage',
+      },
     },
   }),
 );
