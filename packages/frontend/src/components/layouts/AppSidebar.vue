@@ -6,6 +6,7 @@ import { NIcon, NLayoutSider, NMenu } from 'naive-ui';
 import { computed, h } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
+import { vueRoutes } from '@/router/routes';
 import { useUiStore } from '@/stores/ui';
 
 const { t } = useI18n();
@@ -17,27 +18,27 @@ const uiStore = useUiStore();
 const menuOptions = computed<MenuOption[]>(() => [
   {
     label: t('nav.dashboard'),
-    key: '/',
+    key: vueRoutes.dashboard(),
     icon: () => h(NIcon, null, { default: () => h(Dashboard) }),
   },
   {
     label: t('nav.projects'),
-    key: '/projects',
+    key: vueRoutes.projects(),
     icon: () => h(NIcon, null, { default: () => h(Folder) }),
   },
   {
     label: t('nav.runs'),
-    key: '/runs',
+    key: '/runs', // Keep hardcoded - no dedicated runs list route yet
     icon: () => h(NIcon, null, { default: () => h(PlaylistAdd) }),
   },
   {
     label: t('nav.rules'),
-    key: '/rules',
+    key: vueRoutes.rules(),
     icon: () => h(NIcon, null, { default: () => h(Filter) }),
   },
   {
     label: t('nav.settings'),
-    key: '/settings',
+    key: vueRoutes.settings(),
     icon: () => h(NIcon, null, { default: () => h(Settings) }),
   },
 ]);
@@ -47,15 +48,16 @@ const activeKey = computed(() => {
   const path = route.path;
 
   // Exact matches
-  if (path === '/') return '/';
-  if (path === '/settings') return '/settings';
-  if (path === '/rules' || path.startsWith('/rules/')) return '/rules';
+  if (path === vueRoutes.dashboard()) return vueRoutes.dashboard();
+  if (path === vueRoutes.settings()) return vueRoutes.settings();
+  if (path === vueRoutes.rules() || path.startsWith(vueRoutes.rules() + '/'))
+    return vueRoutes.rules();
 
   // Prefix matches
-  if (path.startsWith('/projects')) return '/projects';
+  if (path.startsWith(vueRoutes.projects())) return vueRoutes.projects();
   if (path.startsWith('/runs')) return '/runs';
 
-  return '/';
+  return vueRoutes.dashboard();
 });
 
 function handleMenuSelect(key: string) {
