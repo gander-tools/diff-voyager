@@ -28,8 +28,8 @@
 ## Progress
 
 **Last Updated:** 2026-01-08
-**Current Task:** Phase 2.1 complete! Ready for Phase 2.2 (RunRepository)
-**Completed:** 21/25 tasks (84% - Phase 0, Phase 1, and Phase 2.1 complete!)
+**Current Task:** Phase 2.2 complete! Ready for Phase 2.3 (TaskQueue)
+**Completed:** 22/25 tasks (88% - Phase 0, Phase 1, Phase 2.1, and Phase 2.2 complete!)
 
 **Phase 1 Summary:**
 ✅ PageRepository fully migrated to Drizzle ORM with:
@@ -49,8 +49,19 @@
 - Type-safe JSON serialization/deserialization
 - Automatic updatedAt timestamp management
 
+**Phase 2.2 Summary:**
+✅ RunRepository fully migrated to Drizzle ORM with:
+- IRunRepository interface for dual implementation
+- Comprehensive unit tests (16 tests passing)
+- Full implementation with 2 JSON columns (config, statistics)
+- Boolean field handling with Drizzle's `{ mode: 'boolean' }`
+- Optional timestamps (startedAt, completedAt)
+- Special updateStatus logic (IN_PROGRESS → startedAt, COMPLETED → completedAt)
+- Comparison tests proving equivalence (15 tests passing)
+- All 31/31 tests passing
+
 **Next Steps:** Continue Phase 2:
-RunRepository → TaskQueue → SnapshotRepository → DiffRepository
+TaskQueue → SnapshotRepository → DiffRepository
 
 ## Notes
 
