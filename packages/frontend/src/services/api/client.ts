@@ -1,3 +1,5 @@
+import { apiContract } from '@gander-tools/diff-voyager-shared';
+import { initClient } from '@ts-rest/core';
 import { type FetchOptions, ofetch } from 'ofetch';
 
 /**
@@ -156,3 +158,49 @@ export function put<T>(url: string, body?: unknown, options?: FetchOptions): Pro
 export function del<T>(url: string, options?: FetchOptions): Promise<T> {
   return fetchWithRetry<T>(url, { ...options, method: 'DELETE' });
 }
+
+/**
+ * @ts-rest API client (type-safe, auto-generated from API contract)
+ *
+ * This client provides:
+ * - Compile-time type safety for all API calls
+ * - Automatic URL generation from contract
+ * - Request/response validation with Zod
+ * - Integration with existing retry logic
+ *
+ * Example usage:
+ * ```typescript
+ * const result = await tsRestClient.createScan({
+ *   body: { url: 'https://example.com', sync: true }
+ * });
+ * ```
+ */
+export const tsRestClient = initClient(apiContract, {
+  baseUrl: API_BASE_URL,
+  baseHeaders: {},
+  api: async ({ path, method, headers, body }) => {
+    // Use our existing retry logic with ofetch
+    try {
+      const response = await fetchWithRetry(path, {
+        method,
+        headers: headers as Record<string, string>,
+        body: body as any,
+      });
+
+      return {
+        status: 200,
+        body: response,
+        headers: new Headers(),
+      };
+    } catch (error) {
+      if (error instanceof ApiError) {
+        return {
+          status: error.statusCode || 500,
+          body: error.response || { message: error.message },
+          headers: new Headers(),
+        };
+      }
+      throw error;
+    }
+  },
+});

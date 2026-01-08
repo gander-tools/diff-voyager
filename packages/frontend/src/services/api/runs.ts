@@ -1,5 +1,5 @@
 import type { RunProfile } from '@gander-tools/diff-voyager-shared';
-import { get, post } from './client';
+import { get, tsRestClient } from './client';
 
 /**
  * Request body for creating a run
@@ -53,35 +53,66 @@ export interface ListRunsQuery {
 /**
  * Create a new comparison run
  * POST /projects/:projectId/runs
+ *
+ * Uses @ts-rest client for type-safe API calls
  */
-export function createRun(
+export async function createRun(
   projectId: string,
   request: CreateRunRequest,
 ): Promise<CreateRunResponse> {
-  return post<CreateRunResponse>(`/projects/${projectId}/runs`, request);
+  const result = await tsRestClient.createProjectRun({
+    params: { projectId },
+    body: request,
+  });
+
+  if (result.status === 202) {
+    return result.body as unknown as CreateRunResponse;
+  }
+
+  const errorBody = result.body as { message?: string };
+  throw new Error(errorBody.message || 'Failed to create run');
 }
 
 /**
  * List all runs for a project
  * GET /projects/:projectId/runs
+ *
+ * Uses @ts-rest client for type-safe API calls
  */
-export function listRuns(projectId: string, query?: ListRunsQuery): Promise<RunDetailsResponse[]> {
-  const params = new URLSearchParams();
-  if (query?.limit) params.append('limit', query.limit.toString());
-  if (query?.offset) params.append('offset', query.offset.toString());
+export async function listRuns(projectId: string, query?: ListRunsQuery) {
+  const result = await tsRestClient.listProjectRuns({
+    params: { projectId },
+    query: {
+      limit: query?.limit,
+      offset: query?.offset,
+    },
+  });
 
-  const queryString = params.toString();
-  return get<RunDetailsResponse[]>(
-    `/projects/${projectId}/runs${queryString ? `?${queryString}` : ''}`,
-  );
+  if (result.status === 200) {
+    return result.body.runs as unknown as RunDetailsResponse[];
+  }
+
+  const errorBody = result.body as { message?: string };
+  throw new Error(errorBody.message || 'Failed to list runs');
 }
 
 /**
  * Get run details by ID
  * GET /runs/:runId
+ *
+ * Uses @ts-rest client for type-safe API calls
  */
-export function getRun(runId: string): Promise<RunDetailsResponse> {
-  return get<RunDetailsResponse>(`/runs/${runId}`);
+export async function getRun(runId: string): Promise<RunDetailsResponse> {
+  const result = await tsRestClient.getRunDetails({
+    params: { runId },
+  });
+
+  if (result.status === 200) {
+    return result.body as unknown as RunDetailsResponse;
+  }
+
+  const errorBody = result.body as { message?: string };
+  throw new Error(errorBody.message || 'Failed to get run');
 }
 
 /**
