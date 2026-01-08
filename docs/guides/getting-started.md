@@ -342,8 +342,7 @@ SELECT * FROM projects;
 In a separate terminal:
 
 ```bash
-cd packages/frontend
-npm run dev
+npm run dev:frontend
 ```
 
 The frontend development server will start at `http://localhost:5173`.

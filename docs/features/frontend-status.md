@@ -524,8 +524,7 @@ All requests use shared TypeScript types from `@gander-tools/diff-voyager-shared
 
 ### Run Frontend Dev Server
 ```bash
-cd packages/frontend
-npm run dev
+npm run dev:frontend
 ```
 
 ### Run Tests
@@ -567,7 +566,7 @@ npm run preview       # Preview production build
 
 **How do I test the UI?**
 - Start backend: `npm run dev:backend`
-- Start frontend: `cd packages/frontend && npm run dev`
+- Start frontend: `npm run dev:frontend`
 - Visit: http://localhost:5173
 
 **Why are all views showing placeholders?**

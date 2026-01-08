@@ -67,8 +67,7 @@ npx playwright install
 npm run dev:backend
 
 # In another terminal, run frontend UI
-cd packages/frontend
-npm run dev
+npm run dev:frontend
 ```
 
 **Access the Application**:
