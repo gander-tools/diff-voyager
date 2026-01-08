@@ -19,10 +19,34 @@ describe('Projects Store', () => {
   it('should fetch projects list', async () => {
     server.use(
       http.get(`${API_BASE_URL}/projects`, () => {
-        return HttpResponse.json([
-          { id: 'project-1', name: 'Test Project 1' },
-          { id: 'project-2', name: 'Test Project 2' },
-        ]);
+        return HttpResponse.json({
+          projects: [
+            {
+              id: 'project-1',
+              name: 'Test Project 1',
+              description: '',
+              baseUrl: 'https://example1.com',
+              status: 'COMPLETED',
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+            },
+            {
+              id: 'project-2',
+              name: 'Test Project 2',
+              description: '',
+              baseUrl: 'https://example2.com',
+              status: 'COMPLETED',
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+            },
+          ],
+          pagination: {
+            total: 2,
+            limit: 50,
+            offset: 0,
+            hasMore: false,
+          },
+        });
       }),
     );
 
