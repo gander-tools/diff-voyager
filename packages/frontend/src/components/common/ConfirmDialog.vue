@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { NButton, NModal, NSpace } from 'naive-ui';
 import { useI18n } from 'vue-i18n';
 
 interface Props {
@@ -11,7 +12,7 @@ interface Props {
   type?: 'default' | 'error' | 'warning' | 'success';
 }
 
-const _props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   loading: false,
   type: 'default',
 });

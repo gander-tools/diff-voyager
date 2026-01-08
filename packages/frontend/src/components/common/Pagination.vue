@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { NPagination } from 'naive-ui';
 import { computed } from 'vue';
 
 interface Props {
@@ -19,13 +20,13 @@ const emit = defineEmits<{
   'update:pageSize': [value: number];
 }>();
 
-const _pageCount = computed(() => Math.ceil(props.total / props.pageSize));
+const pageCount = computed(() => Math.ceil(props.total / props.pageSize));
 
-function _handlePageChange(page: number) {
+function handlePageChange(page: number) {
   emit('update:page', page);
 }
 
-function _handlePageSizeChange(pageSize: number) {
+function handlePageSizeChange(pageSize: number) {
   emit('update:pageSize', pageSize);
   // Reset to page 1 when changing page size
   if (props.page !== 1) {

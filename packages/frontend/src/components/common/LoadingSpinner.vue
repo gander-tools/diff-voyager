@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { NSpin } from 'naive-ui';
+
 interface Props {
   size?: 'small' | 'medium' | 'large';
   description?: string;
