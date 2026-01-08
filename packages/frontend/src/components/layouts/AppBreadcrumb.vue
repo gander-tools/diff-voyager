@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// biome-ignore lint/correctness/noUnusedImports: used in template
 import { NBreadcrumb, NBreadcrumbItem } from 'naive-ui';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -14,7 +13,6 @@ interface BreadcrumbItem {
   path?: string;
 }
 
-// biome-ignore lint/correctness/noUnusedVariables: used in template
 const breadcrumbs = computed<BreadcrumbItem[]>(() => {
   const items: BreadcrumbItem[] = [];
   const pathSegments = route.path.split('/').filter(Boolean);
@@ -55,7 +53,6 @@ const breadcrumbs = computed<BreadcrumbItem[]>(() => {
   return items;
 });
 
-// biome-ignore lint/correctness/noUnusedVariables: used in template
 function handleClick(path?: string) {
   if (path && path !== route.path) {
     router.push(path);
