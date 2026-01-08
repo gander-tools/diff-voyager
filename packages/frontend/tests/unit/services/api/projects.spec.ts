@@ -41,18 +41,34 @@ describe('Projects API', () => {
     it('should list all projects', async () => {
       server.use(
         http.get(`${API_BASE_URL}/projects`, () => {
-          return HttpResponse.json([
-            {
-              id: 'project-1',
-              name: 'Test Project 1',
-              baseUrl: 'https://example1.com',
+          return HttpResponse.json({
+            projects: [
+              {
+                id: 'project-1',
+                name: 'Test Project 1',
+                baseUrl: 'https://example1.com',
+                description: '',
+                status: 'COMPLETED',
+                createdAt: '2024-01-01T00:00:00Z',
+                updatedAt: '2024-01-01T00:00:00Z',
+              },
+              {
+                id: 'project-2',
+                name: 'Test Project 2',
+                baseUrl: 'https://example2.com',
+                description: '',
+                status: 'COMPLETED',
+                createdAt: '2024-01-01T00:00:00Z',
+                updatedAt: '2024-01-01T00:00:00Z',
+              },
+            ],
+            pagination: {
+              total: 2,
+              limit: 50,
+              offset: 0,
+              hasMore: false,
             },
-            {
-              id: 'project-2',
-              name: 'Test Project 2',
-              baseUrl: 'https://example2.com',
-            },
-          ]);
+          });
         }),
       );
 
@@ -67,7 +83,15 @@ describe('Projects API', () => {
       server.use(
         http.get(`${API_BASE_URL}/projects`, ({ request }) => {
           capturedUrl = request.url;
-          return HttpResponse.json([]);
+          return HttpResponse.json({
+            projects: [],
+            pagination: {
+              total: 0,
+              limit: 10,
+              offset: 20,
+              hasMore: false,
+            },
+          });
         }),
       );
 
