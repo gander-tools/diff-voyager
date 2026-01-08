@@ -125,44 +125,73 @@ See **[Getting Started Guide](docs/guides/getting-started.md)** for detailed ins
 
 ## Development
 
+All commands run from the **root directory** of the monorepo.
+
+### Quick Start (Per Package)
+
+**Backend**:
+```bash
+npm run dev:backend          # Start dev server with hot reload
+npm run build:backend        # Build TypeScript
+npm run test:backend         # Run tests
+```
+
+**Frontend**:
+```bash
+npm run dev:frontend         # Start dev server
+npm run build:frontend       # Build for production
+npm run test:frontend        # Run tests
+```
+
+**Shared**:
+```bash
+npm run build:shared         # Build TypeScript types
+npm run test:shared          # Run tests
+```
+
 ### Running Tests
 
 ```bash
-# All tests
-npm test
+# All packages
+npm test                        # Run all tests
+npm run test:coverage           # Run all tests with coverage
 
-# Backend tests only
-npm run test:backend
+# Specific packages
+npm run test:backend            # Backend tests only
+npm run test:frontend           # Frontend tests only
+npm run test:shared             # Shared tests only
 
 # With coverage
-npm run test:coverage:backend
-
-# Watch mode (auto-rerun on changes)
-cd packages/backend && npm run test:watch
+npm run test:coverage:backend   # Backend with coverage
+npm run test:coverage:frontend  # Frontend with coverage
+npm run test:coverage:shared    # Shared with coverage
 ```
 
 ### Building
 
 ```bash
-# Build all packages
+# All packages (builds in order: shared → backend → frontend)
 npm run build
 
-# Build specific package
-npm run build:backend
-npm run build:shared
+# Specific packages
+npm run build:shared            # Build shared types only
+npm run build:backend           # Build backend only
+npm run build:frontend          # Build frontend only
 ```
 
 ### Code Quality
 
 ```bash
-# Check code style
-npm run lint
+# Check and fix (recommended workflow)
+npm run check                   # Check code quality (lint + format)
+npm run check:fix               # Auto-fix safe issues
+npm run check:fix:unsafe        # Auto-fix all issues (including unsafe changes)
 
-# Auto-fix issues
-npm run lint:fix
-
-# Format code
-npm run format:fix
+# Individual checks
+npm run lint                    # Lint only
+npm run lint:fix                # Lint with auto-fix
+npm run format                  # Check formatting
+npm run format:fix              # Format code
 ```
 
 ## How It Works
