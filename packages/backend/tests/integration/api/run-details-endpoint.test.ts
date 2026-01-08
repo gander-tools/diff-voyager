@@ -5,7 +5,7 @@
 import { randomUUID } from 'node:crypto';
 import { mkdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
-import { RunStatus } from '@gander-tools/diff-voyager-shared';
+import { PageStatus, RunStatus } from '@gander-tools/diff-voyager-shared';
 import type { FastifyInstance } from 'fastify';
 import * as tmp from 'tmp';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -141,7 +141,7 @@ describe('GET /api/v1/runs/:runId', () => {
     });
 
     // Create snapshots for pages
-    const _snapshot1 = await snapshotRepo.create({
+    const snapshot1 = await snapshotRepo.create({
       runId: run.id,
       pageId: page1.id,
       isBaseline: true,
