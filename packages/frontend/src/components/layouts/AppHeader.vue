@@ -1,7 +1,6 @@
 <script setup lang="ts">
-// biome-ignore lint/correctness/noUnusedImports: icons used in render functions and template
 import { Globe, Moon, Sun } from '@vicons/tabler';
-// biome-ignore lint/correctness/noUnusedImports: used in template
+
 import { NButton, NDropdown, NIcon, NLayoutHeader, NSpace } from 'naive-ui';
 import { useI18n } from 'vue-i18n';
 import { availableLocales } from '@/i18n';
@@ -11,25 +10,21 @@ import { useUiStore } from '@/stores/ui';
 const { t } = useI18n();
 const uiStore = useUiStore();
 
-// biome-ignore lint/correctness/noUnusedVariables: used in template
 const languageOptions = availableLocales.map((locale) => ({
   label: locale.name,
   key: locale.code,
 }));
 
-// biome-ignore lint/correctness/noUnusedVariables: used in template
 const themeOptions = [
   { label: t('settings.theme.light'), key: 'light' as Theme, icon: Sun },
   { label: t('settings.theme.dark'), key: 'dark' as Theme, icon: Moon },
   { label: t('settings.theme.auto'), key: 'auto' as Theme, icon: Globe },
 ];
 
-// biome-ignore lint/correctness/noUnusedVariables: used in template
 function handleLanguageSelect(key: string) {
   uiStore.setLanguage(key as 'en' | 'pl');
 }
 
-// biome-ignore lint/correctness/noUnusedVariables: used in template
 function handleThemeSelect(key: string) {
   uiStore.setTheme(key as Theme);
 }

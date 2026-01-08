@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// biome-ignore lint/correctness/noUnusedImports: used in template
 import { NEmpty } from 'naive-ui';
 
 interface Props {
