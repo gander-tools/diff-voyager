@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.3...diff-voyager-frontend-v0.1.4) (2026-01-08)
+
+
+### Features
+
+* **ci:** add test coverage reporting for all packages ([a8bd155](https://github.com/gander-tools/diff-voyager/commit/a8bd1554c016bb396f25e2784e9bf14bac418238))
+
 ## [0.1.3](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.2...diff-voyager-frontend-v0.1.3) (2026-01-08)
 
 

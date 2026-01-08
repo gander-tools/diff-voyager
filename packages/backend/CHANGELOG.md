@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.1.11](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.10...diff-voyager-backend-v0.1.11) (2026-01-08)
+
+
+### Features
+
+* **ci:** add test coverage reporting for all packages ([a8bd155](https://github.com/gander-tools/diff-voyager/commit/a8bd1554c016bb396f25e2784e9bf14bac418238))
+
+
+### Bug Fixes
+
+* **api:** add additionalProperties to scan endpoint schemas ([5a8dee1](https://github.com/gander-tools/diff-voyager/commit/5a8dee155e645a2fe3097ca9d7213ddd78359bf5))
+* **api:** fix project details endpoint statistics and schema issues ([46599e1](https://github.com/gander-tools/diff-voyager/commit/46599e18c93cdc55f929be14604ebc4749352ce0))
+* make capturedAt optional in CreateSnapshotInput with default value ([9927880](https://github.com/gander-tools/diff-voyager/commit/99278808f1d11af4726467a885976079ac851f62))
+* **security:** complete tmpdir() replacement and remove unused imports ([2da5365](https://github.com/gander-tools/diff-voyager/commit/2da5365ca97df6d6970bf684e6b75fafc689730b))
+* **security:** use tmp library for secure temporary file creation in artifacts-endpoint test ([715d5c3](https://github.com/gander-tools/diff-voyager/commit/715d5c3f5e863f34631e7255c043992017eadce8))
+* **security:** use tmp library in project-details-endpoint test ([5475eb0](https://github.com/gander-tools/diff-voyager/commit/5475eb097b21ba06ccffa3fd97e4492ccdc81abc))
+* **security:** use tmp library in remaining integration/api tests ([7651a8a](https://github.com/gander-tools/diff-voyager/commit/7651a8af8649cd7220a73f5ecb42c264b8f94488))
+* **security:** use tmp library in scan-endpoints test ([2e9c0a5](https://github.com/gander-tools/diff-voyager/commit/2e9c0a5e5c8d17816cbcc16801fec14be0480be7))
+* **security:** use tmp library in unit tests and test helpers ([ea7714b](https://github.com/gander-tools/diff-voyager/commit/ea7714bd7dc8e6dffe7c6687867d0d516d91f344))
+* update scan-processor test to match graceful error handling ([0f7e73f](https://github.com/gander-tools/diff-voyager/commit/0f7e73fcb0b573e17ac6b64233a75f1b7ec311c8))
+
 ## [0.1.10](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.9...diff-voyager-backend-v0.1.10) (2026-01-08)
 
 
