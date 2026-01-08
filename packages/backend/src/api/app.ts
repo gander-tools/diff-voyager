@@ -8,15 +8,18 @@ import swaggerUi from '@fastify/swagger-ui';
 import { API_BASE_PATH } from '@gander-tools/diff-voyager-shared';
 import Fastify, { type FastifyInstance } from 'fastify';
 import type { DatabaseInstance } from '../storage/database.js';
+import type { DrizzleDb } from '../storage/drizzle/db.js';
 import { registerArtifactRoutes } from './routes/artifacts.js';
 import { registerPageRoutes } from './routes/pages.js';
 import { registerProjectRoutes } from './routes/projects.js';
 import { registerRunRoutes } from './routes/runs.js';
 import { registerScanRoutes } from './routes/scans.js';
 import { registerTaskRoutes } from './routes/tasks.js';
+import { createTsRestRoutes } from './routes-ts-rest.js';
 
 export interface AppConfig {
   db: DatabaseInstance;
+  drizzleDb: DrizzleDb;
   artifactsDir: string;
 }
 
@@ -112,26 +115,38 @@ export async function createApp(config: AppConfig): Promise<FastifyInstance> {
     },
   );
 
-  // Register routes
-  await app.register(registerScanRoutes, {
+  // Register @ts-rest routes (NEW - type-safe API contract)
+  const { router: tsRestRouter, s: tsRestServer } = createTsRestRoutes({
+    db: config.db,
+    drizzleDb: config.drizzleDb,
+    artifactsDir: config.artifactsDir,
+  });
+
+  await app.register(tsRestServer.plugin(tsRestRouter), {
     prefix: API_BASE_PATH,
+  });
+
+  // OLD routes - TODO: Remove after verifying @ts-rest routes work
+  // Keeping for now for backwards compatibility
+  await app.register(registerScanRoutes, {
+    prefix: `${API_BASE_PATH}/old`,
     db: config.db,
     artifactsDir: config.artifactsDir,
   });
   await app.register(registerProjectRoutes, {
-    prefix: API_BASE_PATH,
+    prefix: `${API_BASE_PATH}/old`,
     db: config.db,
   });
   await app.register(registerRunRoutes, {
-    prefix: API_BASE_PATH,
+    prefix: `${API_BASE_PATH}/old`,
     db: config.db,
   });
   await app.register(registerPageRoutes, {
-    prefix: API_BASE_PATH,
+    prefix: `${API_BASE_PATH}/old`,
     db: config.db,
   });
   await app.register(registerTaskRoutes, {
-    prefix: API_BASE_PATH,
+    prefix: `${API_BASE_PATH}/old`,
     db: config.db,
   });
   await app.register(registerArtifactRoutes, {
