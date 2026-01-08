@@ -28,8 +28,8 @@
 ## Progress
 
 **Last Updated:** 2026-01-08
-**Current Task:** Phase 2.3 complete! Ready for Phase 2.4 (SnapshotRepository)
-**Completed:** 23/25 tasks (92% - Phase 0, Phase 1, Phase 2.1, Phase 2.2, and Phase 2.3 complete!)
+**Current Task:** ALL PHASES COMPLETE! 🎉 MIGRATION FINISHED!
+**Completed:** 25/25 tasks (100% - ALL repositories migrated to Drizzle ORM!)
 
 **Phase 1 Summary:**
 ✅ PageRepository fully migrated to Drizzle ORM with:
@@ -72,8 +72,31 @@
 - JSON payload serialization/deserialization
 - All 19/19 tests passing
 
-**Next Steps:** Continue Phase 2:
-SnapshotRepository → DiffRepository
+**Phase 2.4 Summary:**
+✅ SnapshotRepository fully migrated to Drizzle ORM with:
+- ISnapshotRepository interface for dual implementation
+- Comprehensive unit tests (14 tests passing)
+- Full implementation with 4 JSON columns (redirectChain, headers, seoData, performanceData)
+- Partial update support (conditionally building update objects)
+- Custom ID support for create()
+- Type-safe JSON serialization/deserialization
+- All 14/14 tests passing
+
+**Phase 2.5 Summary (FINAL REPOSITORY):**
+✅ DiffRepository fully migrated to Drizzle ORM with:
+- IDiffRepository interface for dual implementation
+- Comprehensive unit tests (9 tests passing)
+- Full implementation with 2 JSON columns (summary, changes)
+- Complex nested JSON support
+- Ordering by created_at DESC in findByRun()
+- Comparison tests proving SQL/Drizzle equivalence (9 tests passing)
+- All 18/18 tests passing
+
+🎉 **MIGRATION COMPLETE!** All repositories now use Drizzle ORM with:
+- Full type safety
+- Automatic prepared statements (SQL injection protection)
+- Zero runtime overhead
+- Cleaner, more maintainable code
 
 ## Notes
 
