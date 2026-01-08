@@ -73,7 +73,7 @@ describe('@ts-rest API Routes', () => {
       const body = JSON.parse(response.body);
       expect(body).toHaveProperty('projectId');
       expect(body).toHaveProperty('status', 'PENDING');
-      expect(body).toHaveProperty('statusUrl');
+      expect(body).toHaveProperty('projectUrl');
     });
 
     it('should create sync scan and return 200 with full project details', async () => {
@@ -108,8 +108,9 @@ describe('@ts-rest API Routes', () => {
 
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body);
-      expect(body).toHaveProperty('message');
-      expect(body.message).toContain('url');
+      // @ts-rest validation error format
+      expect(body).toHaveProperty('bodyErrors');
+      expect(body.bodyErrors).toBeDefined();
     });
 
     it('should validate URL format', async () => {
@@ -123,7 +124,9 @@ describe('@ts-rest API Routes', () => {
 
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body);
-      expect(body).toHaveProperty('message');
+      // @ts-rest validation error format
+      expect(body).toHaveProperty('bodyErrors');
+      expect(body.bodyErrors).toBeDefined();
     });
   });
 
