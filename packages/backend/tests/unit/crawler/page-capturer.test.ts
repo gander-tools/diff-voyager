@@ -6,7 +6,6 @@
 import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import * as tmp from 'tmp';
-import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { PageCapturer } from '../../../src/crawler/page-capturer.js';
 import { HTML_FIXTURES } from '../../fixtures/html/index.js';
@@ -19,8 +18,8 @@ describe('PageCapturer', () => {
   let testArtifactsDir: string;
 
   beforeAll(async () => {
-    // Create temp directory for test artifacts
-    testArtifactsDir = join(tmpdir(), `test-artifacts-${randomUUID()}`);
+    // Create temp directory for test artifacts using secure tmp library
+    testArtifactsDir = tmp.dirSync({ unsafeCleanup: true, prefix: 'test-artifacts-' }).name;
 
     // Start mock server with test routes
     mockServer = new MockServer({

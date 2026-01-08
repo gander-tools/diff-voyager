@@ -2,11 +2,10 @@
  * Project list endpoint integration tests
  */
 
-import { randomUUID } from 'node:crypto';
 import { mkdir, rm } from 'node:fs/promises';
-import * as tmp from 'tmp';
 import { join } from 'node:path';
 import type { FastifyInstance } from 'fastify';
+import * as tmp from 'tmp';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../../../src/api/app.js';
 import {

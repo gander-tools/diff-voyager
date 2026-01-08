@@ -5,7 +5,6 @@
  * of the sync scan response structure implementation.
  */
 
-import { randomUUID } from 'node:crypto';
 import { mkdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { FastifyInstance } from 'fastify';

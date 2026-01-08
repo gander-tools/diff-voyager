@@ -3,11 +3,10 @@
  * Tests synchronous scan processing with Playwright browser automation
  */
 
-import { randomUUID } from 'node:crypto';
 import { mkdir, rm } from 'node:fs/promises';
-import * as tmp from 'tmp';
 import { join } from 'node:path';
 import { PageStatus, RunStatus } from '@gander-tools/diff-voyager-shared';
+import * as tmp from 'tmp';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { ScanProcessor } from '../../../src/services/scan-processor.js';
 import {

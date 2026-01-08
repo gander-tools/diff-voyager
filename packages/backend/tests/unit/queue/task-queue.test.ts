@@ -2,11 +2,10 @@
  * Tests for TaskQueue.enqueue()
  */
 
-import { randomUUID } from 'node:crypto';
 import { mkdirSync, rmSync } from 'node:fs';
-import * as tmp from 'tmp';
 import { join } from 'node:path';
 import type Database from 'better-sqlite3';
+import * as tmp from 'tmp';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { TaskQueue } from '../../../src/queue/task-queue.js';
 import type { CapturePagePayload } from '../../../src/queue/types.js';
@@ -19,7 +18,7 @@ describe('TaskQueue.enqueue()', () => {
   let taskQueue: TaskQueue;
 
   beforeEach(() => {
-    testDir = join(tmpdir(), `diff-voyager-test-${randomUUID()}`);
+    testDir = tmp.dirSync({ unsafeCleanup: true, prefix: 'diff-voyager-test-' }).name;
     mkdirSync(testDir, { recursive: true });
     dbPath = join(testDir, 'test.db');
     db = createDatabase({ dbPath, artifactsDir: join(testDir, 'artifacts') });
@@ -272,7 +271,7 @@ describe('TaskQueue.dequeue()', () => {
   let taskQueue: TaskQueue;
 
   beforeEach(() => {
-    testDir = join(tmpdir(), `diff-voyager-test-${randomUUID()}`);
+    testDir = tmp.dirSync({ unsafeCleanup: true, prefix: 'diff-voyager-test-' }).name;
     mkdirSync(testDir, { recursive: true });
     dbPath = join(testDir, 'test.db');
     db = createDatabase({ dbPath, artifactsDir: join(testDir, 'artifacts') });
@@ -482,7 +481,7 @@ describe('TaskQueue.complete()', () => {
   let taskQueue: TaskQueue;
 
   beforeEach(() => {
-    testDir = join(tmpdir(), `diff-voyager-test-${randomUUID()}`);
+    testDir = tmp.dirSync({ unsafeCleanup: true, prefix: 'diff-voyager-test-' }).name;
     mkdirSync(testDir, { recursive: true });
     dbPath = join(testDir, 'test.db');
     db = createDatabase({ dbPath, artifactsDir: join(testDir, 'artifacts') });
@@ -571,7 +570,7 @@ describe('TaskQueue.fail()', () => {
   let taskQueue: TaskQueue;
 
   beforeEach(() => {
-    testDir = join(tmpdir(), `diff-voyager-test-${randomUUID()}`);
+    testDir = tmp.dirSync({ unsafeCleanup: true, prefix: 'diff-voyager-test-' }).name;
     mkdirSync(testDir, { recursive: true });
     dbPath = join(testDir, 'test.db');
     db = createDatabase({ dbPath, artifactsDir: join(testDir, 'artifacts') });
@@ -682,7 +681,7 @@ describe('TaskQueue.retry()', () => {
   let taskQueue: TaskQueue;
 
   beforeEach(() => {
-    testDir = join(tmpdir(), `diff-voyager-test-${randomUUID()}`);
+    testDir = tmp.dirSync({ unsafeCleanup: true, prefix: 'diff-voyager-test-' }).name;
     mkdirSync(testDir, { recursive: true });
     dbPath = join(testDir, 'test.db');
     db = createDatabase({ dbPath, artifactsDir: join(testDir, 'artifacts') });
@@ -816,7 +815,7 @@ describe('TaskQueue.requeueStaleProcessingTasks()', () => {
   let taskQueue: TaskQueue;
 
   beforeEach(() => {
-    testDir = join(tmpdir(), `diff-voyager-test-${randomUUID()}`);
+    testDir = tmp.dirSync({ unsafeCleanup: true, prefix: 'diff-voyager-test-' }).name;
     mkdirSync(testDir, { recursive: true });
     dbPath = join(testDir, 'test.db');
     db = createDatabase({ dbPath, artifactsDir: join(testDir, 'artifacts') });

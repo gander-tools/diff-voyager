@@ -3,7 +3,6 @@
  * Tests GET /api/v1/projects/:projectId with full response including pages, snapshots, and statistics
  */
 
-import { randomUUID } from 'node:crypto';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { PageStatus, RunStatus } from '@gander-tools/diff-voyager-shared';
@@ -493,7 +492,7 @@ describe('GET /api/v1/projects/:projectId - Project Details', () => {
       },
     });
 
-    const run = await runRepo.create({
+    const _run = await runRepo.create({
       projectId: project.id,
       isBaseline: true,
       config: {
