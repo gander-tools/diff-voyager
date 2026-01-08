@@ -4,10 +4,10 @@
 
 import { randomUUID } from 'node:crypto';
 import { mkdir, rm, symlink, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { FastifyInstance } from 'fastify';
 import { PNG } from 'pngjs';
+import * as tmp from 'tmp';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../../../src/api/app.js';
 import {
@@ -43,9 +43,8 @@ describe('Artifact Endpoints', () => {
   let testPageId: string;
 
   beforeAll(async () => {
-    // Setup test directory
-    testDir = join(tmpdir(), `diff-voyager-artifacts-test-${randomUUID()}`);
-    await mkdir(testDir, { recursive: true });
+    // Setup test directory using secure tmp library
+    testDir = tmp.dirSync({ unsafeCleanup: true, prefix: 'diff-voyager-artifacts-test-' }).name;
 
     const dbPath = join(testDir, 'test.db');
     artifactsDir = join(testDir, 'artifacts');
