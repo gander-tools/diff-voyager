@@ -71,7 +71,7 @@ export const apiClient = ofetch.create({
   },
 
   // Response interceptor for error handling
-  async onResponseError({ response, options }) {
+  async onResponseError({ response, options: _options }) {
     const statusCode = response.status;
     const url = response.url;
 

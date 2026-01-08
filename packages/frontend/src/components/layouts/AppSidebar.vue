@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Dashboard, Filter, FolderOpen, PlaylistAdd, Settings } from '@vicons/tabler';
 import type { MenuOption } from 'naive-ui';
-import { NIcon, NLayoutSider, NMenu } from 'naive-ui';
+import { NIcon } from 'naive-ui';
 import { computed, h } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
@@ -10,9 +10,9 @@ import { useUiStore } from '@/stores/ui';
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
-const uiStore = useUiStore();
+const _uiStore = useUiStore();
 
-const menuOptions = computed<MenuOption[]>(() => [
+const _menuOptions = computed<MenuOption[]>(() => [
   {
     label: t('nav.dashboard'),
     key: '/',
@@ -40,7 +40,7 @@ const menuOptions = computed<MenuOption[]>(() => [
   },
 ]);
 
-const activeKey = computed(() => {
+const _activeKey = computed(() => {
   // Match the current route path to menu key
   const path = route.path;
 
@@ -56,7 +56,7 @@ const activeKey = computed(() => {
   return '/';
 });
 
-function handleMenuSelect(key: string) {
+function _handleMenuSelect(key: string) {
   router.push(key);
 }
 </script>

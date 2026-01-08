@@ -48,16 +48,10 @@ describe('DefaultLayout', () => {
         plugins: [router, i18n, pinia],
         stubs: {
           NLayout: { template: '<div class="n-layout"><slot /></div>' },
-          NLayoutSider: { template: '<div class="n-layout-sider"><slot /></div>' },
-          NLayoutHeader: { template: '<div class="n-layout-header"><slot /></div>' },
           NLayoutContent: { template: '<div class="n-layout-content"><slot /></div>' },
-          NMenu: { template: '<div class="n-menu"></div>' },
-          NSpace: { template: '<div class="n-space"><slot /></div>' },
-          NButton: { template: '<button><slot /></button>' },
-          NDropdown: { template: '<div><slot /></div>' },
-          NIcon: { template: '<span class="n-icon"></span>' },
-          NBreadcrumb: { template: '<div class="n-breadcrumb"><slot /></div>' },
-          NBreadcrumbItem: { template: '<span><slot /></span>' },
+          AppSidebar: { template: '<div class="app-sidebar">Sidebar</div>' },
+          AppHeader: { template: '<div class="app-header">Header</div>' },
+          AppBreadcrumb: { template: '<div class="app-breadcrumb">Breadcrumb</div>' },
         },
       },
       slots: {
@@ -66,8 +60,8 @@ describe('DefaultLayout', () => {
     });
 
     expect(wrapper.html()).toContain('n-layout');
-    expect(wrapper.html()).toContain('n-layout-sider');
-    expect(wrapper.html()).toContain('n-layout-header');
+    expect(wrapper.html()).toContain('app-sidebar');
+    expect(wrapper.html()).toContain('app-header');
     expect(wrapper.html()).toContain('n-layout-content');
   });
 
@@ -77,16 +71,10 @@ describe('DefaultLayout', () => {
         plugins: [router, i18n, pinia],
         stubs: {
           NLayout: { template: '<div><slot /></div>' },
-          NLayoutSider: { template: '<div><slot /></div>' },
-          NLayoutHeader: { template: '<div><slot /></div>' },
           NLayoutContent: { template: '<div><slot /></div>' },
-          NMenu: true,
-          NSpace: true,
-          NButton: true,
-          NDropdown: true,
-          NIcon: true,
-          NBreadcrumb: true,
-          NBreadcrumbItem: true,
+          AppSidebar: true,
+          AppHeader: true,
+          AppBreadcrumb: true,
         },
       },
       slots: {

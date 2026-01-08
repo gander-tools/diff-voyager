@@ -21,7 +21,7 @@ describe('Projects API', () => {
 
       server.use(
         http.post(`${API_BASE_URL}/scans`, async ({ request }) => {
-          const body = await request.json();
+          const _body = await request.json();
           return HttpResponse.json(
             {
               projectId: 'project-123',

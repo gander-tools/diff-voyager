@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import { NButton, NCard, NSpace } from 'naive-ui';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
+// biome-ignore lint/correctness/noUnusedVariables: used in template
 const { t } = useI18n();
 const router = useRouter();
 
+// biome-ignore lint/correctness/noUnusedVariables: used in template
 function goHome() {
   router.push('/');
 }
 
+// biome-ignore lint/correctness/noUnusedVariables: used in template
 function goBack() {
   router.back();
 }

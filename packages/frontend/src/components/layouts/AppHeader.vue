@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Globe, Moon, Sun } from '@vicons/tabler';
-import { NButton, NDropdown, NIcon, NLayoutHeader, NSpace } from 'naive-ui';
 import { useI18n } from 'vue-i18n';
 import { availableLocales } from '@/i18n';
 import type { Theme } from '@/stores/ui';
@@ -9,22 +8,22 @@ import { useUiStore } from '@/stores/ui';
 const { t } = useI18n();
 const uiStore = useUiStore();
 
-const languageOptions = availableLocales.map((locale) => ({
+const _languageOptions = availableLocales.map((locale) => ({
   label: locale.name,
   key: locale.code,
 }));
 
-const themeOptions = [
+const _themeOptions = [
   { label: t('settings.theme.light'), key: 'light' as Theme, icon: Sun },
   { label: t('settings.theme.dark'), key: 'dark' as Theme, icon: Moon },
   { label: t('settings.theme.auto'), key: 'auto' as Theme, icon: Globe },
 ];
 
-function handleLanguageSelect(key: string) {
+function _handleLanguageSelect(key: string) {
   uiStore.setLanguage(key as 'en' | 'pl');
 }
 
-function handleThemeSelect(key: string) {
+function _handleThemeSelect(key: string) {
   uiStore.setTheme(key as Theme);
 }
 </script>

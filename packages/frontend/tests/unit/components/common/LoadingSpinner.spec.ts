@@ -41,7 +41,7 @@ describe('LoadingSpinner', () => {
       global: {
         stubs: {
           NSpin: {
-            template: '<div class="n-spin">{{ $attrs.description }}</div>',
+            template: '<div class="n-spin">{{ description }}</div>',
             props: ['description'],
           },
         },
