@@ -56,9 +56,11 @@ This downloads Chromium, Firefox, and WebKit browsers (~500 MB).
 npx playwright install chromium
 ```
 
-## Running the Backend API
+## Running Diff Voyager
 
-### Start the Development Server
+Diff Voyager consists of two parts: the backend API and the frontend UI.
+
+### Start the Backend API
 
 ```bash
 npm run dev:backend
@@ -335,8 +337,95 @@ SELECT * FROM projects;
 .quit
 ```
 
+### Start the Frontend UI
+
+In a separate terminal:
+
+```bash
+cd packages/frontend
+npm run dev
+```
+
+The frontend development server will start at `http://localhost:5173`.
+
+**Output:**
+```
+VITE v5.x.x  ready in 123 ms
+
+➜  Local:   http://localhost:5173/
+➜  Network: use --host to expose
+```
+
+### Access the Application
+
+Once both servers are running:
+
+- **Frontend UI**: http://localhost:5173
+- **Backend API**: http://localhost:3000
+- **API Documentation**: http://localhost:3000/docs
+
+**Note**: The frontend requires the backend to be running. Start the backend first.
+
+## Current UI Features (Phase 1)
+
+The frontend is currently in Phase 1 (Foundation & Infrastructure). Here's what you'll see:
+
+### What's Working ✅
+
+**Layout & Navigation**:
+- Responsive layout with collapsible sidebar
+- Top navigation bar with theme and language switchers
+- Sidebar menu with icons and route highlighting
+- Dynamic breadcrumb navigation
+- 11 configured routes (Dashboard, Projects, Runs, Pages, Rules, Settings)
+
+**Theme Support**:
+- Light theme
+- Dark theme
+- Auto theme (follows system preference)
+- Theme persistence (saved to localStorage)
+
+**Language Support**:
+- English (EN)
+- Polish (PL)
+- Language switcher in header
+- 300+ translation keys
+- Language persistence (saved to localStorage)
+
+**Navigation Menu**:
+- 📊 Dashboard (/)
+- 📁 Projects (/projects)
+- 🔄 Runs (via project detail)
+- 📝 Rules (/rules)
+- ⚙️ Settings (/settings)
+
+### What's Not Yet Implemented ⏳
+
+**Views** (showing placeholders):
+- Dashboard statistics and recent projects
+- Project list, create, and detail views
+- Run create and detail views
+- Page detail with diff comparison
+- Rules list and create views
+- Settings form
+
+**Functionality**:
+- No data fetching from backend yet
+- No forms for creating projects/runs
+- No diff visualization
+- No mute rules management
+
+**Coming Next** (Phase 2):
+- Dashboard with project statistics
+- Project list with search and pagination
+- Project creation form
+- Project detail with runs list
+
+See [Frontend Status](../features/frontend-status.md) for detailed progress.
+
 ## Next Reading
 
+- [Frontend Status](../features/frontend-status.md) - Current UI implementation status
 - [Development Workflow](development-workflow.md) - TDD approach and best practices
 - [API Overview](../api/overview.md) - Complete API reference
 - [Architecture](../architecture/overview.md) - System design and components
