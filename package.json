@@ -61,5 +61,8 @@
 	},
 	"overrides": {
 		"esbuild": "^0.27.2"
+	},
+	"dependencies": {
+		"@vicons/tabler": "^0.13.0"
 	}
 }
