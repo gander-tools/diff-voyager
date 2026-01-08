@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.12](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.11...diff-voyager-backend-v0.1.12) (2026-01-08)
+
+
+### Features
+
+* **backend:** implement HAR file collection in PageCapturer (GREEN phase) ([e7f0e72](https://github.com/gander-tools/diff-voyager/commit/e7f0e72c05df4baebd8f29e91444fb66a43a6077))
+
+
+### Bug Fixes
+
+* **backend:** conditionally return artifact URLs in Pages endpoint ([a2f9733](https://github.com/gander-tools/diff-voyager/commit/a2f9733a49edd0982a0d8ec00ae135f712de17ff))
+
 ## [0.1.11](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.10...diff-voyager-backend-v0.1.11) (2026-01-08)
 
 
