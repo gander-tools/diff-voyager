@@ -397,6 +397,47 @@ bun run dev              # Start dev server
 bun test                 # Run tests
 ```
 
+#### Common Frontend Issues
+
+**Vue 3 Component Resolution Errors**
+
+If you see console errors like:
+```
+[Vue warn]: Failed to resolve component: NButton
+[Vue warn]: Failed to resolve component: DefaultLayout
+```
+
+**Root Cause**: Vue 3 requires explicit imports for all components. Components cannot be used in templates without importing them first.
+
+**Solution**: Add explicit imports at the top of the `<script setup>` section:
+
+```typescript
+// For Naive UI components
+import { NButton, NCard, NLayout } from 'naive-ui';
+
+// For custom components
+import DefaultLayout from './components/layouts/DefaultLayout.vue';
+
+// For router components
+import { RouterView } from 'vue-router';
+```
+
+**Note on @vicons/tabler**: Ensure the package is installed:
+```bash
+npm install @vicons/tabler
+```
+
+Available icon names can be found in `node_modules/@vicons/tabler/es/`. Common icons:
+- `Dashboard`, `Settings`, `Filter`
+- `Folder` (note: `FolderOpen` does not exist)
+- `Globe`, `Moon`, `Sun`
+- `PlaylistAdd`, `Playlist`
+
+Import icons with exact PascalCase names:
+```typescript
+import { Dashboard, Filter, Folder } from '@vicons/tabler';
+```
+
 ### Shared Types
 ```bash
 cd packages/shared
