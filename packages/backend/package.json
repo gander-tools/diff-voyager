@@ -55,9 +55,11 @@
 		"@types/pixelmatch": "^5.2.6",
 		"@types/pngjs": "^6.0.5",
 		"@types/supertest": "^6.0.2",
+		"@types/tmp": "^0.2.6",
 		"@vitest/coverage-v8": "^4.0.0",
 		"drizzle-kit": "^0.31.0",
 		"supertest": "^7.0.0",
+		"tmp": "^0.2.5",
 		"tsx": "^4.19.2",
 		"typescript": "^5.7.3",
 		"vitest": "^4.0.0"

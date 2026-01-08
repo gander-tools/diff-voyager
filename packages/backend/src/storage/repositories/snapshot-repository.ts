@@ -11,17 +11,17 @@ export interface CreateSnapshotInput {
   id?: string;
   pageId: string;
   runId: string;
-  isBaseline: boolean;
-  capturedAt: Date;
-  httpStatus: number;
+  isBaseline?: boolean;
+  capturedAt?: Date;
+  httpStatus?: number;
   redirectChain?: Array<{ url: string; status: number }>;
-  htmlHash: string;
-  headers: Record<string, string>;
-  seo: SeoData;
+  htmlHash?: string;
+  headers?: Record<string, string>;
+  seo?: SeoData;
   performanceData?: PerformanceData;
-  hasScreenshot: boolean;
-  hasHar: boolean;
-  hasDiff: boolean;
+  hasScreenshot?: boolean;
+  hasHar?: boolean;
+  hasDiff?: boolean;
 }
 
 export interface UpdateSnapshotInput {
@@ -64,6 +64,7 @@ export class SnapshotRepository {
 
   async create(input: CreateSnapshotInput): Promise<SnapshotEntity> {
     const id = input.id || randomUUID();
+    const capturedAt = input.capturedAt || new Date();
 
     const stmt = this.db.prepare(`
       INSERT INTO snapshots (
@@ -80,17 +81,17 @@ export class SnapshotRepository {
       id,
       input.pageId,
       input.runId,
-      PageStatus.COMPLETED,
-      input.httpStatus,
+      PageStatus.PENDING,
+      input.httpStatus || null,
       input.redirectChain ? JSON.stringify(input.redirectChain) : null,
-      input.htmlHash,
-      JSON.stringify(input.headers),
-      JSON.stringify(input.seo),
+      input.htmlHash || null,
+      input.headers ? JSON.stringify(input.headers) : null,
+      input.seo ? JSON.stringify(input.seo) : null,
       input.performanceData ? JSON.stringify(input.performanceData) : null,
       input.hasScreenshot ? 'screenshot.png' : null,
       input.hasHar ? 'performance.har' : null,
       input.hasDiff ? 'diff.png' : null,
-      input.capturedAt.toISOString(),
+      capturedAt.toISOString(),
       input.isBaseline ? 1 : 0,
     );
 
@@ -98,7 +99,7 @@ export class SnapshotRepository {
       id,
       pageId: input.pageId,
       runId: input.runId,
-      status: PageStatus.COMPLETED,
+      status: PageStatus.PENDING,
       httpStatus: input.httpStatus,
       redirectChain: input.redirectChain,
       htmlHash: input.htmlHash,
@@ -108,7 +109,7 @@ export class SnapshotRepository {
       screenshotPath: input.hasScreenshot ? 'screenshot.png' : undefined,
       harPath: input.hasHar ? 'performance.har' : undefined,
       diffImagePath: input.hasDiff ? 'diff.png' : undefined,
-      capturedAt: input.capturedAt,
+      capturedAt,
     };
   }
 

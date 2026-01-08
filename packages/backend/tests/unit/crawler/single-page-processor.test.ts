@@ -3,10 +3,9 @@
  * Tests orchestration of page capture, SEO extraction, and artifact storage
  */
 
-import { randomUUID } from 'node:crypto';
 import { mkdir, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import * as tmp from 'tmp';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   BrowserManager,
@@ -66,7 +65,7 @@ describe('SinglePageProcessor', () => {
 
   beforeAll(async () => {
     // Setup test directory
-    testDir = join(tmpdir(), `single-page-processor-test-${randomUUID()}`);
+    testDir = tmp.dirSync({ unsafeCleanup: true, prefix: 'diff-voyager-test-' }).name;
     artifactsDir = join(testDir, 'artifacts');
     await mkdir(artifactsDir, { recursive: true });
 

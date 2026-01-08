@@ -4,9 +4,9 @@
 
 import { randomUUID } from 'node:crypto';
 import { mkdir, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { FastifyInstance } from 'fastify';
+import * as tmp from 'tmp';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../../../src/api/app.js';
 import {
@@ -30,8 +30,7 @@ describe('GET /api/v1/runs/:runId/pages', () => {
 
   beforeAll(async () => {
     // Setup test directory
-    testDir = join(tmpdir(), `diff-voyager-test-${randomUUID()}`);
-    await mkdir(testDir, { recursive: true });
+    testDir = tmp.dirSync({ unsafeCleanup: true, prefix: 'diff-voyager-test-' }).name;
 
     const dbPath = join(testDir, 'test.db');
     const artifactsDir = join(testDir, 'artifacts');

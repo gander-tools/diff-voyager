@@ -5,11 +5,10 @@
  * of the sync scan response structure implementation.
  */
 
-import { randomUUID } from 'node:crypto';
 import { mkdir, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { FastifyInstance } from 'fastify';
+import * as tmp from 'tmp';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../../../src/api/app.js';
 import {
@@ -28,9 +27,8 @@ describe('POST /api/v1/scans', () => {
   let testDir: string;
 
   beforeAll(async () => {
-    // Setup test directory
-    testDir = join(tmpdir(), `diff-voyager-test-${randomUUID()}`);
-    await mkdir(testDir, { recursive: true });
+    // Setup test directory using secure tmp library
+    testDir = tmp.dirSync({ unsafeCleanup: true, prefix: 'diff-voyager-test-' }).name;
 
     const dbPath = join(testDir, 'test.db');
     const artifactsDir = join(testDir, 'artifacts');
@@ -97,9 +95,7 @@ describe('POST /api/v1/scans', () => {
     expect(body.projectUrl).toContain('/api/v1/projects/');
   });
 
-  // SKIPPED: Awaiting implementation of complete sync scan response structure.
-  // Response is missing seoData and other fields. Enable when implemented.
-  it.skip('should return 200 with full result for sync scan', async () => {
+  it('should return 200 with full result for sync scan', async () => {
     const response = await app.inject({
       method: 'POST',
       url: '/api/v1/scans',
@@ -118,9 +114,7 @@ describe('POST /api/v1/scans', () => {
     expect(body.pages[0].seoData?.title).toBe('Test Page Title');
   });
 
-  // SKIPPED: Awaiting implementation of complete sync scan response structure.
-  // Response structure needs to be validated. Enable when implemented.
-  it.skip('should accept optional configuration', async () => {
+  it('should accept optional configuration', async () => {
     const response = await app.inject({
       method: 'POST',
       url: '/api/v1/scans',
@@ -166,8 +160,8 @@ describe('GET /api/v1/projects/:projectId', () => {
   let testDir: string;
 
   beforeAll(async () => {
-    testDir = join(tmpdir(), `diff-voyager-test-${randomUUID()}`);
-    await mkdir(testDir, { recursive: true });
+    // Setup test directory using secure tmp library
+    testDir = tmp.dirSync({ unsafeCleanup: true, prefix: 'diff-voyager-test-' }).name;
 
     const dbPath = join(testDir, 'test.db');
     const artifactsDir = join(testDir, 'artifacts');
@@ -199,9 +193,7 @@ describe('GET /api/v1/projects/:projectId', () => {
     expect(body.error.code).toBe('NOT_FOUND');
   });
 
-  // SKIPPED: Awaiting implementation of complete sync scan response structure.
-  // Response is missing statistics field. Enable when implemented.
-  it.skip('should return project details after scan', async () => {
+  it('should return project details after scan', async () => {
     // Create a scan first
     const scanResponse = await app.inject({
       method: 'POST',

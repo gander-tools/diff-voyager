@@ -4,9 +4,9 @@
 
 import { randomUUID } from 'node:crypto';
 import { mkdirSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type Database from 'better-sqlite3';
+import * as tmp from 'tmp';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { closeDatabase, createDatabase } from '../../../src/storage/database.js';
 
@@ -16,7 +16,7 @@ describe('Task Queue Migration', () => {
   let db: Database.Database;
 
   beforeEach(() => {
-    testDir = join(tmpdir(), `diff-voyager-test-${randomUUID()}`);
+    testDir = tmp.dirSync({ unsafeCleanup: true, prefix: 'diff-voyager-test-' }).name;
     mkdirSync(testDir, { recursive: true });
     dbPath = join(testDir, 'test.db');
     db = createDatabase({ dbPath, artifactsDir: join(testDir, 'artifacts') });

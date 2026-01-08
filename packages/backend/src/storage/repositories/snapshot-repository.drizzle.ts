@@ -24,32 +24,33 @@ export class SnapshotRepositoryDrizzle implements ISnapshotRepository {
 
   async create(input: CreateSnapshotInput): Promise<SnapshotEntity> {
     const id = input.id || randomUUID();
+    const capturedAt = input.capturedAt || new Date();
 
     await this.db.insert(snapshots).values({
       id,
       pageId: input.pageId,
       runId: input.runId,
-      status: PageStatus.COMPLETED,
-      httpStatus: input.httpStatus,
+      status: PageStatus.PENDING,
+      httpStatus: input.httpStatus || null,
       redirectChainJson: input.redirectChain ? JSON.stringify(input.redirectChain) : null,
-      htmlHash: input.htmlHash,
+      htmlHash: input.htmlHash || null,
       htmlPath: null,
-      headersJson: JSON.stringify(input.headers),
-      seoDataJson: JSON.stringify(input.seo),
+      headersJson: input.headers ? JSON.stringify(input.headers) : null,
+      seoDataJson: input.seo ? JSON.stringify(input.seo) : null,
       performanceDataJson: input.performanceData ? JSON.stringify(input.performanceData) : null,
       screenshotPath: input.hasScreenshot ? 'screenshot.png' : null,
       harPath: input.hasHar ? 'performance.har' : null,
       diffImagePath: input.hasDiff ? 'diff.png' : null,
-      capturedAt: input.capturedAt.toISOString(),
+      capturedAt: capturedAt.toISOString(),
       errorMessage: null,
-      isBaseline: input.isBaseline,
+      isBaseline: input.isBaseline || false,
     });
 
     return {
       id,
       pageId: input.pageId,
       runId: input.runId,
-      status: PageStatus.COMPLETED,
+      status: PageStatus.PENDING,
       httpStatus: input.httpStatus,
       redirectChain: input.redirectChain,
       htmlHash: input.htmlHash,
@@ -59,7 +60,7 @@ export class SnapshotRepositoryDrizzle implements ISnapshotRepository {
       screenshotPath: input.hasScreenshot ? 'screenshot.png' : undefined,
       harPath: input.hasHar ? 'performance.har' : undefined,
       diffImagePath: input.hasDiff ? 'diff.png' : undefined,
-      capturedAt: input.capturedAt,
+      capturedAt,
     };
   }
 

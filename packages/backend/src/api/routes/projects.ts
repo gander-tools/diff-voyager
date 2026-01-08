@@ -198,13 +198,13 @@ export async function registerProjectRoutes(
               name: { type: 'string' },
               description: { type: 'string' },
               baseUrl: { type: 'string' },
-              config: { type: 'object' },
+              config: { type: 'object', additionalProperties: true },
               status: { type: 'string' },
               createdAt: { type: 'string', format: 'date-time' },
               updatedAt: { type: 'string', format: 'date-time' },
-              statistics: { type: 'object' },
+              statistics: { type: 'object', additionalProperties: true },
               pages: { type: 'array' },
-              pagination: { type: 'object' },
+              pagination: { type: 'object', additionalProperties: true },
             },
           },
           404: {
@@ -241,6 +241,10 @@ export async function registerProjectRoutes(
       const latestRun = runs[0];
       const pages = await pageRepo.findByProjectId(projectId);
 
+      // Fetch snapshots for statistics calculation (regardless of includePages)
+      const snapshots = latestRun ? await snapshotRepo.findByRunId(latestRun.id) : [];
+      const snapshotByPageId = new Map(snapshots.map((s) => [s.pageId, s]));
+
       // Build pages response
       const includePages = query.includePages !== false;
       const pageLimit = query.pageLimit || DEFAULT_PAGE_LIMIT;
@@ -249,9 +253,6 @@ export async function registerProjectRoutes(
       const pagesResponse: PageResponse[] = [];
 
       if (includePages && latestRun) {
-        const snapshots = await snapshotRepo.findByRunId(latestRun.id);
-        const snapshotByPageId = new Map(snapshots.map((s) => [s.pageId, s]));
-
         const paginatedPages = pages.slice(pageOffset, pageOffset + pageLimit);
 
         for (const page of paginatedPages) {
@@ -278,13 +279,16 @@ export async function registerProjectRoutes(
         }
       }
 
-      // Build statistics
+      // Build statistics from ALL snapshots, not just paginated response
+      const completedPages = snapshots.filter((s) => s.status === PageStatus.COMPLETED).length;
+      const errorPages = snapshots.filter((s) => s.status === PageStatus.ERROR).length;
+
       const statistics: ProjectStatisticsResponse = {
         totalPages: pages.length,
-        completedPages: pagesResponse.filter((p) => p.status === PageStatus.COMPLETED).length,
-        errorPages: pagesResponse.filter((p) => p.status === PageStatus.ERROR).length,
+        completedPages,
+        errorPages,
         changedPages: 0,
-        unchangedPages: pagesResponse.filter((p) => p.status === PageStatus.COMPLETED).length,
+        unchangedPages: completedPages,
         totalDifferences: 0,
         criticalDifferences: 0,
         acceptedDifferences: 0,

@@ -5,15 +5,16 @@
 
 import { randomUUID } from 'node:crypto';
 import { existsSync, unlinkSync } from 'node:fs';
-import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import Database from 'better-sqlite3';
+import * as tmp from 'tmp';
 import { createDrizzleDb, type DrizzleDb } from '../../src/storage/drizzle/db.js';
 
 export type TestDatabase = Database.Database;
 
 export async function createTestDb(): Promise<TestDatabase> {
-  const dbPath = join(tmpdir(), `diff-voyager-test-${randomUUID()}.db`);
+  const tmpDir = tmp.dirSync({ unsafeCleanup: true, prefix: 'diff-voyager-test-' }).name;
+  const dbPath = join(tmpDir, `${randomUUID()}.db`);
   const db = new Database(dbPath);
 
   // Enable WAL mode for better performance

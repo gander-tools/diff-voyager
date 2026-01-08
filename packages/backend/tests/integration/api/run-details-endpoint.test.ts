@@ -4,10 +4,10 @@
 
 import { randomUUID } from 'node:crypto';
 import { mkdir, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { RunStatus } from '@gander-tools/diff-voyager-shared';
+import { PageStatus, RunStatus } from '@gander-tools/diff-voyager-shared';
 import type { FastifyInstance } from 'fastify';
+import * as tmp from 'tmp';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../../../src/api/app.js';
 import {
@@ -31,8 +31,7 @@ describe('GET /api/v1/runs/:runId', () => {
 
   beforeAll(async () => {
     // Setup test directory
-    testDir = join(tmpdir(), `diff-voyager-test-${randomUUID()}`);
-    await mkdir(testDir, { recursive: true });
+    testDir = tmp.dirSync({ unsafeCleanup: true, prefix: 'diff-voyager-test-' }).name;
 
     const dbPath = join(testDir, 'test.db');
     const artifactsDir = join(testDir, 'artifacts');
@@ -142,7 +141,7 @@ describe('GET /api/v1/runs/:runId', () => {
     });
 
     // Create snapshots for pages
-    const _snapshot1 = await snapshotRepo.create({
+    const snapshot1 = await snapshotRepo.create({
       runId: run.id,
       pageId: page1.id,
       isBaseline: true,
@@ -175,9 +174,15 @@ describe('GET /api/v1/runs/:runId', () => {
       hasDiff: false,
     });
 
+    // Update first snapshot to completed status
+    await snapshotRepo.update(snapshot1.id, {
+      status: PageStatus.COMPLETED,
+      httpStatus: 200,
+    });
+
     // Update second snapshot to error status
     await snapshotRepo.update(snapshot2.id, {
-      status: 'error',
+      status: PageStatus.ERROR,
       httpStatus: 404,
     });
 
