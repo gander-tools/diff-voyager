@@ -10,10 +10,10 @@ import { initServer } from '@ts-rest/fastify';
 import { ScanProcessor } from '../services/scan-processor.js';
 import type { DatabaseInstance } from '../storage/database.js';
 import type { DrizzleDb } from '../storage/drizzle/db.js';
-import { PageRepository } from '../storage/repositories/page-repository.js';
-import { ProjectRepository } from '../storage/repositories/project-repository.js';
-import { RunRepository } from '../storage/repositories/run-repository.js';
-import { SnapshotRepository } from '../storage/repositories/snapshot-repository.js';
+import { PageRepositoryDrizzle } from '../storage/repositories/page-repository.drizzle.js';
+import { ProjectRepositoryDrizzle } from '../storage/repositories/project-repository.drizzle.js';
+import { RunRepositoryDrizzle } from '../storage/repositories/run-repository.drizzle.js';
+import { SnapshotRepositoryDrizzle } from '../storage/repositories/snapshot-repository.drizzle.js';
 
 export interface TsRestRoutesConfig {
   db: DatabaseInstance;
@@ -23,10 +23,10 @@ export interface TsRestRoutesConfig {
 
 export function createTsRestRoutes(config: TsRestRoutesConfig) {
   const { db, drizzleDb, artifactsDir } = config;
-  const projectRepo = new ProjectRepository(drizzleDb);
-  const runRepo = new RunRepository(drizzleDb);
-  const pageRepo = new PageRepository(drizzleDb);
-  const snapshotRepo = new SnapshotRepository(drizzleDb);
+  const projectRepo = new ProjectRepositoryDrizzle(drizzleDb);
+  const runRepo = new RunRepositoryDrizzle(drizzleDb);
+  const pageRepo = new PageRepositoryDrizzle(drizzleDb);
+  const snapshotRepo = new SnapshotRepositoryDrizzle(drizzleDb);
 
   const s = initServer();
 
