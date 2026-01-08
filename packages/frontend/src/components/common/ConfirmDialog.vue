@@ -16,7 +16,6 @@ const _props = withDefaults(defineProps<Props>(), {
   type: 'default',
 });
 
-// biome-ignore lint/correctness/noUnusedVariables: used in template
 const { t } = useI18n();
 
 const emit = defineEmits<{
@@ -29,13 +28,11 @@ function handleClose() {
   emit('update:show', false);
 }
 
-// biome-ignore lint/correctness/noUnusedVariables: used in template
 function handleCancel() {
   emit('cancel');
   handleClose();
 }
 
-// biome-ignore lint/correctness/noUnusedVariables: used in template
 function handleConfirm() {
   emit('confirm');
 }
