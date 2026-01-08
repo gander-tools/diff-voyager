@@ -39,6 +39,7 @@
 	},
 	"dependencies": {
 		"@gander-tools/diff-voyager-shared": "*",
+		"@ts-rest/core": "^3.52.1",
 		"@vicons/tabler": "^0.13.0",
 		"@vitest/ui": "^4.0.16",
 		"@vueuse/core": "^14.1.0",
