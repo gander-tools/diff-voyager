@@ -14,15 +14,12 @@ const props = withDefaults(defineProps<Props>(), {
   closable: false,
 });
 
-// biome-ignore lint/correctness/noUnusedVariables: used in template
 const { t } = useI18n();
 
-// biome-ignore lint/correctness/noUnusedVariables: used in template
 const emit = defineEmits<{
   close: [];
 }>();
 
-// biome-ignore lint/correctness/noUnusedVariables: used in template
 const errorMessage = computed(() => {
   if (!props.error) return '';
   return typeof props.error === 'string' ? props.error : props.error.message;
