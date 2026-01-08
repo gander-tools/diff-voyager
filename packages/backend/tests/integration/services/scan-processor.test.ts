@@ -207,10 +207,7 @@ describe('ScanProcessor', () => {
       expect(page.seoData?.robots).toBe('index, follow');
     });
 
-    // TODO: Fix HAR file URL handling - artifacts.harUrl is undefined after scan
-    // Issue: PageCapturer collects HAR data but the harUrl is not being properly set in the response
-    // This may be related to artifact path construction or serialization in the API response
-    it.skip('should collect HAR file when collectHar is true', async () => {
+    it('should collect HAR file when collectHar is true', async () => {
       const project = await projectRepo.create({
         name: 'Test HAR Collection',
         baseUrl: `${baseUrl}/simple`,
