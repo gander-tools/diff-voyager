@@ -4,7 +4,7 @@
 
 - [x] 0.1: Install Drizzle dependencies (`drizzle-orm`, `drizzle-kit`)
 - [x] 0.2: Create `drizzle.config.ts` configuration file
-- [ ] 0.3: Create directory structure (`src/storage/drizzle/schema/`, `src/storage/drizzle/migrations/`)
+- [x] 0.3: Create directory structure (`src/storage/drizzle/schema/`, `src/storage/drizzle/migrations/`)
 - [ ] 0.4: Define `pages` table schema (simplest - no JSON)
 - [ ] 0.5: Define `projects` table schema (1 JSON column: config_json)
 - [ ] 0.6: Define `runs` table schema (2 JSON columns: config_json, statistics_json)
@@ -28,8 +28,8 @@
 ## Progress
 
 **Last Updated:** 2026-01-08
-**Current Task:** 0.3 - Create directory structure
-**Completed:** 2/19 tasks
+**Current Task:** 0.4 - Define pages table schema
+**Completed:** 3/19 tasks
 
 ## Notes
 
