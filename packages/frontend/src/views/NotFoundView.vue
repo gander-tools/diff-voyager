@@ -2,12 +2,13 @@
 import { NButton, NCard, NSpace } from 'naive-ui';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
+import { vueRoutes } from '../router/routes';
 
 const { t } = useI18n();
 const router = useRouter();
 
 function goHome() {
-  router.push('/');
+  router.push(vueRoutes.dashboard());
 }
 
 function goBack() {

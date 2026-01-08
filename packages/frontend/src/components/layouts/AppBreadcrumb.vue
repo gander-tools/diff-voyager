@@ -3,6 +3,7 @@ import { NBreadcrumb, NBreadcrumbItem } from 'naive-ui';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
+import { vueRoutes } from '@/router/routes';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -20,7 +21,7 @@ const breadcrumbs = computed<BreadcrumbItem[]>(() => {
   // Always add home
   items.push({
     title: t('nav.dashboard'),
-    path: '/',
+    path: vueRoutes.dashboard(),
   });
 
   // Build breadcrumbs from path segments
