@@ -12,7 +12,7 @@ export interface CreateSnapshotInput {
   pageId: string;
   runId: string;
   isBaseline: boolean;
-  capturedAt: Date;
+  capturedAt?: Date;
   httpStatus: number;
   redirectChain?: Array<{ url: string; status: number }>;
   htmlHash: string;
@@ -64,6 +64,7 @@ export class SnapshotRepository {
 
   async create(input: CreateSnapshotInput): Promise<SnapshotEntity> {
     const id = input.id || randomUUID();
+    const capturedAt = input.capturedAt || new Date();
 
     const stmt = this.db.prepare(`
       INSERT INTO snapshots (
@@ -90,7 +91,7 @@ export class SnapshotRepository {
       input.hasScreenshot ? 'screenshot.png' : null,
       input.hasHar ? 'performance.har' : null,
       input.hasDiff ? 'diff.png' : null,
-      input.capturedAt.toISOString(),
+      capturedAt.toISOString(),
       input.isBaseline ? 1 : 0,
     );
 
@@ -108,7 +109,7 @@ export class SnapshotRepository {
       screenshotPath: input.hasScreenshot ? 'screenshot.png' : undefined,
       harPath: input.hasHar ? 'performance.har' : undefined,
       diffImagePath: input.hasDiff ? 'diff.png' : undefined,
-      capturedAt: input.capturedAt,
+      capturedAt,
     };
   }
 
