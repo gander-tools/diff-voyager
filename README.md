@@ -453,9 +453,30 @@ Filters to ignore expected differences (e.g., timestamps, analytics scripts, dyn
 ## Technology Stack
 
 - **Backend**: Node.js, TypeScript, Crawlee, Playwright, Fastify
+- **Database**: SQLite with better-sqlite3, migrating to Drizzle ORM
 - **Frontend**: Vue 3, TypeScript, Pinia, Vite, built with bun
 - **Testing**: Vitest
 - **Diff Engine**: Pixelmatch for visual comparison
+
+### Database Migration to Drizzle ORM
+
+Diff Voyager is actively migrating from raw SQL to Drizzle ORM for improved type safety and developer experience. See [docs/05-drizzle-migration-plan.md](docs/05-drizzle-migration-plan.md) for detailed progress.
+
+**Migration Status (12/19 tasks complete):**
+- ✅ Phase 0: Preparation & Setup (100% complete)
+  - Drizzle dependencies installed
+  - Configuration and directory structure created
+  - All 6 table schemas defined with TypeScript types
+  - Database connection helper and test utilities ready
+- 🟡 Phase 1: PageRepository Migration (14% complete)
+  - IPageRepository interface extracted
+  - Tests, implementation, and validation pending
+
+**Benefits:**
+- Type-safe queries with compile-time validation
+- Automatic prepared statements (improved security)
+- JSON column type support with TypeScript inference
+- Better developer experience with IDE autocomplete
 
 ## Documentation
 
