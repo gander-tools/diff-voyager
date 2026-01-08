@@ -5,13 +5,13 @@
 - [x] 0.1: Install Drizzle dependencies (`drizzle-orm`, `drizzle-kit`)
 - [x] 0.2: Create `drizzle.config.ts` configuration file
 - [x] 0.3: Create directory structure (`src/storage/drizzle/schema/`, `src/storage/drizzle/migrations/`)
-- [ ] 0.4: Define `pages` table schema (simplest - no JSON)
-- [ ] 0.5: Define `projects` table schema (1 JSON column: config_json)
-- [ ] 0.6: Define `runs` table schema (2 JSON columns: config_json, statistics_json)
-- [ ] 0.7: Define `snapshots` table schema (4 JSON columns)
-- [ ] 0.8: Define `diffs` table schema (2 JSON columns)
-- [ ] 0.9: Define `tasks` table schema (1 JSON column, composite indexes)
-- [ ] 0.10: Create schema index file (`src/storage/drizzle/schema/index.ts`)
+- [x] 0.4: Define `pages` table schema (simplest - no JSON)
+- [x] 0.5: Define `projects` table schema (1 JSON column: config_json)
+- [x] 0.6: Define `runs` table schema (2 JSON columns: config_json, statistics_json)
+- [x] 0.7: Define `snapshots` table schema (4 JSON columns)
+- [x] 0.8: Define `diffs` table schema (2 JSON columns)
+- [x] 0.9: Define `tasks` table schema (1 JSON column, composite indexes)
+- [x] 0.10: Create schema index file (`src/storage/drizzle/schema/index.ts`)
 - [ ] 0.11: Create Drizzle database connection helper (`src/storage/drizzle/db.ts`)
 - [ ] 0.12: Extend test utilities for Drizzle support
 
@@ -28,8 +28,8 @@
 ## Progress
 
 **Last Updated:** 2026-01-08
-**Current Task:** 0.4 - Define pages table schema
-**Completed:** 3/19 tasks
+**Current Task:** 0.11 - Create Drizzle DB helper
+**Completed:** 10/19 tasks
 
 ## Notes
 
