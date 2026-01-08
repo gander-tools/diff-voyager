@@ -12,6 +12,7 @@
 		"test:unit": "vitest",
 		"test:e2e": "playwright test",
 		"test:watch": "vitest",
+		"test:coverage": "vitest run --coverage --passWithNoTests",
 		"type-check": "vue-tsc --build",
 		"lint": "biome check .",
 		"format": "biome format --write ."
@@ -48,6 +49,7 @@
 		"@types/jsdom": "^27.0.0",
 		"@types/node": "^24.10.4",
 		"@vitejs/plugin-vue": "^6.0.3",
+		"@vitest/coverage-v8": "^4.0.0",
 		"@vue/test-utils": "^2.4.6",
 		"@vue/tsconfig": "^0.8.1",
 		"jsdom": "^27.4.0",
