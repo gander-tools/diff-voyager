@@ -60,7 +60,7 @@ export const useUiStore = defineStore('ui', () => {
 
   // Listen for system theme changes when in auto mode
   if (typeof window !== 'undefined' && window.matchMedia) {
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (_e) => {
       if (theme.value === 'auto') {
         applyTheme('auto');
       }

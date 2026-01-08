@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { NBreadcrumb, NBreadcrumbItem } from 'naive-ui';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
@@ -13,7 +12,7 @@ interface BreadcrumbItem {
   path?: string;
 }
 
-const breadcrumbs = computed<BreadcrumbItem[]>(() => {
+const _breadcrumbs = computed<BreadcrumbItem[]>(() => {
   const items: BreadcrumbItem[] = [];
   const pathSegments = route.path.split('/').filter(Boolean);
 
@@ -53,7 +52,7 @@ const breadcrumbs = computed<BreadcrumbItem[]>(() => {
   return items;
 });
 
-function handleClick(path?: string) {
+function _handleClick(path?: string) {
   if (path && path !== route.path) {
     router.push(path);
   }

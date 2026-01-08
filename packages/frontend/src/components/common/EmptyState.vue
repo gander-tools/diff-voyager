@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { NEmpty } from 'naive-ui';
-
 interface Props {
   description?: string;
   size?: 'small' | 'medium' | 'large' | 'huge';

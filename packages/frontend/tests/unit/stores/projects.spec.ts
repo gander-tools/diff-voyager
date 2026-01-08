@@ -71,7 +71,7 @@ describe('Projects Store', () => {
 
   it('should clear current project', () => {
     const store = useProjectsStore();
-    store.currentProject = { id: 'test', name: 'Test' } as any;
+    store.currentProject = { id: 'test', name: 'Test', config: {} } as ProjectEntity;
 
     store.clearCurrentProject();
     expect(store.currentProject).toBeNull();
