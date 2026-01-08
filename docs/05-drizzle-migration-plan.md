@@ -28,8 +28,8 @@
 ## Progress
 
 **Last Updated:** 2026-01-08
-**Current Task:** Phase 2.2 complete! Ready for Phase 2.3 (TaskQueue)
-**Completed:** 22/25 tasks (88% - Phase 0, Phase 1, Phase 2.1, and Phase 2.2 complete!)
+**Current Task:** Phase 2.3 complete! Ready for Phase 2.4 (SnapshotRepository)
+**Completed:** 23/25 tasks (92% - Phase 0, Phase 1, Phase 2.1, Phase 2.2, and Phase 2.3 complete!)
 
 **Phase 1 Summary:**
 ✅ PageRepository fully migrated to Drizzle ORM with:
@@ -60,8 +60,20 @@
 - Comparison tests proving equivalence (15 tests passing)
 - All 31/31 tests passing
 
+**Phase 2.3 Summary:**
+✅ TaskQueue fully migrated to Drizzle ORM with:
+- ITaskQueue interface for dual implementation
+- Comprehensive unit tests (19 tests passing)
+- Full implementation with transaction support for atomic dequeue()
+- Priority-based ordering using CASE statements (high > normal > low)
+- FIFO order within same priority using created_at
+- Stale task requeuing with datetime calculations
+- Aggregate statistics using SUM/CASE queries
+- JSON payload serialization/deserialization
+- All 19/19 tests passing
+
 **Next Steps:** Continue Phase 2:
-TaskQueue → SnapshotRepository → DiffRepository
+SnapshotRepository → DiffRepository
 
 ## Notes
 
