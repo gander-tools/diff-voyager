@@ -8,6 +8,7 @@ import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createApp } from './api/app.js';
 import { createDatabase } from './storage/database.js';
+import { createDrizzleDb } from './storage/drizzle/db.js';
 
 const DEFAULT_PORT = 3000;
 const DEFAULT_DATA_DIR = './data';
@@ -29,8 +30,12 @@ async function main() {
   const db = createDatabase({ dbPath, baseDir: dataDir, artifactsDir });
   console.log('Database initialized');
 
+  // Create Drizzle DB instance for type-safe queries
+  const drizzleDb = createDrizzleDb(db);
+  console.log('Drizzle ORM initialized');
+
   // Create and start app
-  const app = await createApp({ db, artifactsDir });
+  const app = await createApp({ db, drizzleDb, artifactsDir });
 
   await app.listen({ port, host: '0.0.0.0' });
   console.log(`API server running at http://localhost:${port}`);
