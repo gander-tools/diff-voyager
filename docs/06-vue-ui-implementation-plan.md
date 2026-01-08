@@ -13,7 +13,8 @@
 9. [Page Specifications](#9-page-specifications)
 10. [Shared Components](#10-shared-components)
 11. [UI/UX Guidelines](#11-uiux-guidelines)
-12. [Implementation Phases](#12-implementation-phases)
+12. [Testing Strategy (TDD)](#12-testing-strategy-tdd)
+13. [Implementation Phases](#13-implementation-phases)
 
 ---
 
@@ -2095,7 +2096,1059 @@ $breakpoints: (
 
 ---
 
-## 12. Implementation Phases
+## 12. Testing Strategy (TDD)
+
+Development follows Test-Driven Development methodology. Tests are written BEFORE implementation code. The frontend uses Vitest as the primary testing framework (NOT Playwright for unit tests).
+
+### Testing Stack
+
+| Tool | Purpose | Usage |
+|------|---------|-------|
+| **Vitest** | Unit & integration test runner | Primary test framework |
+| **@vue/test-utils** | Vue component testing | Mount, interact, assert |
+| **@testing-library/vue** | DOM-focused testing | User-centric assertions |
+| **happy-dom** | DOM environment | Fast, lightweight JSDOM alternative |
+| **MSW (Mock Service Worker)** | API mocking | Intercept HTTP requests |
+| **@pinia/testing** | Pinia store testing | Mock stores in components |
+| **vitest-snapshot** | Snapshot testing | Component output comparison |
+
+### Package Dependencies (devDependencies)
+
+```json
+{
+  "devDependencies": {
+    "vitest": "^1.6.0",
+    "@vue/test-utils": "^2.4.0",
+    "@testing-library/vue": "^8.0.0",
+    "@testing-library/jest-dom": "^6.4.0",
+    "happy-dom": "^14.0.0",
+    "msw": "^2.3.0",
+    "@pinia/testing": "^0.1.0"
+  }
+}
+```
+
+### Test Configuration
+
+```typescript
+// vitest.config.ts
+import { defineConfig } from 'vitest/config';
+import vue from '@vitejs/plugin-vue';
+import { resolve } from 'path';
+
+export default defineConfig({
+  plugins: [vue()],
+  test: {
+    globals: true,
+    environment: 'happy-dom',
+    setupFiles: ['./tests/setup.ts'],
+    include: ['tests/**/*.test.ts', 'src/**/*.test.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      include: ['src/**/*.{ts,vue}'],
+      exclude: ['src/**/*.d.ts', 'src/main.ts']
+    },
+    snapshotFormat: {
+      escapeString: false,
+      printBasicPrototype: false
+    }
+  },
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, './src')
+    }
+  }
+});
+```
+
+### Test Setup File
+
+```typescript
+// tests/setup.ts
+import { config } from '@vue/test-utils';
+import { createTestingPinia } from '@pinia/testing';
+import { i18n } from '@/i18n';
+import '@testing-library/jest-dom/vitest';
+
+// Global plugins for all tests
+config.global.plugins = [
+  createTestingPinia({ createSpy: vi.fn }),
+  i18n
+];
+
+// Mock window.matchMedia for Naive UI
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn()
+  }))
+});
+
+// Reset mocks between tests
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+```
+
+### Test Directory Structure
+
+```
+packages/frontend/
+├── tests/
+│   ├── setup.ts                    # Global test setup
+│   ├── mocks/
+│   │   ├── handlers.ts             # MSW request handlers
+│   │   ├── server.ts               # MSW server setup
+│   │   └── data/                   # Mock data factories
+│   │       ├── projects.ts
+│   │       ├── runs.ts
+│   │       ├── pages.ts
+│   │       └── diffs.ts
+│   ├── unit/
+│   │   ├── components/
+│   │   │   ├── common/
+│   │   │   │   ├── LoadingSpinner.test.ts
+│   │   │   │   ├── ErrorAlert.test.ts
+│   │   │   │   ├── EmptyState.test.ts
+│   │   │   │   └── Pagination.test.ts
+│   │   │   ├── project/
+│   │   │   │   ├── ProjectCard.test.ts
+│   │   │   │   ├── ProjectForm.test.ts
+│   │   │   │   └── ProjectStatusBadge.test.ts
+│   │   │   ├── run/
+│   │   │   │   ├── RunCard.test.ts
+│   │   │   │   ├── RunProgress.test.ts
+│   │   │   │   └── RunStatistics.test.ts
+│   │   │   ├── diff/
+│   │   │   │   ├── SeoDiffView.test.ts
+│   │   │   │   ├── VisualDiffView.test.ts
+│   │   │   │   ├── PerformanceDiffView.test.ts
+│   │   │   │   └── DiffBadge.test.ts
+│   │   │   └── rules/
+│   │   │       ├── RuleForm.test.ts
+│   │   │       └── RuleConditionBuilder.test.ts
+│   │   ├── stores/
+│   │   │   ├── projects.test.ts
+│   │   │   ├── runs.test.ts
+│   │   │   ├── pages.test.ts
+│   │   │   ├── diffs.test.ts
+│   │   │   ├── rules.test.ts
+│   │   │   └── ui.test.ts
+│   │   ├── composables/
+│   │   │   ├── useApi.test.ts
+│   │   │   ├── useValidation.test.ts
+│   │   │   ├── usePagination.test.ts
+│   │   │   └── useNotification.test.ts
+│   │   └── utils/
+│   │       ├── validators.test.ts
+│   │       └── formatters.test.ts
+│   └── integration/
+│       ├── views/
+│       │   ├── DashboardView.test.ts
+│       │   ├── ProjectListView.test.ts
+│       │   ├── ProjectDetailView.test.ts
+│       │   ├── RunDetailView.test.ts
+│       │   └── PageDetailView.test.ts
+│       └── flows/
+│           ├── create-project.test.ts
+│           ├── create-run.test.ts
+│           └── review-diff.test.ts
+└── src/
+    └── components/
+        └── **/*.vue              # Co-located component tests allowed
+```
+
+### Test Categories
+
+#### 1. Unit Tests - Components
+
+Test individual components in isolation with mocked dependencies.
+
+```typescript
+// tests/unit/components/project/ProjectCard.test.ts
+import { describe, it, expect, vi } from 'vitest';
+import { mount } from '@vue/test-utils';
+import { createTestingPinia } from '@pinia/testing';
+import ProjectCard from '@/components/project/ProjectCard.vue';
+import { RunStatus } from '@diff-voyager/shared';
+
+describe('ProjectCard', () => {
+  const mockProject = {
+    id: '123',
+    name: 'Test Project',
+    baseUrl: 'https://example.com',
+    status: RunStatus.COMPLETED,
+    createdAt: '2024-01-15T10:00:00Z',
+    statistics: {
+      totalPages: 50,
+      totalRuns: 3,
+      criticalDiffs: 2
+    }
+  };
+
+  function createWrapper(props = {}) {
+    return mount(ProjectCard, {
+      props: { project: mockProject, ...props },
+      global: {
+        plugins: [createTestingPinia({ createSpy: vi.fn })]
+      }
+    });
+  }
+
+  it('renders project name', () => {
+    const wrapper = createWrapper();
+    expect(wrapper.text()).toContain('Test Project');
+  });
+
+  it('renders base URL', () => {
+    const wrapper = createWrapper();
+    expect(wrapper.text()).toContain('https://example.com');
+  });
+
+  it('displays correct status badge', () => {
+    const wrapper = createWrapper();
+    const badge = wrapper.findComponent({ name: 'ProjectStatusBadge' });
+    expect(badge.props('status')).toBe(RunStatus.COMPLETED);
+  });
+
+  it('emits click event when clicked', async () => {
+    const wrapper = createWrapper();
+    await wrapper.trigger('click');
+    expect(wrapper.emitted('click')).toBeTruthy();
+    expect(wrapper.emitted('click')![0]).toEqual([mockProject]);
+  });
+
+  it('emits delete event when delete button clicked', async () => {
+    const wrapper = createWrapper();
+    const deleteBtn = wrapper.find('[data-testid="delete-btn"]');
+    await deleteBtn.trigger('click');
+    expect(wrapper.emitted('delete')).toBeTruthy();
+  });
+
+  it('displays statistics correctly', () => {
+    const wrapper = createWrapper();
+    expect(wrapper.text()).toContain('50'); // totalPages
+    expect(wrapper.text()).toContain('3');  // totalRuns
+  });
+
+  it('applies correct CSS class for completed status', () => {
+    const wrapper = createWrapper();
+    expect(wrapper.classes()).toContain('project-card--completed');
+  });
+});
+```
+
+#### 2. Unit Tests - Pinia Stores
+
+Test store actions, getters, and state mutations.
+
+```typescript
+// tests/unit/stores/projects.test.ts
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { setActivePinia, createPinia } from 'pinia';
+import { useProjectsStore } from '@/stores/projects';
+import { api } from '@/api/endpoints';
+
+// Mock API module
+vi.mock('@/api/endpoints', () => ({
+  api: {
+    projects: {
+      list: vi.fn(),
+      get: vi.fn()
+    },
+    scans: {
+      create: vi.fn()
+    }
+  }
+}));
+
+describe('ProjectsStore', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+    vi.clearAllMocks();
+  });
+
+  describe('fetchProjects', () => {
+    it('fetches and stores projects', async () => {
+      const mockProjects = [
+        { id: '1', name: 'Project 1' },
+        { id: '2', name: 'Project 2' }
+      ];
+
+      vi.mocked(api.projects.list).mockResolvedValue({
+        projects: mockProjects,
+        pagination: { total: 2, limit: 50, offset: 0 }
+      });
+
+      const store = useProjectsStore();
+      await store.fetchProjects();
+
+      expect(api.projects.list).toHaveBeenCalledOnce();
+      expect(store.projectList).toHaveLength(2);
+      expect(store.projectList[0].name).toBe('Project 1');
+    });
+
+    it('sets loading state during fetch', async () => {
+      vi.mocked(api.projects.list).mockImplementation(
+        () => new Promise(resolve => setTimeout(resolve, 100))
+      );
+
+      const store = useProjectsStore();
+      const promise = store.fetchProjects();
+
+      expect(store.loading).toBe(true);
+      await promise;
+      expect(store.loading).toBe(false);
+    });
+
+    it('handles fetch errors', async () => {
+      vi.mocked(api.projects.list).mockRejectedValue(
+        new Error('Network error')
+      );
+
+      const store = useProjectsStore();
+      await store.fetchProjects();
+
+      expect(store.error).toBe('Network error');
+      expect(store.loading).toBe(false);
+    });
+  });
+
+  describe('createProject', () => {
+    it('creates project and adds to store', async () => {
+      const newProject = {
+        id: '123',
+        name: 'New Project',
+        baseUrl: 'https://example.com'
+      };
+
+      vi.mocked(api.scans.create).mockResolvedValue({
+        projectId: '123',
+        status: 'PENDING'
+      });
+
+      vi.mocked(api.projects.get).mockResolvedValue(newProject);
+
+      const store = useProjectsStore();
+      const result = await store.createProject({
+        name: 'New Project',
+        url: 'https://example.com'
+      });
+
+      expect(result.id).toBe('123');
+      expect(store.items.has('123')).toBe(true);
+    });
+  });
+
+  describe('getters', () => {
+    it('getById returns correct project', async () => {
+      const store = useProjectsStore();
+      store.items.set('123', { id: '123', name: 'Test' } as any);
+
+      expect(store.getById('123')?.name).toBe('Test');
+      expect(store.getById('999')).toBeUndefined();
+    });
+  });
+});
+```
+
+#### 3. Unit Tests - Composables
+
+Test custom composition functions.
+
+```typescript
+// tests/unit/composables/useValidation.test.ts
+import { describe, it, expect } from 'vitest';
+import { useValidation } from '@/composables/useValidation';
+import { createProjectSchema } from '@/utils/validators';
+
+describe('useValidation', () => {
+  it('validates correct data', () => {
+    const { validate, isValid, errors } = useValidation(createProjectSchema);
+
+    const validData = {
+      name: 'Test Project',
+      url: 'https://example.com',
+      crawl: false,
+      viewport: { width: 1920, height: 1080 }
+    };
+
+    expect(validate(validData)).toBe(true);
+    expect(isValid.value).toBe(true);
+    expect(Object.keys(errors.value)).toHaveLength(0);
+  });
+
+  it('returns errors for invalid data', () => {
+    const { validate, isValid, errors, getError } = useValidation(createProjectSchema);
+
+    const invalidData = {
+      name: '', // Required
+      url: 'not-a-url' // Invalid URL
+    };
+
+    expect(validate(invalidData)).toBe(false);
+    expect(isValid.value).toBe(false);
+    expect(getError('name')).toBeDefined();
+    expect(getError('url')).toBeDefined();
+  });
+
+  it('clears errors on clearErrors call', () => {
+    const { validate, clearErrors, errors } = useValidation(createProjectSchema);
+
+    validate({ name: '', url: '' });
+    expect(Object.keys(errors.value).length).toBeGreaterThan(0);
+
+    clearErrors();
+    expect(Object.keys(errors.value)).toHaveLength(0);
+  });
+});
+```
+
+#### 4. Unit Tests - Utilities
+
+Test pure functions and validators.
+
+```typescript
+// tests/unit/utils/validators.test.ts
+import { describe, it, expect } from 'vitest';
+import {
+  createProjectSchema,
+  createRunSchema,
+  createRuleSchema,
+  urlSchema,
+  viewportSchema
+} from '@/utils/validators';
+
+describe('Validation Schemas', () => {
+  describe('urlSchema', () => {
+    it('accepts valid HTTPS URLs', () => {
+      expect(() => urlSchema.parse('https://example.com')).not.toThrow();
+      expect(() => urlSchema.parse('https://sub.example.com/path')).not.toThrow();
+    });
+
+    it('accepts valid HTTP URLs', () => {
+      expect(() => urlSchema.parse('http://localhost:3000')).not.toThrow();
+    });
+
+    it('rejects invalid URLs', () => {
+      expect(() => urlSchema.parse('not-a-url')).toThrow();
+      expect(() => urlSchema.parse('ftp://example.com')).toThrow();
+      expect(() => urlSchema.parse('')).toThrow();
+    });
+  });
+
+  describe('viewportSchema', () => {
+    it('accepts valid viewport dimensions', () => {
+      const result = viewportSchema.parse({ width: 1920, height: 1080 });
+      expect(result).toEqual({ width: 1920, height: 1080 });
+    });
+
+    it('rejects dimensions below minimum', () => {
+      expect(() => viewportSchema.parse({ width: 100, height: 100 })).toThrow();
+    });
+
+    it('rejects dimensions above maximum', () => {
+      expect(() => viewportSchema.parse({ width: 5000, height: 3000 })).toThrow();
+    });
+  });
+
+  describe('createProjectSchema', () => {
+    const validProject = {
+      name: 'Test Project',
+      url: 'https://example.com',
+      description: 'Test description',
+      crawl: true,
+      viewport: { width: 1920, height: 1080 },
+      collectHar: false,
+      waitAfterLoad: 1000,
+      visualDiffThreshold: 0.01,
+      maxPages: 100
+    };
+
+    it('validates complete project data', () => {
+      const result = createProjectSchema.parse(validProject);
+      expect(result.name).toBe('Test Project');
+    });
+
+    it('applies defaults for optional fields', () => {
+      const minimal = { name: 'Test', url: 'https://example.com' };
+      const result = createProjectSchema.parse(minimal);
+
+      expect(result.crawl).toBe(false);
+      expect(result.collectHar).toBe(false);
+      expect(result.waitAfterLoad).toBe(1000);
+      expect(result.visualDiffThreshold).toBe(0.01);
+    });
+
+    it('rejects empty name', () => {
+      expect(() =>
+        createProjectSchema.parse({ ...validProject, name: '' })
+      ).toThrow();
+    });
+
+    it('rejects name exceeding max length', () => {
+      expect(() =>
+        createProjectSchema.parse({ ...validProject, name: 'a'.repeat(101) })
+      ).toThrow();
+    });
+  });
+});
+```
+
+#### 5. Snapshot Tests - Component Rendering
+
+Compare component output against saved snapshots.
+
+```typescript
+// tests/unit/components/diff/DiffBadge.test.ts
+import { describe, it, expect } from 'vitest';
+import { mount } from '@vue/test-utils';
+import DiffBadge from '@/components/diff/DiffBadge.vue';
+import { DiffSeverity, DiffType } from '@diff-voyager/shared';
+
+describe('DiffBadge Snapshots', () => {
+  it('renders critical severity correctly', () => {
+    const wrapper = mount(DiffBadge, {
+      props: {
+        severity: DiffSeverity.CRITICAL,
+        type: DiffType.SEO
+      }
+    });
+
+    expect(wrapper.html()).toMatchSnapshot();
+  });
+
+  it('renders warning severity correctly', () => {
+    const wrapper = mount(DiffBadge, {
+      props: {
+        severity: DiffSeverity.WARNING,
+        type: DiffType.VISUAL
+      }
+    });
+
+    expect(wrapper.html()).toMatchSnapshot();
+  });
+
+  it('renders info severity correctly', () => {
+    const wrapper = mount(DiffBadge, {
+      props: {
+        severity: DiffSeverity.INFO,
+        type: DiffType.PERFORMANCE
+      }
+    });
+
+    expect(wrapper.html()).toMatchSnapshot();
+  });
+
+  it('renders all diff types', () => {
+    const types = Object.values(DiffType);
+
+    types.forEach(type => {
+      const wrapper = mount(DiffBadge, {
+        props: {
+          severity: DiffSeverity.WARNING,
+          type
+        }
+      });
+
+      expect(wrapper.html()).toMatchSnapshot(`DiffBadge-${type}`);
+    });
+  });
+});
+```
+
+#### 6. Snapshot Tests - Complex Components
+
+```typescript
+// tests/unit/components/diff/SeoDiffView.test.ts
+import { describe, it, expect } from 'vitest';
+import { mount } from '@vue/test-utils';
+import SeoDiffView from '@/components/diff/SeoDiffView.vue';
+import { DiffSeverity } from '@diff-voyager/shared';
+
+describe('SeoDiffView Snapshots', () => {
+  const mockSeoChanges = [
+    {
+      field: 'title',
+      baseline: 'Original Title | Site',
+      current: 'New Title | Site',
+      severity: DiffSeverity.CRITICAL
+    },
+    {
+      field: 'metaDescription',
+      baseline: 'Original description here',
+      current: 'Updated description here',
+      severity: DiffSeverity.WARNING
+    },
+    {
+      field: 'h1',
+      baseline: ['Main Heading'],
+      current: ['Main Heading', 'Secondary Heading'],
+      severity: DiffSeverity.INFO
+    }
+  ];
+
+  it('renders SEO changes list correctly', () => {
+    const wrapper = mount(SeoDiffView, {
+      props: { changes: mockSeoChanges }
+    });
+
+    expect(wrapper.html()).toMatchSnapshot();
+  });
+
+  it('renders empty state when no changes', () => {
+    const wrapper = mount(SeoDiffView, {
+      props: { changes: [] }
+    });
+
+    expect(wrapper.html()).toMatchSnapshot();
+  });
+
+  it('renders single change correctly', () => {
+    const wrapper = mount(SeoDiffView, {
+      props: { changes: [mockSeoChanges[0]] }
+    });
+
+    expect(wrapper.html()).toMatchSnapshot();
+  });
+});
+```
+
+#### 7. Integration Tests - Views with API Mocking
+
+Test complete views with mocked API responses.
+
+```typescript
+// tests/integration/views/ProjectListView.test.ts
+import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest';
+import { mount, flushPromises } from '@vue/test-utils';
+import { createTestingPinia } from '@pinia/testing';
+import { createRouter, createMemoryHistory } from 'vue-router';
+import { setupServer } from 'msw/node';
+import { http, HttpResponse } from 'msw';
+import ProjectListView from '@/views/projects/ProjectListView.vue';
+import { routes } from '@/router/routes';
+
+const server = setupServer(
+  http.get('/api/v1/projects', () => {
+    return HttpResponse.json({
+      projects: [
+        { id: '1', name: 'Project 1', baseUrl: 'https://example1.com', status: 'completed' },
+        { id: '2', name: 'Project 2', baseUrl: 'https://example2.com', status: 'in_progress' }
+      ],
+      pagination: { total: 2, limit: 50, offset: 0 }
+    });
+  })
+);
+
+beforeAll(() => server.listen());
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+
+describe('ProjectListView Integration', () => {
+  function createWrapper() {
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes
+    });
+
+    return mount(ProjectListView, {
+      global: {
+        plugins: [
+          createTestingPinia({ stubActions: false }),
+          router
+        ]
+      }
+    });
+  }
+
+  it('loads and displays projects from API', async () => {
+    const wrapper = createWrapper();
+
+    // Wait for API call and re-render
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('Project 1');
+    expect(wrapper.text()).toContain('Project 2');
+  });
+
+  it('displays loading state initially', () => {
+    const wrapper = createWrapper();
+    expect(wrapper.find('[data-testid="loading"]').exists()).toBe(true);
+  });
+
+  it('navigates to create project on button click', async () => {
+    const wrapper = createWrapper();
+    await flushPromises();
+
+    const createBtn = wrapper.find('[data-testid="create-project-btn"]');
+    await createBtn.trigger('click');
+
+    expect(wrapper.vm.$router.currentRoute.value.path).toBe('/projects/new');
+  });
+
+  it('displays empty state when no projects', async () => {
+    server.use(
+      http.get('/api/v1/projects', () => {
+        return HttpResponse.json({
+          projects: [],
+          pagination: { total: 0, limit: 50, offset: 0 }
+        });
+      })
+    );
+
+    const wrapper = createWrapper();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="empty-state"]').exists()).toBe(true);
+  });
+
+  it('handles API error gracefully', async () => {
+    server.use(
+      http.get('/api/v1/projects', () => {
+        return HttpResponse.error();
+      })
+    );
+
+    const wrapper = createWrapper();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="error-alert"]').exists()).toBe(true);
+  });
+});
+```
+
+#### 8. Integration Tests - User Flows
+
+Test complete user workflows.
+
+```typescript
+// tests/integration/flows/create-project.test.ts
+import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest';
+import { mount, flushPromises } from '@vue/test-utils';
+import { createTestingPinia } from '@pinia/testing';
+import { createRouter, createMemoryHistory } from 'vue-router';
+import { setupServer } from 'msw/node';
+import { http, HttpResponse } from 'msw';
+import App from '@/App.vue';
+import { routes } from '@/router/routes';
+
+const server = setupServer(
+  http.post('/api/v1/scans', async ({ request }) => {
+    const body = await request.json();
+    return HttpResponse.json({
+      projectId: 'new-123',
+      status: 'PENDING',
+      projectUrl: '/api/v1/projects/new-123'
+    }, { status: 202 });
+  }),
+
+  http.get('/api/v1/projects/new-123', () => {
+    return HttpResponse.json({
+      id: 'new-123',
+      name: 'My New Project',
+      baseUrl: 'https://example.com',
+      status: 'completed'
+    });
+  })
+);
+
+beforeAll(() => server.listen());
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+
+describe('Create Project Flow', () => {
+  it('completes full project creation workflow', async () => {
+    const router = createRouter({
+      history: createMemoryHistory('/projects/new'),
+      routes
+    });
+
+    const wrapper = mount(App, {
+      global: {
+        plugins: [
+          createTestingPinia({ stubActions: false }),
+          router
+        ]
+      }
+    });
+
+    await flushPromises();
+
+    // Step 1: Fill basic info
+    const nameInput = wrapper.find('[data-testid="project-name"]');
+    await nameInput.setValue('My New Project');
+
+    const urlInput = wrapper.find('[data-testid="project-url"]');
+    await urlInput.setValue('https://example.com');
+
+    // Go to next step
+    await wrapper.find('[data-testid="next-btn"]').trigger('click');
+    await flushPromises();
+
+    // Step 2: Configure crawl settings
+    expect(wrapper.text()).toContain('Crawl Settings');
+    await wrapper.find('[data-testid="next-btn"]').trigger('click');
+    await flushPromises();
+
+    // Step 3: Submit
+    await wrapper.find('[data-testid="submit-btn"]').trigger('click');
+    await flushPromises();
+
+    // Verify redirect to project detail
+    expect(router.currentRoute.value.path).toBe('/projects/new-123');
+  });
+
+  it('validates form before submission', async () => {
+    const router = createRouter({
+      history: createMemoryHistory('/projects/new'),
+      routes
+    });
+
+    const wrapper = mount(App, {
+      global: {
+        plugins: [
+          createTestingPinia({ stubActions: false }),
+          router
+        ]
+      }
+    });
+
+    await flushPromises();
+
+    // Try to submit without filling required fields
+    await wrapper.find('[data-testid="next-btn"]').trigger('click');
+    await flushPromises();
+
+    // Should show validation errors
+    expect(wrapper.text()).toContain('required');
+
+    // Should still be on step 1
+    expect(wrapper.find('[data-testid="project-name"]').exists()).toBe(true);
+  });
+});
+```
+
+### MSW Mock Handlers
+
+```typescript
+// tests/mocks/handlers.ts
+import { http, HttpResponse } from 'msw';
+
+export const handlers = [
+  // Projects
+  http.get('/api/v1/projects', ({ request }) => {
+    const url = new URL(request.url);
+    const limit = parseInt(url.searchParams.get('limit') || '50');
+    const offset = parseInt(url.searchParams.get('offset') || '0');
+
+    return HttpResponse.json({
+      projects: mockProjects.slice(offset, offset + limit),
+      pagination: {
+        total: mockProjects.length,
+        limit,
+        offset
+      }
+    });
+  }),
+
+  http.get('/api/v1/projects/:projectId', ({ params }) => {
+    const project = mockProjects.find(p => p.id === params.projectId);
+    if (!project) {
+      return HttpResponse.json(
+        { message: 'Project not found' },
+        { status: 404 }
+      );
+    }
+    return HttpResponse.json(project);
+  }),
+
+  http.post('/api/v1/scans', async ({ request }) => {
+    const body = await request.json() as any;
+    return HttpResponse.json({
+      projectId: 'new-' + Date.now(),
+      status: 'PENDING'
+    }, { status: 202 });
+  }),
+
+  // Runs
+  http.get('/api/v1/runs/:runId', ({ params }) => {
+    const run = mockRuns.find(r => r.id === params.runId);
+    if (!run) {
+      return HttpResponse.json(
+        { message: 'Run not found' },
+        { status: 404 }
+      );
+    }
+    return HttpResponse.json(run);
+  }),
+
+  // Pages
+  http.get('/api/v1/pages/:pageId', ({ params }) => {
+    const page = mockPages.find(p => p.id === params.pageId);
+    if (!page) {
+      return HttpResponse.json(
+        { message: 'Page not found' },
+        { status: 404 }
+      );
+    }
+    return HttpResponse.json(page);
+  }),
+
+  http.get('/api/v1/pages/:pageId/diff', ({ params }) => {
+    return HttpResponse.json(mockDiffs[params.pageId as string] || {
+      hasChanges: false,
+      seoChanges: [],
+      headerChanges: [],
+      performanceChanges: []
+    });
+  }),
+
+  // Artifacts (return mock images)
+  http.get('/api/v1/artifacts/:pageId/screenshot', () => {
+    return HttpResponse.arrayBuffer(mockScreenshotBuffer, {
+      headers: { 'Content-Type': 'image/png' }
+    });
+  }),
+
+  // Health
+  http.get('/health', () => {
+    return HttpResponse.json({ status: 'ok' });
+  })
+];
+```
+
+### Mock Data Factories
+
+```typescript
+// tests/mocks/data/projects.ts
+import { RunStatus } from '@diff-voyager/shared';
+
+export function createMockProject(overrides = {}) {
+  return {
+    id: `proj-${Date.now()}`,
+    name: 'Test Project',
+    description: 'Test description',
+    baseUrl: 'https://example.com',
+    status: RunStatus.COMPLETED,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    config: {
+      crawl: false,
+      viewport: { width: 1920, height: 1080 },
+      visualDiffThreshold: 0.01
+    },
+    statistics: {
+      totalPages: 10,
+      completedPages: 10,
+      errorPages: 0
+    },
+    ...overrides
+  };
+}
+
+export const mockProjects = [
+  createMockProject({ id: '1', name: 'Project Alpha' }),
+  createMockProject({ id: '2', name: 'Project Beta', status: RunStatus.IN_PROGRESS }),
+  createMockProject({ id: '3', name: 'Project Gamma' })
+];
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+npm run test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run only unit tests
+npm run test -- tests/unit
+
+# Run only integration tests
+npm run test -- tests/integration
+
+# Update snapshots
+npm run test -- -u
+
+# Run specific test file
+npm run test -- tests/unit/components/project/ProjectCard.test.ts
+```
+
+### NPM Scripts
+
+```json
+{
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration"
+  }
+}
+```
+
+### Test Coverage Requirements
+
+| Category | Minimum Coverage |
+|----------|------------------|
+| Statements | 80% |
+| Branches | 75% |
+| Functions | 80% |
+| Lines | 80% |
+
+### TDD Workflow
+
+1. **RED**: Write failing test for new functionality
+2. **GREEN**: Write minimal code to pass the test
+3. **REFACTOR**: Improve code while keeping tests green
+
+Example TDD cycle for new component:
+
+```typescript
+// Step 1: Write failing test
+describe('NewFeatureComponent', () => {
+  it('displays feature title', () => {
+    const wrapper = mount(NewFeatureComponent, {
+      props: { title: 'My Feature' }
+    });
+    expect(wrapper.text()).toContain('My Feature');
+  });
+});
+
+// Step 2: Run test - FAILS (component doesn't exist)
+
+// Step 3: Create minimal component
+// src/components/NewFeatureComponent.vue
+<template>
+  <div>{{ title }}</div>
+</template>
+<script setup>
+defineProps<{ title: string }>();
+</script>
+
+// Step 4: Run test - PASSES
+
+// Step 5: Add more tests, refactor as needed
+```
+
+---
+
+## 13. Implementation Phases
 
 ### Phase 1: Foundation (Week 1-2)
 
