@@ -1,5 +1,30 @@
 # Diff Voyager - Claude Code Development Guide
 
+## Documentation Index
+
+**Complete Documentation**: See [docs/README.md](docs/README.md) for full documentation index.
+
+### Quick Links
+
+**Getting Started**:
+- [Installation & Setup](docs/guides/getting-started.md)
+- [Development Workflow](docs/guides/development-workflow.md)
+- [Testing Strategy](docs/guides/testing-strategy.md)
+
+**Architecture**:
+- [Architecture Overview](docs/architecture/overview.md)
+- [Domain Model](docs/architecture/domain-model.md)
+- [Technology Stack](docs/architecture/technology-stack.md)
+
+**Development Status**:
+- [Implementation Status](docs/development/implementation-status.md) - Current phase completion and major milestones
+- [Roadmap](docs/development/roadmap.md) - Planned features
+
+**API Reference**:
+- [API Overview](docs/api/overview.md)
+- [Endpoints](docs/api/endpoints.md)
+- [Types](docs/api/types.md)
+
 ## Project Overview
 
 Diff Voyager is a local website version comparison tool designed for solo developers upgrading frameworks and dependencies. It verifies that code changes maintain visual correctness, content integrity, SEO compliance, and performance metrics.
@@ -382,7 +407,9 @@ npm test                 # Validate types
 
 ## Drizzle ORM Usage
 
-Diff Voyager is migrating from raw SQL to Drizzle ORM for improved type safety and developer experience. The migration follows an incremental approach with dual implementations during transition.
+**Status**: ✅ Migration Complete (January 2026)
+
+Diff Voyager has successfully migrated from raw SQL to Drizzle ORM. All repositories now use Drizzle for type-safe database queries with automatic prepared statements.
 
 ### Repository Pattern with Drizzle
 
@@ -513,14 +540,18 @@ const config: ProjectConfig = projects[0].configJson; // Type-safe!
 
 ### Migration Status
 
-- ✅ **PageRepository** - Fully migrated to Drizzle with 100% test coverage
-- ⏳ **ProjectRepository** - Pending
-- ⏳ **RunRepository** - Pending
-- ⏳ **TaskQueue** - Pending
-- ⏳ **SnapshotRepository** - Pending
-- ⏳ **DiffRepository** - Pending
+All repositories have been successfully migrated to Drizzle ORM:
 
-See `/docs/05-drizzle-migration-plan.md` for detailed migration progress.
+- ✅ **PageRepository** - Fully migrated with 13 unit tests
+- ✅ **ProjectRepository** - Fully migrated with 13 unit tests
+- ✅ **RunRepository** - Fully migrated with 16 unit tests
+- ✅ **TaskQueue** - Fully migrated with 19 unit tests
+- ✅ **SnapshotRepository** - Fully migrated with 14 unit tests
+- ✅ **DiffRepository** - Fully migrated with 9 unit tests
+
+**Total**: 25/25 migration tasks complete (100%)
+
+See [docs/guides/drizzle-migration.md](docs/guides/drizzle-migration.md) for detailed migration history and patterns.
 
 ### Benefits
 
