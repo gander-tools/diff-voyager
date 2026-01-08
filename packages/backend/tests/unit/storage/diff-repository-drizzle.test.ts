@@ -275,7 +275,7 @@ describe('DiffRepositoryDrizzle - FINAL MIGRATION!', () => {
     });
 
     it('should properly deserialize JSON columns', async () => {
-      const created = await repo.create({
+      const _created = await repo.create({
         pageId,
         runId: comparisonRunId,
         baselineSnapshotId,
