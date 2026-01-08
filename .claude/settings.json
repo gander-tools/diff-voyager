@@ -8,7 +8,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"$CLAUDE_PROJECT_DIR\" && npx -y @biomejs/biome ci",
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && npx -y @biomejs/biome check --write .",
             "timeout": 120000
           }
         ]
