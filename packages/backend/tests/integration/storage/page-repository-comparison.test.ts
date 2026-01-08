@@ -3,7 +3,6 @@
  * Verify behavioral equivalence between SQL and Drizzle implementations
  */
 
-import Database from 'better-sqlite3';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createDatabase } from '../../../src/storage/database.js';
 import { createDrizzleDb, type DrizzleDb } from '../../../src/storage/drizzle/db.js';

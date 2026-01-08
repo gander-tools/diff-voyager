@@ -6,11 +6,11 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createDatabase } from '../../../src/storage/database.js';
 import { createDrizzleDb, type DrizzleDb } from '../../../src/storage/drizzle/db.js';
-import {
-  DiffRepository,
-  type CreateDiffInput,
-} from '../../../src/storage/repositories/diff-repository.js';
 import { DiffRepositoryDrizzle } from '../../../src/storage/repositories/diff-repository.drizzle.js';
+import {
+  type CreateDiffInput,
+  DiffRepository,
+} from '../../../src/storage/repositories/diff-repository.js';
 import { cleanupTestDb, createTestDb, type TestDatabase } from '../../helpers/test-db.js';
 
 describe('DiffRepository Comparison - SQL vs Drizzle', () => {
