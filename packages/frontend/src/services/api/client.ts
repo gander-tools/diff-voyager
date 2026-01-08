@@ -184,7 +184,7 @@ export const tsRestClient = initClient(apiContract, {
       const response = await fetchWithRetry(path, {
         method,
         headers: headers as Record<string, string>,
-        body: body as any,
+        body: body as Record<string, unknown> | BodyInit | null | undefined,
       });
 
       return {
