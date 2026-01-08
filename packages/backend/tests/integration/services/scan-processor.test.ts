@@ -451,7 +451,7 @@ describe('ScanProcessor', () => {
   });
 
   describe('processScan - error handling', () => {
-    it('should mark project and run as INTERRUPTED on error', async () => {
+    it('should handle page errors gracefully', async () => {
       const project = await projectRepo.create({
         name: 'Test Error Recovery',
         baseUrl: 'https://invalid-domain-that-does-not-exist-12345.com',
@@ -482,25 +482,30 @@ describe('ScanProcessor', () => {
         snapshotRepo,
       });
 
-      // Should throw error but update status
-      await expect(
-        processor.processScan({
-          projectId: project.id,
-          runId: run.id,
-          url: 'https://invalid-domain-that-does-not-exist-12345.com',
-          crawl: false,
-          viewport: { width: 1920, height: 1080 },
-          waitAfterLoad: 100,
-          collectHar: false,
-        }),
-      ).rejects.toThrow();
+      // Should complete successfully even with page error
+      const result = await processor.processScan({
+        projectId: project.id,
+        runId: run.id,
+        url: 'https://invalid-domain-that-does-not-exist-12345.com',
+        crawl: false,
+        viewport: { width: 1920, height: 1080 },
+        waitAfterLoad: 100,
+        collectHar: false,
+      });
 
-      // Verify status was updated to INTERRUPTED
+      // Verify scan completed successfully
+      expect(result.status).toBe(RunStatus.COMPLETED);
+      expect(result.pages).toHaveLength(1);
+      expect(result.pages[0].status).toBe(PageStatus.ERROR);
+      expect(result.statistics.errorPages).toBe(1);
+      expect(result.statistics.completedPages).toBe(0);
+
+      // Verify project and run status were updated to COMPLETED
       const updatedProject = await projectRepo.findById(project.id);
       const updatedRun = await runRepo.findById(run.id);
 
-      expect(updatedProject?.status).toBe(RunStatus.INTERRUPTED);
-      expect(updatedRun?.status).toBe(RunStatus.INTERRUPTED);
+      expect(updatedProject?.status).toBe(RunStatus.COMPLETED);
+      expect(updatedRun?.status).toBe(RunStatus.COMPLETED);
     });
   });
 
