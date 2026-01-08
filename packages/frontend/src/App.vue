@@ -1,6 +1,5 @@
 <script setup lang="ts">
 // Naive UI theme configuration
-// biome-ignore lint/correctness/noUnusedVariables: used in template
 const themeOverrides = {
   common: {
     primaryColor: '#18a058',
