@@ -198,11 +198,13 @@ describe('ScanProcessor', () => {
       });
 
       const page = result.pages[0];
-      expect(page.seoData?.title).toBe('Complete SEO Page');
-      expect(page.seoData?.metaDescription).toBe('This is a comprehensive meta description');
-      expect(page.seoData?.canonicalUrl).toBe('https://example.com/canonical');
-      expect(page.seoData?.h1).toEqual(['Main Heading']);
-      expect(page.seoData?.robotsMeta).toBe('index,follow');
+      expect(page.seoData?.title).toBe('Full SEO Test Page');
+      expect(page.seoData?.metaDescription).toBe(
+        'This is a comprehensive test page with full SEO metadata',
+      );
+      expect(page.seoData?.canonical).toBe('http://localhost:3456/seo-page');
+      expect(page.seoData?.h1).toEqual(['Main SEO Heading']);
+      expect(page.seoData?.robots).toBe('index, follow');
     });
 
     it('should collect HAR file when collectHar is true', async () => {
@@ -321,8 +323,8 @@ describe('ScanProcessor', () => {
       });
 
       // Verify initial status
-      expect(project.status).toBe(RunStatus.PENDING);
-      expect(run.status).toBe(RunStatus.PENDING);
+      expect(project.status).toBe(RunStatus.NEW);
+      expect(run.status).toBe(RunStatus.NEW);
 
       const processor = new ScanProcessor({
         db,

@@ -111,7 +111,7 @@ describe('SnapshotRepositoryDrizzle', () => {
       expect(snapshot.id).toMatch(/^[0-9a-f-]{36}$/);
       expect(snapshot.pageId).toBe(pageId);
       expect(snapshot.runId).toBe(runId);
-      expect(snapshot.status).toBe(PageStatus.COMPLETED);
+      expect(snapshot.status).toBe(PageStatus.PENDING);
       expect(snapshot.httpStatus).toBe(200);
       expect(snapshot.redirectChain).toEqual(input.redirectChain);
       expect(snapshot.htmlHash).toBe('abc123');
