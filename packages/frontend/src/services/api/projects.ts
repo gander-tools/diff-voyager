@@ -1,9 +1,5 @@
-import type {
-  CreateScanAsyncResponse,
-  CreateScanRequest,
-  ProjectDetailsResponse,
-} from '@gander-tools/diff-voyager-shared';
-import { get, post } from './client';
+import type { CreateScanRequest, ProjectDetailsResponse } from '@gander-tools/diff-voyager-shared';
+import { tsRestClient } from './client';
 
 /**
  * Query parameters for listing projects
@@ -25,40 +21,69 @@ export interface GetProjectQuery {
 /**
  * Create a new scan (project)
  * POST /scans
+ *
+ * Uses @ts-rest client for type-safe API calls
  */
-export function createScan(request: CreateScanRequest): Promise<CreateScanAsyncResponse> {
-  return post<CreateScanAsyncResponse>('/scans', request);
+export async function createScan(request: CreateScanRequest) {
+  const result = await tsRestClient.createScan({ body: request });
+
+  if (result.status === 200) {
+    return result.body;
+  }
+
+  if (result.status === 202) {
+    return result.body;
+  }
+
+  const errorBody = result.body as { message?: string };
+  throw new Error(errorBody.message || 'Failed to create scan');
 }
 
 /**
  * List all projects
  * GET /projects
+ *
+ * Uses @ts-rest client for type-safe API calls
  */
-export function listProjects(query?: ListProjectsQuery): Promise<ProjectDetailsResponse[]> {
-  const params = new URLSearchParams();
-  if (query?.limit) params.append('limit', query.limit.toString());
-  if (query?.offset) params.append('offset', query.offset.toString());
+export async function listProjects(query?: ListProjectsQuery) {
+  const result = await tsRestClient.listProjects({
+    query: {
+      limit: query?.limit,
+      offset: query?.offset,
+    },
+  });
 
-  const queryString = params.toString();
-  return get<ProjectDetailsResponse[]>(`/projects${queryString ? `?${queryString}` : ''}`);
+  if (result.status === 200) {
+    return result.body.projects;
+  }
+
+  const errorBody = result.body as { message?: string };
+  throw new Error(errorBody.message || 'Failed to list projects');
 }
 
 /**
  * Get project details by ID
  * GET /projects/:projectId
+ *
+ * Uses @ts-rest client for type-safe API calls
  */
-export function getProject(
+export async function getProject(
   projectId: string,
   query?: GetProjectQuery,
 ): Promise<ProjectDetailsResponse> {
-  const params = new URLSearchParams();
-  if (query?.includePages !== undefined)
-    params.append('includePages', query.includePages.toString());
-  if (query?.pageLimit) params.append('pageLimit', query.pageLimit.toString());
-  if (query?.pageOffset) params.append('pageOffset', query.pageOffset.toString());
+  const result = await tsRestClient.getProject({
+    params: { projectId },
+    query: {
+      includePages: query?.includePages,
+      pageLimit: query?.pageLimit,
+      pageOffset: query?.pageOffset,
+    },
+  });
 
-  const queryString = params.toString();
-  return get<ProjectDetailsResponse>(
-    `/projects/${projectId}${queryString ? `?${queryString}` : ''}`,
-  );
+  if (result.status === 200) {
+    return result.body as unknown as ProjectDetailsResponse;
+  }
+
+  const errorBody = result.body as { message?: string };
+  throw new Error(errorBody.message || 'Failed to get project');
 }

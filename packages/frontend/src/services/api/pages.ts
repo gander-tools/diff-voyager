@@ -1,5 +1,5 @@
 import type { PerformanceData, SeoData } from '@gander-tools/diff-voyager-shared';
-import { get } from './client';
+import { get, tsRestClient } from './client';
 
 /**
  * Page details response
@@ -83,14 +83,27 @@ export interface PageDiffResponse {
 /**
  * Get page details by ID
  * GET /pages/:pageId
+ *
+ * Uses @ts-rest client for type-safe API calls
  */
-export function getPage(pageId: string): Promise<PageDetailsResponse> {
-  return get<PageDetailsResponse>(`/pages/${pageId}`);
+export async function getPage(pageId: string): Promise<PageDetailsResponse> {
+  const result = await tsRestClient.getPageDetails({
+    params: { pageId },
+  });
+
+  if (result.status === 200) {
+    return result.body as PageDetailsResponse;
+  }
+
+  const errorBody = result.body as { message?: string };
+  throw new Error(errorBody.message || 'Failed to get page');
 }
 
 /**
  * Get page diff details
  * GET /pages/:pageId/diff
+ *
+ * NOTE: This endpoint is not yet in @ts-rest contract, using legacy client
  */
 export function getPageDiff(pageId: string): Promise<PageDiffResponse> {
   return get<PageDiffResponse>(`/pages/${pageId}/diff`);
