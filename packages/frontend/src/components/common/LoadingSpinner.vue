@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// biome-ignore lint/correctness/noUnusedImports: used in template
 import { NSpin } from 'naive-ui';
 
 interface Props {

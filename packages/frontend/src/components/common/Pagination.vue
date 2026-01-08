@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// biome-ignore lint/correctness/noUnusedImports: used in template
 import { NPagination } from 'naive-ui';
 import { computed } from 'vue';
 
@@ -20,12 +21,15 @@ const emit = defineEmits<{
   'update:pageSize': [value: number];
 }>();
 
+// biome-ignore lint/correctness/noUnusedVariables: used in template
 const pageCount = computed(() => Math.ceil(props.total / props.pageSize));
 
+// biome-ignore lint/correctness/noUnusedVariables: used in template
 function handlePageChange(page: number) {
   emit('update:page', page);
 }
 
+// biome-ignore lint/correctness/noUnusedVariables: used in template
 function handlePageSizeChange(pageSize: number) {
   emit('update:pageSize', pageSize);
   // Reset to page 1 when changing page size

@@ -1,6 +1,8 @@
 <script setup lang="ts">
+// biome-ignore lint/correctness/noUnusedImports: icons used in render functions
 import { Dashboard, Filter, Folder, PlaylistAdd, Settings } from '@vicons/tabler';
 import type { MenuOption } from 'naive-ui';
+// biome-ignore lint/correctness/noUnusedImports: used in template
 import { NIcon, NLayoutSider, NMenu } from 'naive-ui';
 import { computed, h } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -10,8 +12,10 @@ import { useUiStore } from '@/stores/ui';
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
+// biome-ignore lint/correctness/noUnusedVariables: used in template
 const uiStore = useUiStore();
 
+// biome-ignore lint/correctness/noUnusedVariables: used in template
 const menuOptions = computed<MenuOption[]>(() => [
   {
     label: t('nav.dashboard'),
@@ -40,6 +44,7 @@ const menuOptions = computed<MenuOption[]>(() => [
   },
 ]);
 
+// biome-ignore lint/correctness/noUnusedVariables: used in template
 const activeKey = computed(() => {
   // Match the current route path to menu key
   const path = route.path;
@@ -56,6 +61,7 @@ const activeKey = computed(() => {
   return '/';
 });
 
+// biome-ignore lint/correctness/noUnusedVariables: used in template
 function handleMenuSelect(key: string) {
   router.push(key);
 }
