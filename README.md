@@ -22,7 +22,7 @@ Diff Voyager is a monorepo with three packages:
 ```
 packages/
 ├── backend/   # Node.js crawler and API (Crawlee + Playwright)
-├── frontend/  # Vue 3 UI (built with bun) - Planned
+├── frontend/  # Vue 3 UI (Vite + Naive UI) - Phase 1 Complete
 └── shared/    # Shared TypeScript types
 ```
 
@@ -38,10 +38,13 @@ See [Architecture Overview](docs/architecture/overview.md) for detailed design.
 - **Testing**: Vitest
 - **Diff Engine**: Pixelmatch
 
-**Frontend** (Planned):
+**Frontend** (Phase 1 Complete):
 - **Framework**: Vue 3, TypeScript
+- **UI Library**: Naive UI
 - **State**: Pinia
-- **Build**: Vite, Bun
+- **Routing**: Vue Router
+- **i18n**: vue-i18n (EN + PL)
+- **Build**: Vite
 
 See [Technology Stack](docs/architecture/technology-stack.md) for detailed information.
 
@@ -63,13 +66,29 @@ npx playwright install
 # Run backend API
 npm run dev:backend
 
-# Create first scan (in another terminal)
+# In another terminal, run frontend UI
+cd packages/frontend
+npm run dev
+```
+
+**Access the Application**:
+- **Frontend UI**: http://localhost:5173
+- **Backend API**: http://localhost:3000
+- **API Documentation**: http://localhost:3000/docs (Swagger UI)
+
+**Current Frontend Status** (Phase 1 Complete):
+- ✅ Responsive layout with theme switching (light/dark/auto)
+- ✅ Language switching (English/Polish)
+- ✅ Navigation menu with 11 routes
+- ⏳ Views showing placeholders (Phase 2: Project management coming next)
+
+**Try the API**:
+```bash
+# Create first scan
 curl -X POST http://localhost:3000/api/v1/scans \
   -H "Content-Type: application/json" \
   -d '{"url": "https://example.com", "sync": true}' | jq
 ```
-
-**API Documentation**: Visit `http://localhost:3000/docs` for interactive Swagger UI.
 
 See **[Getting Started Guide](docs/guides/getting-started.md)** for detailed installation, configuration, and usage instructions.
 
@@ -99,6 +118,7 @@ See **[Getting Started Guide](docs/guides/getting-started.md)** for detailed ins
 - **[Comparators](docs/features/README.md#comparators)** - SEO, visual, header, and performance comparison
 - **[Task Queue](docs/features/README.md#task-queue)** - Asynchronous task processing
 - **[Frontend Plan](docs/features/frontend-plan.md)** - Vue 3 UI implementation plan
+- **[Frontend Status](docs/features/frontend-status.md)** - Current UI implementation status and what's visible
 
 ### Additional Resources
 - **[CLAUDE.md](CLAUDE.md)** - AI-assisted development guide
