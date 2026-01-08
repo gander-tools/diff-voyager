@@ -5,6 +5,7 @@
 import { randomUUID } from 'node:crypto';
 import { mkdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
+import { PageStatus } from '@gander-tools/diff-voyager-shared';
 import type { FastifyInstance } from 'fastify';
 import * as tmp from 'tmp';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -320,7 +321,7 @@ describe('GET /api/v1/pages/:pageId', () => {
       originalUrl: 'https://example.com/artifacts',
     });
 
-    await snapshotRepo.create({
+    const snapshot = await snapshotRepo.create({
       runId: run.id,
       pageId: page.id,
       isBaseline: true,
@@ -332,6 +333,14 @@ describe('GET /api/v1/pages/:pageId', () => {
       hasScreenshot: true,
       hasHar: true,
       hasDiff: false,
+    });
+
+    // Update snapshot with artifact paths
+    await snapshotRepo.update(snapshot.id, {
+      status: PageStatus.COMPLETED,
+      screenshotPath: 'screenshot.png',
+      harPath: 'page.har',
+      htmlPath: 'page.html',
     });
 
     const response = await app.inject({
