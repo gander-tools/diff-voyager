@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { NCard } from 'naive-ui';
 import { useI18n } from 'vue-i18n';
 
 // biome-ignore lint/correctness/noUnusedVariables: used in template

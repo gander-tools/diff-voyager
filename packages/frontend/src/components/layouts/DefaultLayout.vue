@@ -1,5 +1,8 @@
 <script setup lang="ts">
-
+import { NLayout, NLayoutContent } from 'naive-ui';
+import AppBreadcrumb from './AppBreadcrumb.vue';
+import AppHeader from './AppHeader.vue';
+import AppSidebar from './AppSidebar.vue';
 </script>
 
 <template>

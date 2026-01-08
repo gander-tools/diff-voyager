@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { NConfigProvider, NDialogProvider, NMessageProvider } from 'naive-ui';
+import { RouterView } from 'vue-router';
+import DefaultLayout from './components/layouts/DefaultLayout.vue';
+
 // Naive UI theme configuration
 // biome-ignore lint/correctness/noUnusedVariables: used in template
 const themeOverrides = {
