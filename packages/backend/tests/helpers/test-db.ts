@@ -5,7 +5,7 @@
 
 import { randomUUID } from 'node:crypto';
 import { existsSync, unlinkSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import * as tmp from 'tmp';
 import { join } from 'node:path';
 import Database from 'better-sqlite3';
 import { createDrizzleDb, type DrizzleDb } from '../../src/storage/drizzle/db.js';

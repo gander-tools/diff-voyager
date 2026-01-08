@@ -5,7 +5,7 @@
 
 import { randomUUID } from 'node:crypto';
 import { mkdir, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import * as tmp from 'tmp';
 import { join } from 'node:path';
 import { PageStatus, RunStatus } from '@gander-tools/diff-voyager-shared';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -35,8 +35,7 @@ describe('ScanProcessor', () => {
 
   beforeAll(async () => {
     // Setup test directory
-    testDir = join(tmpdir(), `scan-processor-test-${randomUUID()}`);
-    await mkdir(testDir, { recursive: true });
+    testDir = tmp.dirSync({ unsafeCleanup: true, prefix: 'diff-voyager-test-' }).name;
 
     const dbPath = join(testDir, 'test.db');
     artifactsDir = join(testDir, 'artifacts');

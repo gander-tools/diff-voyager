@@ -5,7 +5,7 @@
 
 import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import * as tmp from 'tmp';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { PageCapturer } from '../../../src/crawler/page-capturer.js';
