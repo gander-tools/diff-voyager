@@ -1,9 +1,0 @@
-{
-  "id": "3AivZWRL4DzPLuX",
-  "json": "{\"id\":\"3AivZWRL4DzPLuX\",\"url\":\"http://127.0.0.1:38229/page-3\",\"loadedUrl\":\"http://127.0.0.1:38229/page-3\",\"uniqueKey\":\"http://127.0.0.1:38229/page-3\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"__crawlee\":{\"crawlDepth\":1,\"enqueueStrategy\":\"same-domain\",\"state\":4}},\"handledAt\":\"2026-01-07T21:27:51.185Z\"}",
-  "method": "GET",
-  "orderNo": null,
-  "retryCount": 0,
-  "uniqueKey": "http://127.0.0.1:38229/page-3",
-  "url": "http://127.0.0.1:38229/page-3"
-}
