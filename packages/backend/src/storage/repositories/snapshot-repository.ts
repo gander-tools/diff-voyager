@@ -11,17 +11,17 @@ export interface CreateSnapshotInput {
   id?: string;
   pageId: string;
   runId: string;
-  isBaseline: boolean;
+  isBaseline?: boolean;
   capturedAt?: Date;
-  httpStatus: number;
+  httpStatus?: number;
   redirectChain?: Array<{ url: string; status: number }>;
-  htmlHash: string;
-  headers: Record<string, string>;
-  seo: SeoData;
+  htmlHash?: string;
+  headers?: Record<string, string>;
+  seo?: SeoData;
   performanceData?: PerformanceData;
-  hasScreenshot: boolean;
-  hasHar: boolean;
-  hasDiff: boolean;
+  hasScreenshot?: boolean;
+  hasHar?: boolean;
+  hasDiff?: boolean;
 }
 
 export interface UpdateSnapshotInput {
@@ -81,12 +81,12 @@ export class SnapshotRepository {
       id,
       input.pageId,
       input.runId,
-      PageStatus.COMPLETED,
-      input.httpStatus,
+      PageStatus.PENDING,
+      input.httpStatus || null,
       input.redirectChain ? JSON.stringify(input.redirectChain) : null,
-      input.htmlHash,
-      JSON.stringify(input.headers),
-      JSON.stringify(input.seo),
+      input.htmlHash || null,
+      input.headers ? JSON.stringify(input.headers) : null,
+      input.seo ? JSON.stringify(input.seo) : null,
       input.performanceData ? JSON.stringify(input.performanceData) : null,
       input.hasScreenshot ? 'screenshot.png' : null,
       input.hasHar ? 'performance.har' : null,
@@ -99,7 +99,7 @@ export class SnapshotRepository {
       id,
       pageId: input.pageId,
       runId: input.runId,
-      status: PageStatus.COMPLETED,
+      status: PageStatus.PENDING,
       httpStatus: input.httpStatus,
       redirectChain: input.redirectChain,
       htmlHash: input.htmlHash,
