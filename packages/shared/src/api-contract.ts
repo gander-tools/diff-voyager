@@ -53,19 +53,19 @@ const createScanBodySchema = z.object({
 });
 
 const getProjectQuerySchema = z.object({
-  includePages: z.boolean().optional(),
-  pageLimit: z.number().int().min(1).optional(),
-  pageOffset: z.number().int().min(0).optional(),
+  includePages: z.coerce.boolean().optional(),
+  pageLimit: z.coerce.number().int().min(1).optional(),
+  pageOffset: z.coerce.number().int().min(0).optional(),
 });
 
 const listProjectsQuerySchema = z.object({
-  limit: z.number().int().min(1).max(100).optional(),
-  offset: z.number().int().min(0).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
 });
 
 const listRunsQuerySchema = z.object({
-  limit: z.number().int().min(1).max(100).optional(),
-  offset: z.number().int().min(0).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
 });
 
 const createRunBodySchema = z.object({
