@@ -211,6 +211,72 @@ describe('PageCapturer', () => {
     });
   });
 
+  describe('capture - HAR collection', () => {
+    it('should collect HAR file when collectHar is true', async () => {
+      const pageId = randomUUID();
+      const result = await pageCapturer.capture({
+        url: `${baseUrl}/simple`,
+        pageId,
+        viewport: { width: 1920, height: 1080 },
+        waitAfterLoad: 0,
+        collectHar: true,
+      });
+
+      expect(result.harPath).toBe('page.har');
+
+      // Verify HAR file exists
+      const harPath = `${testArtifactsDir}/${pageId}/page.har`;
+      const harContent = await readFile(harPath, 'utf-8');
+      expect(harContent).toBeDefined();
+
+      // Verify HAR file has valid JSON structure
+      const har = JSON.parse(harContent);
+      expect(har.log).toBeDefined();
+      expect(har.log.version).toBeDefined();
+      expect(har.log.creator).toBeDefined();
+      expect(har.log.entries).toBeDefined();
+      expect(Array.isArray(har.log.entries)).toBe(true);
+    });
+
+    it('should not collect HAR file when collectHar is false', async () => {
+      const pageId = randomUUID();
+      const result = await pageCapturer.capture({
+        url: `${baseUrl}/simple`,
+        pageId,
+        viewport: { width: 1920, height: 1080 },
+        waitAfterLoad: 0,
+        collectHar: false,
+      });
+
+      expect(result.harPath).toBeUndefined();
+
+      // Verify HAR file doesn't exist
+      const harPath = `${testArtifactsDir}/${pageId}/page.har`;
+      await expect(readFile(harPath, 'utf-8')).rejects.toThrow();
+    });
+
+    it('should collect HAR file for pages with multiple resources', async () => {
+      const pageId = randomUUID();
+      const result = await pageCapturer.capture({
+        url: `${baseUrl}/full-seo`,
+        pageId,
+        viewport: { width: 1920, height: 1080 },
+        waitAfterLoad: 0,
+        collectHar: true,
+      });
+
+      expect(result.harPath).toBe('page.har');
+
+      // Verify HAR file contains entries
+      const harPath = `${testArtifactsDir}/${pageId}/page.har`;
+      const harContent = await readFile(harPath, 'utf-8');
+      const har = JSON.parse(harContent);
+
+      // Should have at least the main page request
+      expect(har.log.entries.length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
   describe('capture - SEO data extraction', () => {
     it('should extract title from HTML', async () => {
       const result = await pageCapturer.capture({
