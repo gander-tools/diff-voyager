@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.7](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.6...diff-voyager-frontend-v0.1.7) (2026-01-08)
+
+
+### Bug Fixes
+
+* **frontend:** add biome-ignore comments for Vue template usage ([ad61c56](https://github.com/gander-tools/diff-voyager/commit/ad61c5667bf0cace429115093d99f02a616ce4d1))
+* **frontend:** add missing Vue 3 component imports ([2210817](https://github.com/gander-tools/diff-voyager/commit/2210817d78780004d6828b98d88cafd5af5a8ffb))
+* **frontend:** add Naive UI imports to common components ([b35a25c](https://github.com/gander-tools/diff-voyager/commit/b35a25c3c04c392e28768661ad814f863f83ea24))
+* **frontend:** install missing @vicons/tabler dependency ([6780008](https://github.com/gander-tools/diff-voyager/commit/67800089de10b9290ba04ca8f652c1388676eadc))
+
 ## [0.1.6](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.5...diff-voyager-frontend-v0.1.6) (2026-01-08)
 
 
