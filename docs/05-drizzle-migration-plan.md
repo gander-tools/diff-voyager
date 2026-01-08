@@ -12,8 +12,8 @@
 - [x] 0.8: Define `diffs` table schema (2 JSON columns)
 - [x] 0.9: Define `tasks` table schema (1 JSON column, composite indexes)
 - [x] 0.10: Create schema index file (`src/storage/drizzle/schema/index.ts`)
-- [ ] 0.11: Create Drizzle database connection helper (`src/storage/drizzle/db.ts`)
-- [ ] 0.12: Extend test utilities for Drizzle support
+- [x] 0.11: Create Drizzle database connection helper (`src/storage/drizzle/db.ts`)
+- [x] 0.12: Extend test utilities for Drizzle support
 
 ## Phase 1: PageRepository Migration (TDD)
 
@@ -28,8 +28,8 @@
 ## Progress
 
 **Last Updated:** 2026-01-08
-**Current Task:** 0.11 - Create Drizzle DB helper
-**Completed:** 10/19 tasks
+**Current Task:** 1.1 - Extract IPageRepository interface
+**Completed:** 12/19 tasks (Phase 0 complete)
 
 ## Notes
 
