@@ -13,18 +13,18 @@ import type { Database } from 'better-sqlite3';
 import { CheerioCrawler } from 'crawlee';
 import { PageCapturer } from '../crawler/page-capturer.js';
 import * as UrlNormalizer from '../domain/url-normalizer.js';
-import type { PageRepository } from '../storage/repositories/page-repository.js';
-import type { ProjectRepository } from '../storage/repositories/project-repository.js';
-import type { RunRepository } from '../storage/repositories/run-repository.js';
-import type { SnapshotRepository } from '../storage/repositories/snapshot-repository.js';
+import type { IPageRepository } from '../storage/repositories/interfaces/page-repository.interface.js';
+import type { IProjectRepository } from '../storage/repositories/interfaces/project-repository.interface.js';
+import type { IRunRepository } from '../storage/repositories/interfaces/run-repository.interface.js';
+import type { ISnapshotRepository } from '../storage/repositories/interfaces/snapshot-repository.interface.js';
 
 export interface ScanProcessorConfig {
   db: Database;
   artifactsDir: string;
-  projectRepo: ProjectRepository;
-  runRepo: RunRepository;
-  pageRepo: PageRepository;
-  snapshotRepo: SnapshotRepository;
+  projectRepo: IProjectRepository;
+  runRepo: IRunRepository;
+  pageRepo: IPageRepository;
+  snapshotRepo: ISnapshotRepository;
 }
 
 export interface ProcessScanInput {
