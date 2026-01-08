@@ -380,6 +380,156 @@ npm run build            # Build types
 npm test                 # Validate types
 ```
 
+## Drizzle ORM Usage
+
+Diff Voyager is migrating from raw SQL to Drizzle ORM for improved type safety and developer experience. The migration follows an incremental approach with dual implementations during transition.
+
+### Repository Pattern with Drizzle
+
+Repositories use Drizzle ORM for type-safe database queries with automatic prepared statements:
+
+```typescript
+import { eq, and } from 'drizzle-orm';
+import { pages } from '../drizzle/schema/index.js';
+import type { DrizzleDb } from '../drizzle/db.js';
+
+export class PageRepositoryDrizzle implements IPageRepository {
+  constructor(private db: DrizzleDb) {}
+
+  // Type-safe SELECT with WHERE clause
+  async findById(id: string): Promise<PageEntity | null> {
+    const rows = await this.db
+      .select()
+      .from(pages)
+      .where(eq(pages.id, id));
+
+    if (rows.length === 0) return null;
+    return this.rowToEntity(rows[0]);
+  }
+
+  // Type-safe INSERT
+  async create(input: CreatePageInput): Promise<PageEntity> {
+    const id = randomUUID();
+    const now = new Date().toISOString();
+
+    await this.db.insert(pages).values({
+      id,
+      projectId: input.projectId,
+      normalizedUrl: input.normalizedUrl,
+      originalUrl: input.originalUrl,
+      createdAt: now,
+    });
+
+    return {
+      id,
+      projectId: input.projectId,
+      normalizedUrl: input.normalizedUrl,
+      originalUrl: input.originalUrl,
+      createdAt: new Date(now),
+    };
+  }
+
+  // Multiple WHERE conditions with and()
+  async findByNormalizedUrl(projectId: string, normalizedUrl: string): Promise<PageEntity | null> {
+    const rows = await this.db
+      .select()
+      .from(pages)
+      .where(and(
+        eq(pages.projectId, projectId),
+        eq(pages.normalizedUrl, normalizedUrl)
+      ));
+
+    if (rows.length === 0) return null;
+    return this.rowToEntity(rows[0]);
+  }
+
+  private rowToEntity(row: typeof pages.$inferSelect): PageEntity {
+    return {
+      id: row.id,
+      projectId: row.projectId,
+      normalizedUrl: row.normalizedUrl,
+      originalUrl: row.originalUrl,
+      createdAt: new Date(row.createdAt),
+    };
+  }
+}
+```
+
+### Schema Definition
+
+Schemas are defined in TypeScript with automatic type inference:
+
+```typescript
+import { sqliteTable, text, index, unique } from 'drizzle-orm/sqlite-core';
+import { projects } from './projects.js';
+
+export const pages = sqliteTable(
+  'pages',
+  {
+    id: text('id').primaryKey(),
+    projectId: text('project_id')
+      .notNull()
+      .references(() => projects.id, { onDelete: 'cascade' }),
+    normalizedUrl: text('normalized_url').notNull(),
+    originalUrl: text('original_url').notNull(),
+    createdAt: text('created_at')
+      .notNull()
+      .$defaultFn(() => new Date().toISOString()),
+  },
+  (table) => ({
+    projectIdIdx: index('idx_pages_project_id').on(table.projectId),
+    projectUrlUnique: unique().on(table.projectId, table.normalizedUrl),
+  }),
+);
+
+// Type inference for SELECT operations
+export type Page = typeof pages.$inferSelect;
+
+// Type inference for INSERT operations
+export type InsertPage = typeof pages.$inferInsert;
+```
+
+### JSON Columns
+
+JSON columns have type-safe access with TypeScript inference:
+
+```typescript
+// Schema definition with typed JSON column
+import { sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import type { ProjectConfig } from '../repositories/project-repository.js';
+
+export const projects = sqliteTable('projects', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  configJson: text('config_json')
+    .notNull()
+    .$type<ProjectConfig>(),
+});
+
+// Usage in repository
+const projects = await this.db.select().from(projects);
+const config: ProjectConfig = projects[0].configJson; // Type-safe!
+```
+
+### Migration Status
+
+- ✅ **PageRepository** - Fully migrated to Drizzle with 100% test coverage
+- ⏳ **ProjectRepository** - Pending
+- ⏳ **RunRepository** - Pending
+- ⏳ **TaskQueue** - Pending
+- ⏳ **SnapshotRepository** - Pending
+- ⏳ **DiffRepository** - Pending
+
+See `/docs/05-drizzle-migration-plan.md` for detailed migration progress.
+
+### Benefits
+
+- **Type Safety**: Compile-time type checking prevents SQL errors
+- **Security**: Automatic prepared statements eliminate SQL injection risks
+- **Developer Experience**: IDE autocomplete for queries and schema
+- **Zero Runtime Overhead**: Thin abstraction over SQL with no performance penalty
+- **JSON Support**: First-class support for JSON columns with type inference
+
 ## Testing Strategy
 
 ### Backend Tests
