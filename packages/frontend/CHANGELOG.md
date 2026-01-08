@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.3](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.2...diff-voyager-frontend-v0.1.3) (2026-01-08)
+
+
+### Features
+
+* **frontend:** add TypeScript and build configuration ([5472180](https://github.com/gander-tools/diff-voyager/commit/547218057abb557cf8c8c76e6cf69d95956ca148))
+* **frontend:** add Vue 3 dependencies and build scripts ([b4b7d6b](https://github.com/gander-tools/diff-voyager/commit/b4b7d6b614ac00d48fbf3f7998c85b3f6f3a897d))
+* **frontend:** implement Vue 3 application skeleton ([f8de748](https://github.com/gander-tools/diff-voyager/commit/f8de748b30583535821a057d335e25f6ba58f4ab))
+
 ## [0.1.2](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.1...diff-voyager-frontend-v0.1.2) (2026-01-07)
 
 

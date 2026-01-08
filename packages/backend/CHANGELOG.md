@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.10](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.9...diff-voyager-backend-v0.1.10) (2026-01-08)
+
+
+### Bug Fixes
+
+* **deps:** update dependency drizzle-orm to ^0.45.0 ([55b96cf](https://github.com/gander-tools/diff-voyager/commit/55b96cfd5513bce0c9eadc1a9fef0852b2ef90a3))
+
 ## [0.1.9](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.8...diff-voyager-backend-v0.1.9) (2026-01-08)
 
 
