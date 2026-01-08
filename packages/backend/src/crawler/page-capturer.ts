@@ -4,7 +4,8 @@
  */
 
 import { createHash } from 'node:crypto';
-import { chmod, mkdir, writeFile } from 'node:fs/promises';
+import { constants } from 'node:fs';
+import { access, chmod, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { PerformanceData, SeoData } from '@gander-tools/diff-voyager-shared';
 import { type Browser, chromium, type Page } from 'playwright';
@@ -51,9 +52,22 @@ export class PageCapturer {
       this.browser = await chromium.launch({ headless: true });
     }
 
-    const context = await this.browser.newContext({
+    // Configure HAR recording if requested
+    const contextOptions: Parameters<Browser['newContext']>[0] = {
       viewport: input.viewport,
-    });
+    };
+
+    let harPath: string | undefined;
+    if (input.collectHar) {
+      const harFilePath = join(pageDir, 'page.har');
+      contextOptions.recordHar = {
+        path: harFilePath,
+        mode: 'minimal',
+      };
+      harPath = 'page.har';
+    }
+
+    const context = await this.browser.newContext(contextOptions);
 
     const page = await context.newPage();
 
@@ -122,6 +136,18 @@ export class PageCapturer {
 
       await context.close();
 
+      // Set restricted permissions on HAR file if it was collected
+      if (harPath) {
+        const harFilePath = join(pageDir, 'page.har');
+        try {
+          await access(harFilePath, constants.F_OK);
+          await chmod(harFilePath, 0o600);
+        } catch {
+          // HAR file doesn't exist, log warning but continue
+          console.warn(`HAR file not found at ${harFilePath}`);
+        }
+      }
+
       return {
         httpStatus,
         redirectChain,
@@ -131,6 +157,7 @@ export class PageCapturer {
         seoData,
         performanceData,
         screenshotPath,
+        harPath,
       };
     } catch (error) {
       await context.close();
@@ -142,6 +169,7 @@ export class PageCapturer {
         headers: {},
         seoData: {},
         screenshotPath: '',
+        harPath: undefined,
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
