@@ -9,7 +9,7 @@
 
 import { randomUUID } from 'node:crypto';
 import { mkdir, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import * as tmp from 'tmp';
 import { join } from 'node:path';
 import { RunStatus } from '@gander-tools/diff-voyager-shared';
 import type { FastifyInstance } from 'fastify';
@@ -36,8 +36,7 @@ describe('Multiple runs scenario', () => {
 
   beforeAll(async () => {
     // Setup test directory
-    testDir = join(tmpdir(), `diff-voyager-test-${randomUUID()}`);
-    await mkdir(testDir, { recursive: true });
+    testDir = tmp.dirSync({ unsafeCleanup: true, prefix: 'diff-voyager-test-' }).name;
 
     const dbPath = join(testDir, 'test.db');
     artifactsDir = join(testDir, 'artifacts');
