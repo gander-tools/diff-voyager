@@ -1,50 +1,62 @@
-# API Implementation Plan - Overview
+# API Overview
 
 ## Document Purpose
 
-This document outlines the implementation plan for three core API scenarios of Diff Voyager, enabling programmatic page scanning and comparison without a UI.
+This document describes the REST API of Diff Voyager, enabling programmatic page scanning and comparison. All endpoints are fully implemented and tested.
+
+**Implementation Status**: ✅ Complete (Phase 5 - January 2026)
 
 ## Scenarios Summary
 
-### Scenario 1: Single Page Scan API
+### Scenario 1: Single Page Scan API ✅
+
+**Status**: Fully implemented
 
 **Flow:**
 1. Client sends POST request with a single URL to scan
 2. Server creates a new Project with single-page configuration (no crawler)
-3. Server creates a task and adds it to the processing queue
-4. Server returns task/project identifier immediately
-5. Task is processed asynchronously:
+3. Processing mode:
+   - **Sync mode** (`sync: true`): Request blocks until complete, returns full result
+   - **Async mode** (`sync: false`): Task queued, returns task ID immediately
+4. Task is processed:
    - Page is loaded via Playwright
    - HTML, HTTP headers, and status are captured
    - SEO metadata is extracted
    - Screenshot is taken
    - Optional: HAR file is generated
    - All artifacts are persisted
-6. Results are available via Scenario 3 endpoints
+5. Results are available via retrieval endpoints
 
-### Scenario 2: Full Domain Crawl API
+### Scenario 2: Full Domain Crawl API ✅
+
+**Status**: Fully implemented
 
 **Flow:**
-1. Client sends POST request with base URL and crawler options
+1. Client sends POST request with base URL and `crawl: true`
 2. Server creates a new Project with crawler configuration
-3. Server creates a task and adds it to the processing queue
+3. Task is queued in SQLite-based queue
 4. Server returns task/project identifier immediately
-5. Task is processed asynchronously:
-   - Crawler discovers all pages within domain scope
-   - Each page is processed as in Scenario 1
+5. Background task processor:
+   - Crawlee discovers all pages within domain scope
+   - Each page is captured (as in Scenario 1)
    - Progress is tracked per-page
    - Run can be interrupted and resumed
-6. Results are available via Scenario 3 endpoints
+6. Results are available via retrieval endpoints
 
-### Scenario 3: Project/Results Retrieval API
+### Scenario 3: Project/Results Retrieval API ✅
 
-**Endpoints:**
-1. Get project details (status, configuration, statistics)
-2. Get run details (pages, progress, statistics)
-3. List pages with optional diff filtering
-4. Get page snapshot details (SEO, headers, content hash)
-5. Get page diffs (SEO changes, visual changes, header changes)
-6. Get artifact binaries (screenshots, diff images)
+**Status**: Fully implemented
+
+**Endpoints**:
+1. ✅ GET /api/v1/projects - List all projects with pagination
+2. ✅ GET /api/v1/projects/:id - Get project details with pages
+3. ✅ GET /api/v1/projects/:id/runs - List runs for project
+4. ✅ GET /api/v1/runs/:id - Get run details with statistics
+5. ✅ GET /api/v1/runs/:id/pages - List pages with filtering
+6. ✅ GET /api/v1/pages/:id - Get page details with latest snapshot
+7. ✅ GET /api/v1/pages/:id/diff - Get detailed diff comparison
+8. ✅ GET /api/v1/tasks/:id - Get task status and progress
+9. ✅ GET /api/v1/artifacts/:pageId/* - Get artifact binaries (screenshot, HTML, HAR, diff)
 
 ## Key Design Decisions
 
@@ -69,40 +81,42 @@ This document outlines the implementation plan for three core API scenarios of D
 
 ---
 
-## ⚡ ASAP Scenario (Simplest MVP)
+## Current Implementation
 
-**Stack:** Synchronous processing (option 0) + SQLite + File system
+**Stack**: Hybrid approach - Both sync and async processing with SQLite queue
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  ASAP: No queue, no containers, immediate results       │
+│  Current: Flexible sync/async processing               │
 ├─────────────────────────────────────────────────────────┤
-│  Processing:  Synchronous (blocks until complete)       │
-│  Database:    SQLite (single file)                      │
+│  Processing:  Sync (immediate) or Async (queued)       │
+│  Queue:       SQLite-based task queue (Phase 4)        │
+│  Database:    SQLite with Drizzle ORM                  │
 │  Artifacts:   Local file system                         │
 │  Containers:  None required                             │
 └─────────────────────────────────────────────────────────┘
 ```
 
-**How it works:**
-1. `POST /scans` with `sync: true` (or default for CLI)
-2. Request blocks while Playwright captures page(s)
-3. Results saved to SQLite + file system
-4. Full response returned immediately
+**Synchronous Mode** (`sync: true`):
+- Request blocks until scan completes
+- Full response returned immediately
+- Ideal for single page scans and CLI usage
+- No queue overhead
 
-**Ideal for:**
-- Single page scans
-- Small crawls (< 50 pages)
-- CLI usage
-- Local development
-- Quick validation
+**Asynchronous Mode** (`sync: false`):
+- Task queued in SQLite
+- Task ID returned immediately
+- Background task processor handles execution
+- Supports resume after interruption
+- Progress tracking via task status endpoint
+- Ideal for multi-page crawls
 
-**Limitations:**
-- HTTP timeout risk for large crawls
-- No resume after interruption
-- No progress tracking during execution
-
-**Upgrade path:** Add SQLite queue (option 1) when needed for large crawls
+**Benefits**:
+- Zero external dependencies (no Redis, no message broker)
+- Persistent queue survives restarts
+- Atomic task operations (no double processing)
+- Priority-based scheduling
+- Automatic retry on failure
 
 ---
 

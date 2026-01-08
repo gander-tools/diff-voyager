@@ -264,3 +264,82 @@ Minimal requirements:
 - Transparent report allowing solo developer to review critical differences in one "focus session" without drowning in noise from insignificant changes.
 - Stable operation on local developer machine at typical project sizes.
 
+## 11. Implementation Status
+
+**Last Updated**: 2026-01-08
+
+### MVP Backend: Phase 5 Complete ✅
+
+The backend implementation is substantially complete with all core functionality operational:
+
+**Completed Phases**:
+- ✅ Phase 0: Test infrastructure and foundation
+- ✅ Phase 1: Storage layer (100% migrated to Drizzle ORM)
+- ✅ Phase 2: Domain logic and comparators (SEO, visual, header, performance)
+- ✅ Phase 3: Crawler infrastructure (Playwright + Crawlee)
+- ✅ Phase 4: Task queue (SQLite-based async processing)
+- ✅ Phase 5: API layer (13 endpoints fully implemented)
+
+**In Progress**:
+- 🟡 Phase 6: Integration workflows (50% - diff workflow integration pending)
+- 🟡 Phase 7: Production polish (50% - optimization pending)
+
+**Not Started**:
+- ❌ Frontend UI (Vue 3 implementation planned)
+
+### Current Capabilities
+
+**Functional**:
+- Single page scanning (sync and async modes)
+- Multi-page crawling with Crawlee
+- Full artifact capture (HTML, screenshots, SEO, performance, HAR)
+- URL normalization and duplicate detection
+- Complete REST API with Swagger documentation
+- All comparison algorithms implemented (SEO, visual, header, performance)
+- SQLite-based task queue with retry logic
+- Browser pooling for efficient page capture
+- Secure file access with rate limiting
+
+**Pending Integration**:
+- Automatic diff generation during comparison runs
+- Diff acceptance and muting workflow
+- Frontend UI for diff review
+
+### Architecture Evolution
+
+**Database**: Successfully migrated from raw SQL to Drizzle ORM (January 2026)
+- All 6 repositories migrated (100% complete)
+- Benefits: Type safety, automatic prepared statements, JSON column support
+- See [docs/guides/drizzle-migration.md](../docs/guides/drizzle-migration.md)
+
+**Queue System**: Hybrid sync/async processing
+- Synchronous mode for quick scans
+- SQLite-based queue for large crawls
+- No external dependencies (no Redis required)
+
+### Documentation Structure
+
+Complete documentation reorganization (January 2026):
+- **[docs/README.md](../docs/README.md)** - Documentation index
+- **[docs/architecture/](../docs/architecture/)** - System design and domain model
+- **[docs/development/](../docs/development/)** - Implementation status, roadmap, changelog
+- **[docs/api/](../docs/api/)** - API reference
+- **[docs/guides/](../docs/guides/)** - Getting started, development workflow, testing
+- **[docs/features/](../docs/features/)** - Feature-specific documentation
+
+### Next Steps
+
+See [docs/development/roadmap.md](../docs/development/roadmap.md) for detailed roadmap:
+
+1. Fix skipped tests (snapshot data retrieval, HAR URL handling)
+2. Integrate diff workflow (automatic generation during runs)
+3. Complete Phase 6 integration testing
+4. Begin frontend UI development (Vue 3)
+
+### Reference
+
+For detailed information:
+- [Implementation Status](../docs/development/implementation-status.md) - Phase completion status, test coverage, and major milestones
+- [Roadmap](../docs/development/roadmap.md) - Next steps and planned features
+- [Architecture](../docs/architecture/overview.md) - System design and components
+
