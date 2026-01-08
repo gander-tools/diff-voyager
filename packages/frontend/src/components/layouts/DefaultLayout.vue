@@ -1,7 +1,11 @@
 <script setup lang="ts">
+// biome-ignore lint/correctness/noUnusedImports: used in template
 import { NLayout, NLayoutContent } from 'naive-ui';
+// biome-ignore lint/correctness/noUnusedImports: used in template
 import AppBreadcrumb from './AppBreadcrumb.vue';
+// biome-ignore lint/correctness/noUnusedImports: used in template
 import AppHeader from './AppHeader.vue';
+// biome-ignore lint/correctness/noUnusedImports: used in template
 import AppSidebar from './AppSidebar.vue';
 </script>
 

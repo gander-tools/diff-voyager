@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// biome-ignore lint/correctness/noUnusedImports: used in template
 import { NAlert } from 'naive-ui';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
