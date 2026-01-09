@@ -55,8 +55,12 @@ diff-voyager/
 
 **Frontend:**
 - Vue.js 3 + TypeScript
+- Naive UI component library
+- vee-validate + Zod for form validation
+- Pinia for state management
+- Vue Router for routing
+- @ts-rest for type-safe API calls
 - Built with bun
-- Communicates with backend via local API
 
 **Shared:**
 - TypeScript types shared between backend and frontend
@@ -437,6 +441,71 @@ Import icons with exact PascalCase names:
 ```typescript
 import { Dashboard, Filter, Folder } from '@vicons/tabler';
 ```
+
+#### Form Validation with vee-validate
+
+**Status**: ✅ Implemented (January 2026)
+
+Diff Voyager uses [vee-validate](https://vee-validate.logaretm.com/) with Zod schemas for declarative form validation in Vue 3.
+
+**Dependencies:**
+- `vee-validate@^4.15.1` - Vue 3 form validation library
+- `@vee-validate/zod@^4.15.1` - Zod schema integration
+- `zod@^3.25.76` - Schema validation (compatible with @ts-rest and vee-validate)
+
+**Why vee-validate + Zod?**
+
+- **Declarative validation**: Define validation rules in Zod schemas, not imperative code
+- **Type-safe**: Full TypeScript inference from schemas
+- **DRY principle**: Single source of truth for validation and types
+- **Better UX**: Built-in support for validation on blur/change/submit
+- **Clean code**: No manual error state management
+
+**Example Usage:**
+
+```typescript
+// 1. Define Zod schema in validators.ts
+export const createProjectSchema = z.object({
+  name: z.string().trim().min(1, 'Project name is required'),
+  url: z.string().url('Invalid URL format'),
+  // ... more fields
+});
+
+// 2. Use in Vue component
+import { useForm } from 'vee-validate';
+import { toTypedSchema } from '@vee-validate/zod';
+
+const { handleSubmit, errors, defineField, validate } = useForm({
+  validationSchema: toTypedSchema(createProjectSchema),
+  initialValues: { name: '', url: '' },
+});
+
+// 3. Define form fields
+const [name] = defineField('name');
+const [url] = defineField('url');
+
+// 4. Handle submission
+const onSubmit = handleSubmit((values) => {
+  // values is fully typed from schema
+  emit('submit', values);
+});
+```
+
+**Key Features:**
+
+- **Nested fields**: Use dot notation for nested validation (`viewport.width`)
+- **Async validation**: Built-in support for async rules
+- **Multi-step forms**: Validate specific fields using `validate()`
+- **Integration with Naive UI**: Works seamlessly with NForm components
+
+**Important Notes:**
+
+- vee-validate requires `zod@^3.x` (not v4) for compatibility
+- All form validation should use vee-validate for consistency
+- Error messages should be defined in Zod schemas, not in components
+- Test async validation with proper awaits: `await wrapper.vm.$nextTick()`
+
+See `packages/frontend/src/components/ProjectForm.vue` for a complete multi-step form example.
 
 ### Shared Types
 ```bash

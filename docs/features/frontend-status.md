@@ -607,6 +607,46 @@ All requests use shared TypeScript types from `@gander-tools/diff-voyager-shared
 
 ---
 
+## Post-Phase 2 Improvements
+
+### vee-validate Integration (PR #124)
+
+**What Changed**: Refactored form validation from manual imperative logic to declarative schema-driven validation using vee-validate + Zod.
+
+**Technical Changes**:
+1. Added dependencies:
+   - `vee-validate@^4.15.1` - Vue 3 form validation library
+   - `@vee-validate/zod@^4.15.1` - Zod schema integration
+2. Downgraded `zod` from v4 to v3 for ecosystem compatibility (required by both `@ts-rest/core` and `@vee-validate/zod`)
+3. Refactored `ProjectForm.vue`:
+   - Replaced manual `errors` ref and `validateStep1()` with `useForm()` hook
+   - Used `defineField()` for reactive form fields
+   - Leveraged `handleSubmit()` for type-safe submission
+4. Updated validation schemas in `validators.ts`:
+   - Changed error messages from i18n keys to direct text
+   - Ensured compatibility with vee-validate
+
+**Benefits**:
+- **Cleaner code**: -21 lines while adding functionality
+- **Type safety**: Full TypeScript inference from Zod schemas
+- **Better UX**: Built-in validation on blur/change/submit
+- **Maintainable**: No manual error state management
+- **DRY**: Single source of truth for validation
+
+**Testing**:
+- All 167 frontend tests passing
+- Updated tests to handle async validation with proper awaits
+- See `packages/frontend/src/components/ProjectForm.vue` for complete example
+
+**Documentation**:
+- CLAUDE.md updated with vee-validate usage guide
+- technology-stack.md updated with Form Validation section
+- Example code and best practices documented
+
+**Impact**: This establishes the standard approach for all future forms in the application.
+
+---
+
 ## Next Steps (Phase 3)
 
 **Immediate Next Priorities**:
