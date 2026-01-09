@@ -2,6 +2,7 @@
 import { NButton, NCard, NEmpty, NGrid, NGridItem, NSpin, NStatistic } from 'naive-ui';
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import ProjectCard from '../components/ProjectCard.vue';
 import { useProjectsStore } from '../stores/projects';
 
 const router = useRouter();
@@ -21,6 +22,20 @@ const handleNewProject = () => {
 
 const handleViewAll = () => {
   router.push('/projects');
+};
+
+const handleProjectClick = (projectId: string) => {
+  router.push(`/projects/${projectId}`);
+};
+
+const handleDeleteProject = async (projectId: string) => {
+  try {
+    await projectsStore.deleteProject(projectId);
+    // Refresh the recent projects list
+    await projectsStore.fetchProjects({ limit: 5 });
+  } catch (error) {
+    console.error('Failed to delete project:', error);
+  }
 };
 </script>
 
@@ -61,21 +76,18 @@ const handleViewAll = () => {
             <NEmpty description="No projects yet. Create your first project to get started." />
           </div>
 
-          <div v-else class="projects-list">
-            <div
+          <NGrid v-else :cols="1" :x-gap="12" :y-gap="12">
+            <NGridItem
               v-for="project in projectsStore.recentProjects(5)"
               :key="project.id"
-              class="project-item"
             >
-              <div class="project-info">
-                <h3>{{ project.name }}</h3>
-                <p class="project-url">{{ project.baseUrl }}</p>
-              </div>
-              <div class="project-status">
-                <span>{{ project.status }}</span>
-              </div>
-            </div>
-          </div>
+              <ProjectCard
+                :project="project"
+                @click="handleProjectClick(project.id)"
+                @delete="handleDeleteProject"
+              />
+            </NGridItem>
+          </NGrid>
         </NCard>
       </div>
     </NSpin>
@@ -117,43 +129,6 @@ const handleViewAll = () => {
 
 .recent-projects {
   margin-top: 24px;
-}
-
-.projects-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.project-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-}
-
-.project-item:hover {
-  background-color: #f5f5f5;
-}
-
-.project-info h3 {
-  margin: 0 0 4px 0;
-  font-size: 16px;
-  font-weight: 500;
-}
-
-.project-url {
-  margin: 0;
-  font-size: 14px;
-  color: #666;
-}
-
-.project-status {
-  font-size: 14px;
-  font-weight: 500;
 }
 
 .loading-container {
