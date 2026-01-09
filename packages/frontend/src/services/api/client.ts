@@ -1,6 +1,6 @@
 import { apiContract } from '@gander-tools/diff-voyager-shared';
 import { initClient } from '@ts-rest/core';
-import { type FetchOptions, ofetch } from 'ofetch';
+import { ofetch } from 'ofetch';
 
 /**
  * API Error class with status code and message
@@ -66,9 +66,10 @@ export const apiClient = ofetch.create({
   // Request interceptor
   onRequest({ options }) {
     // Add default headers
+    const headers = options.headers || {};
     options.headers = {
+      ...(typeof headers === 'object' ? headers : {}),
       'Content-Type': 'application/json',
-      ...options.headers,
     };
   },
 
@@ -100,7 +101,8 @@ export const apiClient = ofetch.create({
  */
 export async function fetchWithRetry<T>(
   url: string,
-  options?: FetchOptions,
+  // biome-ignore lint/suspicious/noExplicitAny: ofetch type compatibility wrapper
+  options?: any,
   maxRetries = RETRY_CONFIG.maxRetries,
 ): Promise<T> {
   let lastError: Error | undefined;
@@ -134,28 +136,54 @@ export async function fetchWithRetry<T>(
 /**
  * Type-safe GET request
  */
-export function get<T>(url: string, options?: FetchOptions): Promise<T> {
+export function get<T>(
+  url: string,
+  // biome-ignore lint/suspicious/noExplicitAny: ofetch type compatibility wrapper
+  options?: any,
+): Promise<T> {
   return fetchWithRetry<T>(url, { ...options, method: 'GET' });
 }
 
 /**
  * Type-safe POST request
  */
-export function post<T>(url: string, body?: unknown, options?: FetchOptions): Promise<T> {
-  return fetchWithRetry<T>(url, { ...options, method: 'POST', body });
+export function post<T>(
+  url: string,
+  body?: unknown,
+  // biome-ignore lint/suspicious/noExplicitAny: ofetch type compatibility wrapper
+  options?: any,
+): Promise<T> {
+  return fetchWithRetry<T>(url, {
+    ...options,
+    method: 'POST',
+    body,
+  });
 }
 
 /**
  * Type-safe PUT request
  */
-export function put<T>(url: string, body?: unknown, options?: FetchOptions): Promise<T> {
-  return fetchWithRetry<T>(url, { ...options, method: 'PUT', body });
+export function put<T>(
+  url: string,
+  body?: unknown,
+  // biome-ignore lint/suspicious/noExplicitAny: ofetch type compatibility wrapper
+  options?: any,
+): Promise<T> {
+  return fetchWithRetry<T>(url, {
+    ...options,
+    method: 'PUT',
+    body,
+  });
 }
 
 /**
  * Type-safe DELETE request
  */
-export function del<T>(url: string, options?: FetchOptions): Promise<T> {
+export function del<T>(
+  url: string,
+  // biome-ignore lint/suspicious/noExplicitAny: ofetch type compatibility wrapper
+  options?: any,
+): Promise<T> {
   return fetchWithRetry<T>(url, { ...options, method: 'DELETE' });
 }
 
@@ -183,8 +211,8 @@ export const tsRestClient = initClient(apiContract, {
     try {
       const response = await fetchWithRetry(path, {
         method,
-        headers: headers as Record<string, string>,
-        body: body as Record<string, unknown> | BodyInit | null | undefined,
+        headers,
+        body,
       });
 
       return {
