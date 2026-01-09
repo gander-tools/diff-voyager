@@ -26,7 +26,7 @@ export const useUiStore = defineStore('ui', () => {
 
   function setLanguage(newLocale: Locale) {
     locale.value = newLocale;
-    i18n.global.locale.value = newLocale;
+    i18n.global.locale = newLocale;
     saveLocale(newLocale);
   }
 
