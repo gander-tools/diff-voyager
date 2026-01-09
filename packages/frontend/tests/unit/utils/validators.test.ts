@@ -34,7 +34,7 @@ describe('validators', () => {
         const result = createProjectSchema.safeParse(invalidData);
         expect(result.success).toBe(false);
         if (!result.success) {
-          expect(result.error.issues[0].path).toContain('name');
+          expect(result.error.issues[0]?.path).toContain('name');
         }
       });
 
@@ -46,7 +46,7 @@ describe('validators', () => {
         const result = createProjectSchema.safeParse(invalidData);
         expect(result.success).toBe(false);
         if (!result.success) {
-          expect(result.error.issues[0].path).toContain('url');
+          expect(result.error.issues[0]?.path).toContain('url');
         }
       });
 

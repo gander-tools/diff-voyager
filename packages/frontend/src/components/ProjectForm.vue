@@ -73,7 +73,10 @@ const validateStep1 = async (): Promise<boolean> => {
   const result = await validate();
 
   // Check if there are errors in step 1 fields
-  const step1Errors = ['name', 'url', 'description'].some((field) => errors.value[field]);
+  const step1Errors = ['name', 'url', 'description'].some(
+    // biome-ignore lint/suspicious/noExplicitAny: vee-validate errors type indexing
+    (field) => (errors.value as any)[field],
+  );
 
   return !step1Errors && result.valid;
 };
@@ -231,7 +234,7 @@ const isLastStep = computed(() => currentStep.value === 2);
             :step="0.01"
           />
           <div class="help-text">
-            {{ (visualDiffThreshold * 100).toFixed(0) }}% - Percentage of pixel difference to flag as changed
+            {{ ((visualDiffThreshold ?? 0) * 100).toFixed(0) }}% - Percentage of pixel difference to flag as changed
           </div>
         </NFormItem>
       </div>

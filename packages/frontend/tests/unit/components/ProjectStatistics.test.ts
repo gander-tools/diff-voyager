@@ -12,11 +12,12 @@ describe('ProjectStatistics', () => {
     totalPages: 150,
     completedPages: 145,
     errorPages: 5,
-    pendingPages: 0,
-    totalRuns: 3,
-    acceptedDiffs: 10,
-    pendingDiffs: 2,
-    mutedDiffs: 1,
+    changedPages: 20,
+    unchangedPages: 125,
+    totalDifferences: 13,
+    criticalDifferences: 2,
+    acceptedDifferences: 10,
+    mutedDifferences: 1,
   };
 
   it('should render all statistics', () => {
@@ -27,7 +28,7 @@ describe('ProjectStatistics', () => {
     expect(wrapper.text()).toContain('150');
     expect(wrapper.text()).toContain('145');
     expect(wrapper.text()).toContain('5');
-    expect(wrapper.text()).toContain('3');
+    expect(wrapper.text()).toContain('20');
   });
 
   it('should display page statistics', () => {
@@ -46,17 +47,20 @@ describe('ProjectStatistics', () => {
     });
 
     expect(wrapper.text()).toContain('Accepted');
-    expect(wrapper.text()).toContain('Pending');
     expect(wrapper.text()).toContain('Muted');
+    expect(wrapper.text()).toContain('Total Differences');
+    expect(wrapper.text()).toContain('Critical Differences');
   });
 
-  it('should display run statistics', () => {
+  it('should display changed and unchanged page statistics', () => {
     const wrapper = mount(ProjectStatistics, {
       props: { statistics: mockStatistics },
     });
 
-    expect(wrapper.text()).toContain('Total Runs');
-    expect(wrapper.text()).toContain('3');
+    expect(wrapper.text()).toContain('Changed');
+    expect(wrapper.text()).toContain('Unchanged');
+    expect(wrapper.text()).toContain('20');
+    expect(wrapper.text()).toContain('125');
   });
 
   it('should handle zero values', () => {
@@ -64,11 +68,12 @@ describe('ProjectStatistics', () => {
       totalPages: 0,
       completedPages: 0,
       errorPages: 0,
-      pendingPages: 0,
-      totalRuns: 0,
-      acceptedDiffs: 0,
-      pendingDiffs: 0,
-      mutedDiffs: 0,
+      changedPages: 0,
+      unchangedPages: 0,
+      totalDifferences: 0,
+      criticalDifferences: 0,
+      acceptedDifferences: 0,
+      mutedDifferences: 0,
     };
 
     const wrapper = mount(ProjectStatistics, {
