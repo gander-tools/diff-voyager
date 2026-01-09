@@ -8,7 +8,6 @@ import { join } from 'node:path';
 import type { FastifyInstance } from 'fastify';
 import * as tmp from 'tmp';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { createApp } from '../../../src/api/app.js';
 import {
   closeDatabase,
   createDatabase,
@@ -18,6 +17,7 @@ import { PageRepository } from '../../../src/storage/repositories/page-repositor
 import { ProjectRepository } from '../../../src/storage/repositories/project-repository.js';
 import { RunRepository } from '../../../src/storage/repositories/run-repository.js';
 import { SnapshotRepository } from '../../../src/storage/repositories/snapshot-repository.js';
+import { createTestApp } from '../../helpers/test-db.js';
 
 describe('GET /api/v1/runs/:runId/pages', () => {
   let app: FastifyInstance;
@@ -46,8 +46,7 @@ describe('GET /api/v1/runs/:runId/pages', () => {
     snapshotRepo = new SnapshotRepository(db);
 
     // Create app
-    app = await createApp({ db, artifactsDir });
-    await app.ready();
+    app = await createTestApp({ db, artifactsDir });
   });
 
   afterAll(async () => {
