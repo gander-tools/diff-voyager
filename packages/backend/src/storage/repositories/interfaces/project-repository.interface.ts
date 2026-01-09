@@ -33,4 +33,10 @@ export interface IProjectRepository {
    * Update project status
    */
   updateStatus(id: string, status: RunStatus): Promise<void>;
+
+  /**
+   * Delete a project by ID
+   * Cascade delete should remove all related pages, runs, and snapshots
+   */
+  delete(id: string): Promise<boolean>;
 }

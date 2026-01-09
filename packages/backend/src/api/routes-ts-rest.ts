@@ -310,6 +310,29 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
       },
     },
 
+    deleteProject: {
+      handler: async ({ params }) => {
+        const deleted = await projectRepo.delete(params.projectId);
+
+        if (!deleted) {
+          return {
+            status: 404 as const,
+            body: {
+              error: {
+                code: 'NOT_FOUND',
+                message: 'Project not found',
+              },
+            },
+          };
+        }
+
+        return {
+          status: 204 as const,
+          body: undefined,
+        };
+      },
+    },
+
     // ========== RUNS ==========
 
     listProjectRuns: {
