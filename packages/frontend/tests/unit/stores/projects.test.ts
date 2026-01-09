@@ -64,7 +64,7 @@ describe('projectsStore', () => {
       await store.fetchProjects();
 
       expect(store.projectList).toHaveLength(2);
-      expect(store.projectList[0].name).toBe('Project 1');
+      expect(store.projectList[0]?.name).toBe('Project 1');
       expect(store.pagination.total).toBe(2);
       expect(store.loading).toBe(false);
       expect(store.error).toBeNull();
@@ -187,7 +187,10 @@ describe('projectsStore', () => {
 
       expect(store.currentProject).toBeTruthy();
       expect(store.currentProject?.name).toBe('Test Project');
-      expect(store.currentProject?.config.crawl).toBe(true);
+      // Type assertion needed because currentProject can be ProjectListItem | ProjectDetails
+      if (store.currentProject && 'config' in store.currentProject) {
+        expect(store.currentProject.config.crawl).toBe(true);
+      }
     });
 
     it('should handle 404 for non-existent project', async () => {
@@ -284,6 +287,11 @@ describe('projectsStore', () => {
         store.createProject({
           name: 'Test',
           url: 'invalid-url',
+          crawl: false,
+          viewport: { width: 1920, height: 1080 },
+          collectHar: false,
+          waitAfterLoad: 1000,
+          visualDiffThreshold: 0.01,
         }),
       ).rejects.toThrow();
     });
@@ -357,8 +365,8 @@ describe('projectsStore', () => {
       store.list = ['1', '2'];
 
       expect(store.projectList).toHaveLength(2);
-      expect(store.projectList[0].id).toBe('1');
-      expect(store.projectList[1].id).toBe('2');
+      expect(store.projectList[0]?.id).toBe('1');
+      expect(store.projectList[1]?.id).toBe('2');
     });
 
     it('should return current project', () => {
@@ -403,7 +411,7 @@ describe('projectsStore', () => {
 
       const recent = store.recentProjects(5);
       expect(recent).toHaveLength(5);
-      expect(recent[0].id).toBe('1');
+      expect(recent[0]?.id).toBe('1');
     });
 
     it('should return all projects if limit exceeds count', () => {

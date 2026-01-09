@@ -83,7 +83,7 @@ describe('ProjectForm', () => {
         await submitButton.trigger('click');
 
         const emitted = wrapper.emitted('submit');
-        if (emitted) {
+        if (emitted?.[0]?.[0]) {
           expect(emitted).toBeTruthy();
           expect(emitted[0][0]).toHaveProperty('name', 'Test Project');
           expect(emitted[0][0]).toHaveProperty('url', 'https://example.com');

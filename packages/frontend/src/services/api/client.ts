@@ -67,10 +67,11 @@ export const apiClient = ofetch.create({
   onRequest({ options }) {
     // Add default headers
     const headers = options.headers || {};
+    // biome-ignore lint/suspicious/noExplicitAny: ofetch headers type compatibility
     options.headers = {
       ...(typeof headers === 'object' ? headers : {}),
       'Content-Type': 'application/json',
-    };
+    } as any;
   },
 
   // Response interceptor for error handling

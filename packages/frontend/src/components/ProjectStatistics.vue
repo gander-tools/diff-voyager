@@ -5,11 +5,12 @@ interface ProjectStats {
   totalPages: number;
   completedPages: number;
   errorPages: number;
-  pendingPages: number;
-  totalRuns: number;
-  acceptedDiffs: number;
-  pendingDiffs: number;
-  mutedDiffs: number;
+  changedPages: number;
+  unchangedPages: number;
+  totalDifferences: number;
+  criticalDifferences: number;
+  acceptedDifferences: number;
+  mutedDifferences: number;
 }
 
 interface Props {
@@ -37,23 +38,27 @@ withDefaults(defineProps<Props>(), {
     </NGridItem>
 
     <NGridItem>
-      <NStatistic label="Pending" :value="statistics.pendingPages" />
+      <NStatistic label="Changed" :value="statistics.changedPages" />
     </NGridItem>
 
     <NGridItem>
-      <NStatistic label="Total Runs" :value="statistics.totalRuns" />
+      <NStatistic label="Unchanged" :value="statistics.unchangedPages" />
     </NGridItem>
 
     <NGridItem>
-      <NStatistic label="Accepted" :value="statistics.acceptedDiffs" />
+      <NStatistic label="Total Differences" :value="statistics.totalDifferences" />
     </NGridItem>
 
     <NGridItem>
-      <NStatistic label="Pending Diffs" :value="statistics.pendingDiffs" />
+      <NStatistic label="Critical Differences" :value="statistics.criticalDifferences" />
     </NGridItem>
 
     <NGridItem>
-      <NStatistic label="Muted" :value="statistics.mutedDiffs" />
+      <NStatistic label="Accepted" :value="statistics.acceptedDifferences" />
+    </NGridItem>
+
+    <NGridItem>
+      <NStatistic label="Muted" :value="statistics.mutedDifferences" />
     </NGridItem>
   </NGrid>
 </template>

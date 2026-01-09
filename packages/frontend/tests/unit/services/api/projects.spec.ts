@@ -33,7 +33,7 @@ describe('Projects API', () => {
       );
 
       const result = await createScan(mockRequest);
-      expect(result.projectId).toBe('project-123');
+      expect('projectId' in result && result.projectId).toBe('project-123');
     });
   });
 
@@ -74,7 +74,7 @@ describe('Projects API', () => {
 
       const projects = await listProjects();
       expect(projects).toHaveLength(2);
-      expect(projects[0].id).toBe('project-1');
+      expect(projects[0]?.id).toBe('project-1');
     });
 
     it('should support pagination parameters', async () => {
