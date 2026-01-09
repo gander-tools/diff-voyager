@@ -12,6 +12,6 @@ app.use(router);
 app.use(i18n);
 
 // Set saved locale
-i18n.global.locale.value = getSavedLocale();
+i18n.global.locale = getSavedLocale();
 
 app.mount('#app');

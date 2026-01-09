@@ -13,16 +13,16 @@ describe('i18n', () => {
 
   describe('i18n instance', () => {
     it('should have default locale as English', () => {
-      expect(i18n.global.locale.value).toBe('en');
+      expect(i18n.global.locale).toBe('en');
     });
 
     it('should have fallback locale as English', () => {
-      expect(i18n.global.fallbackLocale.value).toBe('en');
+      expect(i18n.global.fallbackLocale).toBe('en');
     });
 
     it('should have English and Polish messages', () => {
-      expect(i18n.global.messages.value).toHaveProperty('en');
-      expect(i18n.global.messages.value).toHaveProperty('pl');
+      expect(i18n.global.messages).toHaveProperty('en');
+      expect(i18n.global.messages).toHaveProperty('pl');
     });
 
     it('should translate common keys', () => {
@@ -78,7 +78,7 @@ describe('i18n', () => {
 
   describe('Polish translations', () => {
     it('should have Polish translations for common keys', () => {
-      i18n.global.locale.value = 'pl';
+      i18n.global.locale = 'pl';
       const t = i18n.global.t;
 
       expect(t('common.loading')).toBe('Ładowanie...');
@@ -87,7 +87,7 @@ describe('i18n', () => {
     });
 
     it('should fall back to English for missing keys', () => {
-      i18n.global.locale.value = 'pl';
+      i18n.global.locale = 'pl';
       const t = i18n.global.t;
 
       // All keys should be translated in Polish
