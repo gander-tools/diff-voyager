@@ -230,7 +230,11 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
         const snapshotByPageId = new Map(snapshots.map((s) => [s.pageId, s]));
 
         // Build pages response
-        const includePages = query.includePages !== false;
+        // Handle both boolean false and string 'false' from query params
+        const includePages =
+          query.includePages !== false &&
+          query.includePages !== 'false' &&
+          query.includePages !== '0';
         const pageLimit = query.pageLimit || 50;
         const pageOffset = query.pageOffset || 0;
 
