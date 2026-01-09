@@ -111,6 +111,7 @@ const statisticsSchema = z.object({
 
 const pageResponseSchema = z.object({
   id: uuidSchema,
+  projectId: uuidSchema,
   url: z.string(),
   originalUrl: z.string(),
   status: z.string(),

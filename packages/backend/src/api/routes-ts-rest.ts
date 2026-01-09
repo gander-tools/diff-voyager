@@ -446,6 +446,7 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
           status: 200 as const,
           body: {
             id: page.id,
+            projectId: page.projectId,
             url: page.normalizedUrl,
             originalUrl: page.originalUrl,
             status: snapshot?.status || PageStatus.PENDING,
