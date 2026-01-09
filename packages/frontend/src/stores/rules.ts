@@ -83,7 +83,7 @@ export const useRulesStore = defineStore('rules', () => {
       // Temporary: Update local state
       const index = rules.value.findIndex((r) => r.id === id);
       if (index !== -1) {
-        rules.value[index] = { ...rules.value[index], ...input };
+        rules.value[index] = { ...rules.value[index], ...input } as MuteRule;
       }
     } catch (err) {
       error.value = (err as Error).message;

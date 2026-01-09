@@ -16,9 +16,9 @@ const languageOptions = availableLocales.map((locale) => ({
 }));
 
 const themeOptions = [
-  { label: t('settings.theme.light'), key: 'light' as Theme, icon: Sun },
-  { label: t('settings.theme.dark'), key: 'dark' as Theme, icon: Moon },
-  { label: t('settings.theme.auto'), key: 'auto' as Theme, icon: Globe },
+  { type: 'render' as const, label: t('settings.theme.light'), key: 'light' as Theme, icon: Sun },
+  { type: 'render' as const, label: t('settings.theme.dark'), key: 'dark' as Theme, icon: Moon },
+  { type: 'render' as const, label: t('settings.theme.auto'), key: 'auto' as Theme, icon: Globe },
 ];
 
 function handleLanguageSelect(key: string) {
