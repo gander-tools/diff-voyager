@@ -20,20 +20,13 @@ When you visit http://localhost:5173 with the backend running, here's what you'l
 
 ### Main Layout
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  🌐 EN ▼    🌙 Theme ▼                           [Header]   │
-├────────┬────────────────────────────────────────────────────┤
-│        │  Home > Dashboard                   [Breadcrumb]   │
-│  📊    │                                                     │
-│  📁    │                                                     │
-│  📝    │     [Main Content Area - Current View]             │
-│  ⚙️    │                                                     │
-│        │                                                     │
-│ [Side] │                                                     │
-│ [bar]  │                                                     │
-└────────┴────────────────────────────────────────────────────┘
-```
+![Main Layout - Dashboard](../screenshots/01-dashboard.png)
+
+The application uses a responsive layout with:
+- **Header** (top bar): Language switcher, theme switcher
+- **Sidebar** (left): Navigation menu with active route highlighting
+- **Breadcrumb** (below header): Dynamic path display
+- **Main Content** (center): Current view rendered by Vue Router
 
 ### Header (Top Bar)
 
@@ -92,117 +85,131 @@ When you visit http://localhost:5173 with the backend running, here's what you'l
 Now displays **fully functional project management views**:
 
 #### Dashboard (/) ✅
-```
-┌─────────────────────────────────────────┐
-│  Diff Voyager                           │
-│  Website version comparison tool        │
-│                                         │
-│  ┌────────────┐  ┌────────────┐        │
-│  │Quick       │  │Statistics  │        │
-│  │Actions     │  │Total: 0    │        │
-│  │[New]  [All]│  │            │        │
-│  └────────────┘  └────────────┘        │
-│                                         │
-│  Recent Projects                        │
-│  ┌─────────────────────────┐           │
-│  │ Project Name            │ [Delete]  │
-│  │ https://example.com     │           │
-│  │ Status | Created Date   │           │
-│  └─────────────────────────┘           │
-└─────────────────────────────────────────┘
-```
+
+![Dashboard View](../screenshots/01-dashboard.png)
+
+**Features**:
+- Welcome message: "Diff Voyager - Website version comparison tool"
+- Quick Actions: "New Project" and "All Projects" buttons
+- Statistics Cards:
+  - Total Projects
+  - Active Projects
+  - Completed Projects
+  - Recent Activity
+- Recent Projects List:
+  - Project cards with name, URL, status, created date
+  - Delete action with confirmation
+  - Empty state when no projects exist
 
 #### Projects (/projects) ✅
-```
-┌─────────────────────────────────────────┐
-│  Projects                    [+ New]    │
-│  Manage your website comparison         │
-│  projects                               │
-│                                         │
-│  ┌────┐  ┌────┐  ┌────┐                │
-│  │Proj│  │Proj│  │Proj│  (3-col grid) │
-│  │ 1  │  │ 2  │  │ 3  │                │
-│  └────┘  └────┘  └────┘                │
-│                                         │
-│  [Pagination: 1 2 3 >]                  │
-└─────────────────────────────────────────┘
-```
+
+![Projects List](../screenshots/02-projects-list.png)
+
+**Features**:
+- Page header with title and "New Project" button
+- 3-column responsive grid layout
+- ProjectCard components showing:
+  - Project name and URL
+  - Status badge (color-coded)
+  - Creation date
+  - Quick actions (View Details, Delete)
+- Pagination controls: 12 projects per page
+- Empty state: "No projects yet. Create your first project!"
 
 #### Create Project (/projects/new) ✅
-```
-┌─────────────────────────────────────────┐
-│  ← Create New Project        [Cancel]   │
-│                                         │
-│  Step: ● Basic ○ Crawl ○ Profile        │
-│                                         │
-│  Project Name *                         │
-│  [________________]                     │
-│                                         │
-│  Website URL *                          │
-│  [________________]                     │
-│                                         │
-│  Description (optional)                 │
-│  [________________]                     │
-│                                         │
-│                    [Next >]             │
-└─────────────────────────────────────────┘
-```
+
+![Project Creation Wizard - Step 1](../screenshots/03-project-create.png)
+
+**Multi-step wizard** (3 steps):
+
+**Step 1: Basic Information**
+- Project Name (required)
+- Website URL (required)
+- Description (optional)
+
+**Step 2: Crawl Settings**
+- Enable crawling toggle
+- Max pages limit
+- Crawl depth
+- URL patterns to include/exclude
+
+**Step 3: Run Profile**
+- Viewport dimensions (width x height)
+- Collect HAR files toggle
+- Visual diff threshold percentage
+- Wait after load (milliseconds)
+
+**Features**:
+- Real-time validation with vee-validate + Zod
+- Error messages below inputs
+- Step progress indicator
+- Back/Next/Cancel buttons
+- Form state persisted across steps
 
 #### Project Detail (/projects/:id) ✅
-```
-┌─────────────────────────────────────────┐
-│  ← Project Name          [Status Badge] │
-│  https://example.com                    │
-│  [Back] [New Run] [Delete]              │
-│                                         │
-│  Description                            │
-│  ┌─────────────────────────────────┐   │
-│  │ Project description text...     │   │
-│  └─────────────────────────────────┘   │
-│                                         │
-│  Statistics                             │
-│  ┌──────┬──────┬──────┬──────┐         │
-│  │Total │Comp  │Error │Pend  │         │
-│  │Pages │Pages │Pages │Pages │         │
-│  └──────┴──────┴──────┴──────┘         │
-│                                         │
-│  Configuration                          │
-│  Crawl: Enabled | Max Pages: 100       │
-│  Viewport: 1920x1080 | Threshold: 1%   │
-└─────────────────────────────────────────┘
-```
+
+![Project Detail View](../screenshots/04-project-detail.png)
+
+**Sections**:
+
+1. **Header**:
+   - Back button
+   - Project name (title)
+   - Project URL (subtitle)
+   - Status badge
+
+2. **Actions**:
+   - "New Run" button (primary)
+   - "Delete Project" button (danger)
+
+3. **Description**:
+   - Project description text
+   - Editable (future enhancement)
+
+4. **Statistics Grid** (4 cards):
+   - Total Pages
+   - Compared Pages (pages with diffs)
+   - Pages with Errors
+   - Pending Pages (not yet processed)
+
+5. **Configuration**:
+   - Crawl Settings: Enabled/Disabled, Max Pages
+   - Viewport: Width x Height (e.g., 1920x1080)
+   - Visual Diff Threshold: Percentage (e.g., 1%)
+   - HAR Collection: Enabled/Disabled
 
 #### Rules (/rules) ⏳
-```
-┌─────────────────────────────────────────┐
-│  Rules                                  │
-│                                         │
-│  RulesListView - To be implemented      │
-│  in Phase 5                             │
-└─────────────────────────────────────────┘
-```
+
+![Rules List View](../screenshots/08-rules-list.png)
+
+**Status**: Phase 5 Planned
+
+Placeholder view showing "RulesListView - To be implemented in Phase 5"
+
+---
 
 #### Settings (/settings) ⏳
-```
-┌─────────────────────────────────────────┐
-│  Settings                               │
-│                                         │
-│  SettingsView - To be implemented       │
-│  in Phase 5                             │
-└─────────────────────────────────────────┘
-```
+
+![Settings View](../screenshots/10-settings.png)
+
+**Status**: Phase 5 Planned
+
+Placeholder view showing "SettingsView - To be implemented in Phase 5"
+
+---
 
 #### 404 Not Found (any invalid route)
-```
-┌─────────────────────────────────────────┐
-│              404                        │
-│       Page Not Found                    │
-│  The page you're looking for doesn't    │
-│  exist.                                 │
-│                                         │
-│  [Go Back]  [Go Home]                   │
-└─────────────────────────────────────────┘
-```
+
+![404 Not Found](../screenshots/11-not-found.png)
+
+**Features**:
+- Large "404" heading
+- "Page Not Found" message
+- Helpful description: "The page you're looking for doesn't exist."
+- Action buttons:
+  - "Go Back" (browser history)
+  - "Go Home" (navigate to dashboard)
+- Theme-aware styling (light/dark mode)
 
 ---
 
