@@ -89,6 +89,14 @@ export class ProjectRepositoryDrizzle implements IProjectRepository {
       .where(eq(projects.id, id));
   }
 
+  async delete(id: string): Promise<boolean> {
+    const result = await this.db.delete(projects).where(eq(projects.id, id));
+
+    // Drizzle returns result with changes property indicating affected rows
+    // If no rows affected, project didn't exist
+    return result.changes > 0;
+  }
+
   /**
    * Convert database row to ProjectEntity
    * Handles JSON deserialization and optional fields
