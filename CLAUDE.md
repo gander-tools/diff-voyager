@@ -507,6 +507,56 @@ const onSubmit = handleSubmit((values) => {
 
 See `packages/frontend/src/components/ProjectForm.vue` for a complete multi-step form example.
 
+#### Screenshot Updates
+
+**Status**: ✅ Automated screenshot generation available
+
+Diff Voyager automatically generates documentation screenshots for all UI views.
+
+**When to Update Screenshots**:
+- After implementing new views or pages
+- After making visual changes to existing views
+- After UI/UX improvements
+- Before committing frontend changes
+
+**How to Update**:
+```bash
+# Ensure backend is not running (script will start it automatically)
+npm run screenshots
+```
+
+**What Happens**:
+1. Script starts backend server automatically
+2. Script starts frontend dev server
+3. Creates test project via API
+4. Captures 11 screenshots (1024x768) using Playwright
+5. Saves to `docs/screenshots/*.png`
+6. Stops both servers
+
+**Screenshot Files**:
+- `01-dashboard.png` - Main dashboard
+- `02-projects-list.png` - Project list with pagination
+- `03-project-create.png` - Multi-step project creation
+- `04-project-detail.png` - Project detail view
+- `05-run-create.png` - Run creation form
+- `06-run-detail.png` - Run detail and results
+- `07-page-detail.png` - Page comparison details
+- `08-rules-list.png` - Mute rules list
+- `09-rule-create.png` - Rule creation form
+- `10-settings.png` - Application settings
+- `11-not-found.png` - 404 page
+
+**Important Notes**:
+- Screenshots are **version controlled** in git (included in commits)
+- Used in documentation: `frontend-status.md`, `implementation-status.md`
+- Viewport: 1024x768 (configurable in script)
+- See `docs/screenshots/README.md` for complete index
+
+**Troubleshooting**:
+- If script fails, ensure no servers are running on ports 3000 or 5173
+- Check Playwright installation: `npx playwright install`
+- Backend must be buildable: `npm run build:backend`
+
 ### Shared Types
 ```bash
 cd packages/shared
