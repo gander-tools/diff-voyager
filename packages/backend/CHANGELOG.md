@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.15](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.14...diff-voyager-backend-v0.1.15) (2026-01-09)
+
+
+### Bug Fixes
+
+* **backend:** add CORS support for frontend development ([f9d2b68](https://github.com/gander-tools/diff-voyager/commit/f9d2b6893565199af83888b6158ab6ebf478e62d))
+
 ## [0.1.14](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.13...diff-voyager-backend-v0.1.14) (2026-01-09)
 
 

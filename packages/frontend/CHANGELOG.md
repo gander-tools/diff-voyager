@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.10](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.9...diff-voyager-frontend-v0.1.10) (2026-01-09)
+
+
+### Features
+
+* **frontend:** integrate vee-validate with Zod for form validation ([147312a](https://github.com/gander-tools/diff-voyager/commit/147312ae073734107b1b5280eafae4ad3ab74a08))
+
+
+### Bug Fixes
+
+* **frontend:** correct route parameter names for project views ([ace8491](https://github.com/gander-tools/diff-voyager/commit/ace8491bd414d99cc9ec404e364510517d182af1))
+* **frontend:** remove non-null assertion operators ([ed9cd07](https://github.com/gander-tools/diff-voyager/commit/ed9cd0783c684120c7586428c4203f5d4dbcc6f4))
+
 ## [0.1.9](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.8...diff-voyager-frontend-v0.1.9) (2026-01-09)
 
 

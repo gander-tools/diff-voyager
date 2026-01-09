@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.5](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-shared-v0.1.4...diff-voyager-shared-v0.1.5) (2026-01-09)
+
+
+### Bug Fixes
+
+* **shared:** convert package to ES modules ([6acee87](https://github.com/gander-tools/diff-voyager/commit/6acee87566ce45a051cbdeba4fac080cc7212630))
+
 ## [0.1.4](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-shared-v0.1.3...diff-voyager-shared-v0.1.4) (2026-01-09)
 
 
