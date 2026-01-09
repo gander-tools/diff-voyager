@@ -6,9 +6,9 @@
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"scripts": {
-		"build": "tsc",
-		"watch": "tsc --watch",
-		"clean": "rm -rf dist",
+		"build": "tsc --build",
+		"watch": "tsc --build --watch",
+		"clean": "rm -rf dist tsconfig.tsbuildinfo",
 		"test": "vitest run --passWithNoTests",
 		"test:watch": "vitest",
 		"test:coverage": "vitest run --coverage --passWithNoTests",
