@@ -106,7 +106,7 @@ describe('ProjectCreateView', () => {
 
       expect(mockRouter.push).toHaveBeenCalledWith({
         name: 'project-detail',
-        params: { id: 'proj-123' },
+        params: { projectId: 'proj-123' },
       });
     }
   });

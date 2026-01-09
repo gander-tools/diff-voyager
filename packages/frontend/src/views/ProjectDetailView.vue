@@ -10,7 +10,7 @@ const route = useRoute();
 const router = useRouter();
 const projectsStore = useProjectsStore();
 
-const projectId = computed(() => route.params.id as string);
+const projectId = computed(() => route.params.projectId as string);
 const loading = ref(true);
 const error = ref<string | null>(null);
 
