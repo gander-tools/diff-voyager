@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.1.9](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.8...diff-voyager-frontend-v0.1.9) (2026-01-09)
+
+
+### Features
+
+* **frontend:** add Zod validation schemas for project creation ([ba2ded7](https://github.com/gander-tools/diff-voyager/commit/ba2ded7287b694a216ac44dad01619936f2a7861))
+* **frontend:** implement DashboardView with statistics ([98d17cd](https://github.com/gander-tools/diff-voyager/commit/98d17cd180328a2cac765677dbaaa923951617d2))
+* **frontend:** implement ProjectCard component ([774ebdb](https://github.com/gander-tools/diff-voyager/commit/774ebdb4339f4aee81b33e1b46cbe4127c2d4f41))
+* **frontend:** implement ProjectCreateView with project creation flow ([777445b](https://github.com/gander-tools/diff-voyager/commit/777445bc105b7374b83d6b216fa5c9d66b23411b))
+* **frontend:** implement ProjectDetailView with full project information ([f8f1d9b](https://github.com/gander-tools/diff-voyager/commit/f8f1d9b90d6391e2e3d52a181673335bfaddf87c))
+* **frontend:** implement ProjectForm with multi-step wizard ([26faf26](https://github.com/gander-tools/diff-voyager/commit/26faf26930839146d1fe055d30662245a2bcbdf9))
+* **frontend:** implement ProjectListView with pagination ([5825b22](https://github.com/gander-tools/diff-voyager/commit/5825b22550fede2f5d957c87fff9801644aa5466))
+* **frontend:** implement projectsStore with full CRUD operations ([138adc3](https://github.com/gander-tools/diff-voyager/commit/138adc3f74164aa0070856daf23c6a6f8f61d4fb))
+* **frontend:** implement ProjectStatistics component ([87ffac6](https://github.com/gander-tools/diff-voyager/commit/87ffac617d11ee804a12988dcd69089138f213de))
+* **frontend:** implement ProjectStatusBadge component ([50a5a00](https://github.com/gander-tools/diff-voyager/commit/50a5a006c735ec11493834d5c46e2a19af75a14d))
+
 ## [0.1.8](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.7...diff-voyager-frontend-v0.1.8) (2026-01-09)
 
 

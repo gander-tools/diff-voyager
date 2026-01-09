@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-shared-v0.1.3...diff-voyager-shared-v0.1.4) (2026-01-09)
+
+
+### Features
+
+* **backend:** add DELETE project endpoint to API contract ([6694205](https://github.com/gander-tools/diff-voyager/commit/6694205d3fb7fb42877bdc8d0c13174893cb69f5))
+
 ## [0.1.3](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-shared-v0.1.2...diff-voyager-shared-v0.1.3) (2026-01-09)
 
 

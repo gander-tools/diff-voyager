@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.14](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.13...diff-voyager-backend-v0.1.14) (2026-01-09)
+
+
+### Features
+
+* **backend:** implement project deletion with cascade ([f18b147](https://github.com/gander-tools/diff-voyager/commit/f18b147c630a47d27d029e8232dac7296b452848))
+
 ## [0.1.13](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.12...diff-voyager-backend-v0.1.13) (2026-01-09)
 
 
