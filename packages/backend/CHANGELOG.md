@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.1.13](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.12...diff-voyager-backend-v0.1.13) (2026-01-09)
+
+
+### Features
+
+* **backend:** add missing [@ts-rest](https://github.com/ts-rest) endpoints and fix field names ([9ea8f9d](https://github.com/gander-tools/diff-voyager/commit/9ea8f9d9b89583356f742a8b4a4cc8d11df29c2c))
+* **backend:** install @ts-rest/fastify for type-safe route handlers ([ce20834](https://github.com/gander-tools/diff-voyager/commit/ce208341f312e2c267a566e20cfa4b78ba035658))
+* **backend:** integrate @ts-rest/fastify route handlers ([07cef30](https://github.com/gander-tools/diff-voyager/commit/07cef30b9879f7030808555653f9da9b7744a88e))
+
+
+### Bug Fixes
+
+* **backend:** fix multiple-runs tests with proper drizzleDb ([0b8f99b](https://github.com/gander-tools/diff-voyager/commit/0b8f99b7bab2a28079ce02ea5e40cd5fa1c7000f))
+* **backend:** fix page-details tests with proper drizzleDb ([484a646](https://github.com/gander-tools/diff-voyager/commit/484a6467c4d4f5919a755ed736f2ef75d299e08a))
+* **backend:** fix page-diff tests with proper drizzleDb ([2f61342](https://github.com/gander-tools/diff-voyager/commit/2f61342ce0b3d7401afd9f2d45c0e3e47432bda8))
+* **backend:** fix project-details tests with proper drizzleDb ([81a9613](https://github.com/gander-tools/diff-voyager/commit/81a9613afbb185228961ace0c16ca38cb6431753))
+* **backend:** fix project-list tests with proper drizzleDb ([9dea55c](https://github.com/gander-tools/diff-voyager/commit/9dea55c35b280edd99ae49ffe83e4442c235c46e))
+* **backend:** fix project-runs-list tests with proper drizzleDb ([78a24d6](https://github.com/gander-tools/diff-voyager/commit/78a24d6cdfb30175fa9e9e6bff8d2e9d43ce3c5d))
+* **backend:** fix run-details tests with proper drizzleDb ([540416e](https://github.com/gander-tools/diff-voyager/commit/540416eedf7a20a003c01e7456e908f96a393fe0))
+* **backend:** fix run-pages-list tests with proper drizzleDb ([66783f9](https://github.com/gander-tools/diff-voyager/commit/66783f9d432c89954786dd7bad68c4db0f1b5187))
+* **backend:** fix scan-endpoints tests with proper drizzleDb ([18544c3](https://github.com/gander-tools/diff-voyager/commit/18544c34c24029afecc1b0cb4a7d46f683d8d613))
+* **backend:** fix task-status tests with proper drizzleDb ([a940c4f](https://github.com/gander-tools/diff-voyager/commit/a940c4f63feb7ec709b3c2cb230bd4a650d2d7ea))
+* **backend:** use Drizzle repository implementations in [@ts-rest](https://github.com/ts-rest) routes ([1e25bfa](https://github.com/gander-tools/diff-voyager/commit/1e25bfabdac718b4fbd1e644c3312049e8e1109a))
+* **shared:** use z.coerce for query parameters in API contract ([24d1392](https://github.com/gander-tools/diff-voyager/commit/24d139229d40863c6791b2ebae06ed44344440fa))
+
 ## [0.1.12](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.11...diff-voyager-backend-v0.1.12) (2026-01-08)
 
 
