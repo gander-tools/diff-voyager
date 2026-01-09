@@ -279,6 +279,28 @@ See [Drizzle Migration Guide](../guides/drizzle-migration.md) for details.
 - Reusable components for status badges, statistics, and project cards
 - Delete confirmation with cascade deletion
 
+**Visual Preview**:
+
+See [UI Screenshots](../screenshots/README.md) for complete gallery. Key views completed in Phase 2:
+
+**Dashboard** (Phase 2 Complete):
+
+![Dashboard](../screenshots/01-dashboard.png)
+
+**Projects List** (Phase 2 Complete):
+
+![Projects List](../screenshots/02-projects-list.png)
+
+**Project Creation Wizard** (Phase 2 Complete):
+
+![Project Create](../screenshots/03-project-create.png)
+
+**Project Detail View** (Phase 2 Complete):
+
+![Project Detail](../screenshots/04-project-detail.png)
+
+For more screenshots, see [docs/screenshots/README.md](../screenshots/README.md).
+
 See [Frontend Implementation Plan](../features/frontend-plan.md) and [Frontend Status](../features/frontend-status.md) for details.
 
 ## Current Capabilities
