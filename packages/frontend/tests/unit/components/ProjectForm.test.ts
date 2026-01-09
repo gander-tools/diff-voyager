@@ -44,6 +44,8 @@ describe('ProjectForm', () => {
 
     if (submitButton.exists()) {
       await submitButton.trigger('click');
+      await wrapper.vm.$nextTick();
+      await new Promise((resolve) => setTimeout(resolve, 50)); // Wait for async validation
       expect(wrapper.text()).toContain('required');
     }
   });

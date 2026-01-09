@@ -11,9 +11,9 @@ import { z } from 'zod';
  */
 export const createProjectSchema = z.object({
   // Basic info
-  name: z.string().trim().min(1, 'validation.required').max(100, 'validation.maxLength'),
-  url: z.string().url('validation.invalidUrl'),
-  description: z.string().max(500, 'validation.maxLength').optional(),
+  name: z.string().trim().min(1, 'Project name is required').max(100, 'Maximum 100 characters'),
+  url: z.string().url('Invalid URL format'),
+  description: z.string().max(500, 'Maximum 500 characters').optional(),
 
   // Crawl settings
   crawl: z.boolean().default(false),
