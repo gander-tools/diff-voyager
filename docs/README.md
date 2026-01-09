@@ -16,6 +16,7 @@ Welcome to the Diff Voyager documentation. This guide will help you navigate thr
 ### Development Status
 - **[Implementation Status](development/implementation-status.md)** - Current phase completion, capabilities, and major milestones
 - **[Roadmap](development/roadmap.md)** - Planned features and next steps
+- **[Skipped Tests](development/skipped-tests.md)** - TODO/FIXME list of disabled tests with explanations
 
 ### API Reference
 - **[API Overview](api/overview.md)** - API design decisions and scenarios
@@ -44,6 +45,7 @@ docs/
 ├── development/
 │   ├── implementation-status.md
 │   ├── roadmap.md
+│   ├── skipped-tests.md
 │   └── changelog.md
 ├── api/
 │   ├── overview.md
