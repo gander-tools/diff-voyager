@@ -97,7 +97,7 @@ export const errorResponseSchema = z.object({
 export const projectConfigSchema = z.object({
   crawl: z.boolean(),
   viewport: viewportSchema,
-  visualDiffThreshold: z.number(),
+  visualDiffThreshold: z.number().min(0).max(1),
   maxPages: z.number().int().optional(),
 });
 
