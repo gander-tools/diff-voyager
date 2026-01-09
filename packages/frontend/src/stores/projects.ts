@@ -331,6 +331,7 @@ export const useProjectsStore = defineStore('projects', {
       try {
         const result = await client.deleteProject({
           params: { projectId: id },
+          body: undefined,
         });
 
         if (result.status === 204) {

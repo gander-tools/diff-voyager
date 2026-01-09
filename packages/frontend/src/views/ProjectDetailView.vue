@@ -4,7 +4,7 @@ import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import ProjectStatistics from '../components/ProjectStatistics.vue';
 import ProjectStatusBadge from '../components/ProjectStatusBadge.vue';
-import { useProjectsStore } from '../stores/projects';
+import { type ProjectDetails, useProjectsStore } from '../stores/projects';
 
 const route = useRoute();
 const router = useRouter();
@@ -15,6 +15,16 @@ const loading = ref(true);
 const error = ref<string | null>(null);
 
 const project = computed(() => projectsStore.currentProject);
+
+// Type guard for ProjectDetails
+const isProjectDetails = (p: typeof project.value): p is ProjectDetails => {
+  return p !== null && 'statistics' in p && 'config' in p;
+};
+
+const projectDetails = computed(() => {
+  const p = project.value;
+  return isProjectDetails(p) ? p : null;
+});
 
 const loadProject = async () => {
   loading.value = true;
@@ -95,26 +105,26 @@ onMounted(() => {
             <NText>{{ project.description }}</NText>
           </NCard>
 
-          <NCard v-if="project.statistics" title="Statistics">
-            <ProjectStatistics :statistics="project.statistics" />
+          <NCard v-if="projectDetails?.statistics" title="Statistics">
+            <ProjectStatistics :statistics="projectDetails.statistics" />
           </NCard>
 
-          <NCard v-if="project.config" title="Configuration">
+          <NCard v-if="projectDetails?.config" title="Configuration">
             <NSpace vertical :size="8">
               <NText>
-                <strong>Crawl:</strong> {{ project.config.crawl ? 'Enabled' : 'Disabled' }}
+                <strong>Crawl:</strong> {{ projectDetails.config.crawl ? 'Enabled' : 'Disabled' }}
               </NText>
-              <NText v-if="project.config.maxPages">
-                <strong>Max Pages:</strong> {{ project.config.maxPages }}
+              <NText v-if="projectDetails.config.maxPages">
+                <strong>Max Pages:</strong> {{ projectDetails.config.maxPages }}
               </NText>
               <NText>
-                <strong>Viewport:</strong> {{ project.config.viewport.width }}x{{
-                  project.config.viewport.height
+                <strong>Viewport:</strong> {{ projectDetails.config.viewport.width }}x{{
+                  projectDetails.config.viewport.height
                 }}
               </NText>
               <NText>
                 <strong>Visual Diff Threshold:</strong>
-                {{ (project.config.visualDiffThreshold * 100).toFixed(1) }}%
+                {{ (projectDetails.config.visualDiffThreshold * 100).toFixed(1) }}%
               </NText>
             </NSpace>
           </NCard>
