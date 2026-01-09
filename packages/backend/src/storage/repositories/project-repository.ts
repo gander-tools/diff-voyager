@@ -113,6 +113,12 @@ export class ProjectRepository {
     stmt.run(status, now, id);
   }
 
+  async delete(id: string): Promise<boolean> {
+    const stmt = this.db.prepare('DELETE FROM projects WHERE id = ?');
+    const result = stmt.run(id);
+    return result.changes > 0;
+  }
+
   private rowToEntity(row: ProjectRow): ProjectEntity {
     return {
       id: row.id,

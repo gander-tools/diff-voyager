@@ -101,17 +101,10 @@ export function compare(
     }
 
     // Perform pixel-by-pixel comparison
-    const diffPixels = pixelmatch(
-      baseline.data,
-      current.data,
-      diffOutput?.data ?? null,
-      width,
-      height,
-      {
-        threshold: colorThreshold,
-        includeAA: true,
-      },
-    );
+    const diffPixels = pixelmatch(baseline.data, current.data, diffOutput?.data, width, height, {
+      threshold: colorThreshold,
+      includeAA: true,
+    });
 
     // Calculate percentage
     const diffPercentage = totalPixels > 0 ? (diffPixels / totalPixels) * 100 : 0;

@@ -19,18 +19,14 @@ export interface SinglePageProcessorConfig {
 }
 
 export class SinglePageProcessor {
-  private browserManager: BrowserManager;
   private pageCapturer: PageCapturer;
   private pageRepository: PageRepository;
   private snapshotRepository: SnapshotRepository;
-  private artifactsDir: string;
 
   constructor(config: SinglePageProcessorConfig) {
-    this.browserManager = config.browserManager;
     this.pageCapturer = config.pageCapturer;
     this.pageRepository = config.pageRepository;
     this.snapshotRepository = config.snapshotRepository;
-    this.artifactsDir = config.artifactsDir;
   }
 
   /**
