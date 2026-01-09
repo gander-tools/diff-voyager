@@ -23,7 +23,7 @@ const mockRouter = {
 };
 
 const mockRoute = {
-  params: { id: 'proj-123' },
+  params: { projectId: 'proj-123' },
 };
 
 vi.mock('vue-router', () => ({

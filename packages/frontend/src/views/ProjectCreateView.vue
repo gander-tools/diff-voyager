@@ -20,7 +20,7 @@ const handleSubmit = async (formData: CreateProjectInput) => {
     if (project) {
       await router.push({
         name: 'project-detail',
-        params: { id: project.id },
+        params: { projectId: project.id },
       });
     }
   } catch (error) {
