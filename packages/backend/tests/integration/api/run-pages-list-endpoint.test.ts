@@ -313,6 +313,8 @@ describe('GET /api/v1/runs/:runId/pages', () => {
 
     expect(response.statusCode).toBe(400);
     const body = JSON.parse(response.body);
-    expect(body.error.code).toBe('VALIDATION_ERROR');
+    // @ts-rest returns Zod validation errors in pathParameterErrors
+    expect(body.pathParameterErrors).toBeDefined();
+    expect(body.pathParameterErrors.issues[0].validation).toBe('uuid');
   });
 });

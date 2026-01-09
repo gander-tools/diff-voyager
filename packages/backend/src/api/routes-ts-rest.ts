@@ -7,6 +7,7 @@
 
 import { apiContract, PageStatus } from '@gander-tools/diff-voyager-shared';
 import { initServer } from '@ts-rest/fastify';
+import type { TaskQueue } from '../queue/task-queue.js';
 import { ScanProcessor } from '../services/scan-processor.js';
 import type { DatabaseInstance } from '../storage/database.js';
 import type { DrizzleDb } from '../storage/drizzle/db.js';
@@ -19,10 +20,11 @@ export interface TsRestRoutesConfig {
   db: DatabaseInstance;
   drizzleDb: DrizzleDb;
   artifactsDir: string;
+  taskQueue: TaskQueue;
 }
 
 export function createTsRestRoutes(config: TsRestRoutesConfig) {
-  const { db, drizzleDb, artifactsDir } = config;
+  const { db, drizzleDb, artifactsDir, taskQueue } = config;
   const projectRepo = new ProjectRepositoryDrizzle(drizzleDb);
   const runRepo = new RunRepositoryDrizzle(drizzleDb);
   const pageRepo = new PageRepositoryDrizzle(drizzleDb);
@@ -101,6 +103,7 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
             const snapshot = snapshotByPageId.get(page.id);
             return {
               id: page.id,
+              projectId: page.projectId,
               url: page.normalizedUrl,
               originalUrl: page.originalUrl,
               status: snapshot?.status || PageStatus.PENDING,
@@ -230,11 +233,7 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
         const snapshotByPageId = new Map(snapshots.map((s) => [s.pageId, s]));
 
         // Build pages response
-        // Handle both boolean false and string 'false' from query params
-        const includePages =
-          query.includePages !== false &&
-          query.includePages !== 'false' &&
-          query.includePages !== '0';
+        const includePages = query.includePages !== false;
         const pageLimit = query.pageLimit || 50;
         const pageOffset = query.pageOffset || 0;
 
@@ -246,6 +245,7 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
             const snapshot = snapshotByPageId.get(page.id);
             pagesResponse.push({
               id: page.id,
+              projectId: page.projectId,
               url: page.normalizedUrl,
               originalUrl: page.originalUrl,
               status: snapshot?.status || PageStatus.PENDING,
@@ -410,6 +410,11 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
           };
         }
 
+        // Get snapshots for statistics
+        const snapshots = await snapshotRepo.findByRunId(params.runId);
+        const completedPages = snapshots.filter((s) => s.status === PageStatus.COMPLETED).length;
+        const errorPages = snapshots.filter((s) => s.status === PageStatus.ERROR).length;
+
         return {
           status: 200 as const,
           body: {
@@ -418,6 +423,12 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
             isBaseline: run.isBaseline,
             status: run.status,
             createdAt: run.createdAt.toISOString(),
+            config: run.config,
+            statistics: {
+              totalPages: snapshots.length,
+              completedPages,
+              errorPages,
+            },
           },
         };
       },
@@ -467,6 +478,223 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
               htmlUrl: snapshot?.htmlPath ? `/api/v1/artifacts/${page.id}/html` : undefined,
             },
             diff: null, // TODO: implement diffs
+          },
+        };
+      },
+    },
+
+    getPageDiff: {
+      handler: async ({ params }) => {
+        const page = await pageRepo.findById(params.pageId);
+        if (!page) {
+          return {
+            status: 404 as const,
+            body: {
+              error: {
+                code: 'NOT_FOUND',
+                message: 'Page not found',
+              },
+            },
+          };
+        }
+
+        // Get baseline and comparison runs
+        const runs = await runRepo.findByProjectId(page.projectId);
+        const baselineRun = runs.find((r) => r.isBaseline);
+        const comparisonRun = runs.find((r) => !r.isBaseline);
+
+        if (!baselineRun || !comparisonRun) {
+          return {
+            status: 404 as const,
+            body: {
+              error: {
+                code: 'NOT_FOUND',
+                message: 'No comparison run found',
+              },
+            },
+          };
+        }
+
+        // Get snapshots for both runs
+        const baselineSnapshots = await snapshotRepo.findByRunId(baselineRun.id);
+        const comparisonSnapshots = await snapshotRepo.findByRunId(comparisonRun.id);
+
+        const baselineSnapshot = baselineSnapshots.find((s) => s.pageId === page.id);
+        const comparisonSnapshot = comparisonSnapshots.find((s) => s.pageId === page.id);
+
+        // Compare SEO
+        const seoChanges = [];
+        if (baselineSnapshot?.seoData && comparisonSnapshot?.seoData) {
+          const baselineSeo = baselineSnapshot.seoData;
+          const comparisonSeo = comparisonSnapshot.seoData;
+
+          if (baselineSeo.title !== comparisonSeo.title) {
+            seoChanges.push({
+              field: 'title',
+              baseline: baselineSeo.title,
+              current: comparisonSeo.title,
+            });
+          }
+          if (baselineSeo.metaDescription !== comparisonSeo.metaDescription) {
+            seoChanges.push({
+              field: 'metaDescription',
+              baseline: baselineSeo.metaDescription,
+              current: comparisonSeo.metaDescription,
+            });
+          }
+        }
+
+        // Compare headers
+        const headerChanges = [];
+        if (baselineSnapshot?.headers && comparisonSnapshot?.headers) {
+          const allHeaders = new Set([
+            ...Object.keys(baselineSnapshot.headers),
+            ...Object.keys(comparisonSnapshot.headers),
+          ]);
+
+          for (const header of allHeaders) {
+            const baselineValue = baselineSnapshot.headers[header];
+            const comparisonValue = comparisonSnapshot.headers[header];
+            if (baselineValue !== comparisonValue) {
+              headerChanges.push({
+                header,
+                baseline: baselineValue,
+                current: comparisonValue,
+              });
+            }
+          }
+        }
+
+        // Compare performance
+        const performanceChanges = [];
+        if (baselineSnapshot?.performanceData && comparisonSnapshot?.performanceData) {
+          const baselinePerf = baselineSnapshot.performanceData;
+          const comparisonPerf = comparisonSnapshot.performanceData;
+
+          if (baselinePerf.loadTimeMs !== comparisonPerf.loadTimeMs) {
+            performanceChanges.push({
+              metric: 'loadTimeMs',
+              baseline: baselinePerf.loadTimeMs,
+              current: comparisonPerf.loadTimeMs,
+            });
+          }
+        }
+
+        const hasChanges =
+          seoChanges.length > 0 || headerChanges.length > 0 || performanceChanges.length > 0;
+
+        return {
+          status: 200 as const,
+          body: {
+            pageId: page.id,
+            hasChanges,
+            seoChanges,
+            headerChanges,
+            performanceChanges,
+          },
+        };
+      },
+    },
+
+    listRunPages: {
+      handler: async ({ params, query }) => {
+        const run = await runRepo.findById(params.runId);
+        if (!run) {
+          return {
+            status: 404 as const,
+            body: {
+              error: {
+                code: 'NOT_FOUND',
+                message: 'Run not found',
+              },
+            },
+          };
+        }
+
+        const snapshots = await snapshotRepo.findByRunId(params.runId);
+        const pages = await pageRepo.findByProjectId(run.projectId);
+        const snapshotByPageId = new Map(snapshots.map((s) => [s.pageId, s]));
+
+        // Filter by status if provided
+        let filteredPages = pages;
+        if (query.status) {
+          filteredPages = pages.filter((page) => {
+            const snapshot = snapshotByPageId.get(page.id);
+            return snapshot?.status === query.status;
+          });
+        }
+
+        // Pagination
+        const limit = query.limit || 50;
+        const offset = query.offset || 0;
+        const paginatedPages = filteredPages.slice(offset, offset + limit);
+
+        const pagesResponse = paginatedPages.map((page) => {
+          const snapshot = snapshotByPageId.get(page.id);
+          return {
+            id: page.id,
+            projectId: page.projectId,
+            url: page.normalizedUrl,
+            originalUrl: page.originalUrl,
+            status: snapshot?.status || PageStatus.PENDING,
+            httpStatus: snapshot?.httpStatus,
+            capturedAt: snapshot?.capturedAt?.toISOString(),
+            seoData: snapshot?.seoData,
+            httpHeaders: snapshot?.headers,
+            performanceData: snapshot?.performanceData,
+            artifacts: {
+              screenshotUrl: snapshot?.screenshotPath
+                ? `/api/v1/artifacts/${page.id}/screenshot`
+                : undefined,
+              harUrl: snapshot?.harPath ? `/api/v1/artifacts/${page.id}/har` : undefined,
+              htmlUrl: snapshot?.htmlPath ? `/api/v1/artifacts/${page.id}/html` : undefined,
+            },
+            diff: null,
+          };
+        });
+
+        return {
+          status: 200 as const,
+          body: {
+            pages: pagesResponse,
+            pagination: {
+              total: filteredPages.length,
+              limit,
+              offset,
+              hasMore: offset + limit < filteredPages.length,
+            },
+          },
+        };
+      },
+    },
+
+    getTaskStatus: {
+      handler: async ({ params }) => {
+        const task = taskQueue.findById(params.taskId);
+        if (!task) {
+          return {
+            status: 404 as const,
+            body: {
+              error: {
+                code: 'NOT_FOUND',
+                message: 'Task not found',
+              },
+            },
+          };
+        }
+
+        return {
+          status: 200 as const,
+          body: {
+            id: task.id,
+            type: task.type,
+            status: task.status,
+            createdAt: task.createdAt.toISOString(),
+            startedAt: task.startedAt?.toISOString(),
+            completedAt: task.completedAt?.toISOString(),
+            attempts: task.attempts,
+            error: task.error,
+            payload: task.payload,
           },
         };
       },

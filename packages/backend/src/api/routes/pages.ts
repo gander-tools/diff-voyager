@@ -269,12 +269,12 @@ export async function registerPageRoutes(
           });
         }
 
-        // Check description
-        if (baselineSeo.description !== currentSeo.description) {
+        // Check metaDescription
+        if (baselineSeo.metaDescription !== currentSeo.metaDescription) {
           seoChanges.push({
-            field: 'description',
-            baseline: baselineSeo.description || '',
-            current: currentSeo.description || '',
+            field: 'metaDescription',
+            baseline: baselineSeo.metaDescription || '',
+            current: currentSeo.metaDescription || '',
           });
         }
       }
@@ -311,12 +311,12 @@ export async function registerPageRoutes(
         const baselinePerf = baselineSnapshot.performanceData;
         const currentPerf = comparisonSnapshot.performanceData;
 
-        // Check loadTime
-        if (baselinePerf.loadTime !== currentPerf.loadTime) {
+        // Check loadTimeMs
+        if (baselinePerf.loadTimeMs !== currentPerf.loadTimeMs) {
           performanceChanges.push({
-            metric: 'loadTime',
-            baseline: baselinePerf.loadTime || 0,
-            current: currentPerf.loadTime || 0,
+            metric: 'loadTimeMs',
+            baseline: baselinePerf.loadTimeMs || 0,
+            current: currentPerf.loadTimeMs || 0,
           });
         }
 
@@ -329,12 +329,12 @@ export async function registerPageRoutes(
           });
         }
 
-        // Check totalSize
-        if (baselinePerf.totalSize !== currentPerf.totalSize) {
+        // Check totalSizeBytes
+        if (baselinePerf.totalSizeBytes !== currentPerf.totalSizeBytes) {
           performanceChanges.push({
-            metric: 'totalSize',
-            baseline: baselinePerf.totalSize || 0,
-            current: currentPerf.totalSize || 0,
+            metric: 'totalSizeBytes',
+            baseline: baselinePerf.totalSizeBytes || 0,
+            current: currentPerf.totalSizeBytes || 0,
           });
         }
       }

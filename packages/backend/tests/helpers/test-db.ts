@@ -10,6 +10,7 @@ import Database from 'better-sqlite3';
 import type { FastifyInstance } from 'fastify';
 import * as tmp from 'tmp';
 import { createApp } from '../../src/api/app.js';
+import { TaskQueue } from '../../src/queue/task-queue.js';
 import { createDrizzleDb, type DrizzleDb } from '../../src/storage/drizzle/db.js';
 
 export type TestDatabase = Database.Database;
@@ -57,12 +58,15 @@ export async function createDrizzleTestDb(): Promise<DrizzleDb> {
 export async function createTestApp(config: {
   db: Database.Database;
   artifactsDir: string;
+  taskQueue?: TaskQueue;
 }): Promise<FastifyInstance> {
   const drizzleDb = createDrizzleDb(config.db);
+  const taskQueue = config.taskQueue || new TaskQueue(config.db);
   const app = await createApp({
     db: config.db,
     drizzleDb,
     artifactsDir: config.artifactsDir,
+    taskQueue,
   });
   await app.ready();
   return app;
