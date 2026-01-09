@@ -15,35 +15,35 @@ const c = initContract();
 // ============================================================================
 
 // Common schemas
-const uuidSchema = z.string().uuid();
-const urlSchema = z.string().url();
-const timestampSchema = z.string().datetime();
+export const uuidSchema = z.string().uuid();
+export const urlSchema = z.string().url();
+export const timestampSchema = z.string().datetime();
 
 // Viewport configuration
-const viewportSchema = z.object({
+export const viewportSchema = z.object({
   width: z.number().int().min(320),
   height: z.number().int().min(240),
 });
 
 // Path parameters
-const projectIdParamSchema = z.object({
+export const projectIdParamSchema = z.object({
   projectId: uuidSchema,
 });
 
-const runIdParamSchema = z.object({
+export const runIdParamSchema = z.object({
   runId: uuidSchema,
 });
 
-const pageIdParamSchema = z.object({
+export const pageIdParamSchema = z.object({
   pageId: uuidSchema,
 });
 
-const taskIdParamSchema = z.object({
+export const taskIdParamSchema = z.object({
   taskId: uuidSchema,
 });
 
 // Request schemas
-const createScanBodySchema = z.object({
+export const createScanBodySchema = z.object({
   url: urlSchema,
   sync: z.boolean().optional(),
   name: z.string().optional(),
@@ -56,23 +56,23 @@ const createScanBodySchema = z.object({
   visualDiffThreshold: z.number().min(0).max(1).optional(),
 });
 
-const getProjectQuerySchema = z.object({
+export const getProjectQuerySchema = z.object({
   includePages: z.coerce.boolean().optional(),
   pageLimit: z.coerce.number().int().min(1).optional(),
   pageOffset: z.coerce.number().int().min(0).optional(),
 });
 
-const listProjectsQuerySchema = z.object({
+export const listProjectsQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).optional(),
   offset: z.coerce.number().int().min(0).optional(),
 });
 
-const listRunsQuerySchema = z.object({
+export const listRunsQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).optional(),
   offset: z.coerce.number().int().min(0).optional(),
 });
 
-const createRunBodySchema = z.object({
+export const createRunBodySchema = z.object({
   url: urlSchema,
   viewport: viewportSchema.optional(),
   collectHar: z.boolean().optional(),
@@ -80,28 +80,28 @@ const createRunBodySchema = z.object({
 });
 
 // Response schemas
-const paginationSchema = z.object({
+export const paginationSchema = z.object({
   total: z.number().int(),
   limit: z.number().int(),
   offset: z.number().int(),
   hasMore: z.boolean(),
 });
 
-const errorResponseSchema = z.object({
+export const errorResponseSchema = z.object({
   error: z.object({
     code: z.string(),
     message: z.string(),
   }),
 });
 
-const projectConfigSchema = z.object({
+export const projectConfigSchema = z.object({
   crawl: z.boolean(),
   viewport: viewportSchema,
   visualDiffThreshold: z.number(),
   maxPages: z.number().int().optional(),
 });
 
-const statisticsSchema = z.object({
+export const statisticsSchema = z.object({
   totalPages: z.number().int(),
   completedPages: z.number().int(),
   errorPages: z.number().int(),
@@ -113,7 +113,7 @@ const statisticsSchema = z.object({
   mutedDifferences: z.number().int(),
 });
 
-const pageResponseSchema = z.object({
+export const pageResponseSchema = z.object({
   id: uuidSchema,
   projectId: uuidSchema,
   url: z.string(),
@@ -134,7 +134,7 @@ const pageResponseSchema = z.object({
   diff: z.any().nullable(), // TODO: Add detailed schema
 });
 
-const projectDetailsSchema = z.object({
+export const projectDetailsSchema = z.object({
   id: uuidSchema,
   name: z.string(),
   description: z.string(),
@@ -148,7 +148,7 @@ const projectDetailsSchema = z.object({
   pagination: paginationSchema,
 });
 
-const projectListItemSchema = z.object({
+export const projectListItemSchema = z.object({
   id: uuidSchema,
   name: z.string(),
   description: z.string(),
@@ -159,20 +159,20 @@ const projectListItemSchema = z.object({
 });
 
 // Run configuration
-const runConfigSchema = z.object({
+export const runConfigSchema = z.object({
   viewport: viewportSchema,
   captureScreenshots: z.boolean(),
   captureHar: z.boolean(),
 });
 
 // Run statistics
-const runStatisticsSchema = z.object({
+export const runStatisticsSchema = z.object({
   totalPages: z.number().int(),
   completedPages: z.number().int(),
   errorPages: z.number().int(),
 });
 
-const runResponseSchema = z.object({
+export const runResponseSchema = z.object({
   id: uuidSchema,
   projectId: uuidSchema,
   isBaseline: z.boolean(),
@@ -180,7 +180,7 @@ const runResponseSchema = z.object({
   createdAt: timestampSchema,
 });
 
-const runDetailsSchema = z.object({
+export const runDetailsSchema = z.object({
   id: uuidSchema,
   projectId: uuidSchema,
   isBaseline: z.boolean(),
@@ -191,7 +191,7 @@ const runDetailsSchema = z.object({
 });
 
 // Task status schema
-const taskStatusSchema = z.object({
+export const taskStatusSchema = z.object({
   id: uuidSchema,
   type: z.string(),
   status: z.enum(['pending', 'processing', 'completed', 'failed']),
@@ -204,7 +204,7 @@ const taskStatusSchema = z.object({
 });
 
 // Page diff schema
-const pageDiffSchema = z.object({
+export const pageDiffSchema = z.object({
   pageId: uuidSchema,
   hasChanges: z.boolean(),
   seoChanges: z.array(
@@ -231,21 +231,28 @@ const pageDiffSchema = z.object({
 });
 
 // Run pages list schema
-const runPagesListSchema = z.object({
+export const runPagesListSchema = z.object({
   pages: z.array(pageResponseSchema),
   pagination: paginationSchema,
 });
 
-const createScanAsyncResponseSchema = z.object({
+export const createScanAsyncResponseSchema = z.object({
   projectId: uuidSchema,
   status: z.string(),
   projectUrl: z.string(),
 });
 
-const createRunResponseSchema = z.object({
+export const createRunResponseSchema = z.object({
   runId: uuidSchema,
   status: z.string(),
   runUrl: z.string(),
+});
+
+// List run pages query schema
+export const listRunPagesQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
+  status: z.string().optional(),
 });
 
 // ============================================================================
@@ -380,11 +387,7 @@ export const apiContract = c.router({
       400: errorResponseSchema,
     },
     pathParams: runIdParamSchema,
-    query: z.object({
-      limit: z.coerce.number().int().min(1).max(100).optional(),
-      offset: z.coerce.number().int().min(0).optional(),
-      status: z.string().optional(),
-    }),
+    query: listRunPagesQuerySchema,
     summary: 'List all pages in a run with pagination',
   },
 
