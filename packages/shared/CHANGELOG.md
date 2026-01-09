@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.6](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-shared-v0.1.5...diff-voyager-shared-v0.1.6) (2026-01-09)
+
+
+### Bug Fixes
+
+* **shared:** use tsc --build for composite project compilation ([1198a93](https://github.com/gander-tools/diff-voyager/commit/1198a9398790fd8a39d15acf3d25d53e42caaee4))
+
 ## [0.1.5](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-shared-v0.1.4...diff-voyager-shared-v0.1.5) (2026-01-09)
 
 

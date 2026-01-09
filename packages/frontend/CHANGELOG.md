@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.1.11](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.10...diff-voyager-frontend-v0.1.11) (2026-01-09)
+
+
+### Bug Fixes
+
+* **frontend:** downgrade zod to v3 for vee-validate compatibility ([7fc585b](https://github.com/gander-tools/diff-voyager/commit/7fc585b12583b4743ced8f4d6c08562c697c358f))
+* **frontend:** resolve component type errors after dependency updates ([3459140](https://github.com/gander-tools/diff-voyager/commit/345914098a31609ebdb59e26b18d6ea30c8a27e8))
+* **frontend:** resolve vue-tsc type-check errors for production build ([107e014](https://github.com/gander-tools/diff-voyager/commit/107e014e6d2a3a2c8e22035df4ee5f6da6bf6017))
+* **frontend:** simplify ofetch type handling for compatibility ([6ee02be](https://github.com/gander-tools/diff-voyager/commit/6ee02be23090016149b25343fae2a3b5d0fffe8a))
+* **frontend:** update vue-i18n API usage for v11 compatibility ([bad6de3](https://github.com/gander-tools/diff-voyager/commit/bad6de3f41cd0b5a0a0ef2a3167c6a6cab2a648e))
+
 ## [0.1.10](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.9...diff-voyager-frontend-v0.1.10) (2026-01-09)
 
 
