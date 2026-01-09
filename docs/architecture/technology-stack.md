@@ -125,14 +125,66 @@ Diff Voyager uses modern TypeScript-based tools optimized for local development 
 - Optimized production builds
 - Native ES modules
 
+#### UI Libraries
+
+| Technology | Version | Purpose |
+|-----------|---------|---------|
+| **Naive UI** | 2.43.x | Vue 3 component library |
+| **@vicons/tabler** | 0.13.x | Icon library (Tabler icons) |
+
+**Why Naive UI?**
+- Comprehensive component library for Vue 3
+- Built-in TypeScript support
+- Consistent design system
+- Good documentation
+
 #### State & Routing
 
 | Technology | Version | Purpose |
 |-----------|---------|---------|
-| **Pinia** | Latest | State management |
-| **Vue Router** | Latest | Client-side routing |
+| **Pinia** | 3.x | State management |
+| **Vue Router** | 4.x | Client-side routing |
 
-**Status**: Planned, not yet implemented
+**Why Pinia?**
+- Official Vue state management (replaces Vuex)
+- Excellent TypeScript support
+- Composition API integration
+- Lightweight and modular
+
+#### Form Validation
+
+| Technology | Version | Purpose |
+|-----------|---------|---------|
+| **vee-validate** | 4.15.x | Vue 3 form validation |
+| **@vee-validate/zod** | 4.15.x | Zod integration for vee-validate |
+| **Zod** | 3.25.x | Schema validation |
+
+**Why vee-validate + Zod?**
+- Declarative validation (no manual error handling)
+- Single source of truth (Zod schemas)
+- Type-safe with full TypeScript inference
+- Built-in async validation support
+- Seamless Vue 3 Composition API integration
+
+**Important**: Zod v3 required for compatibility with both `@ts-rest/core` and `@vee-validate/zod`
+
+#### Type-Safe API Communication
+
+| Technology | Version | Purpose |
+|-----------|---------|---------|
+| **@ts-rest/core** | 3.52.x | Type-safe API client/server |
+| **ofetch** | 1.x | Modern fetch wrapper |
+
+**Why @ts-rest?**
+- Single source of truth for API contract
+- Compile-time type safety between frontend and backend
+- Automatic route generation
+- Runtime validation with Zod schemas
+- Full IDE autocomplete for API calls
+
+See [CLAUDE.md](../../CLAUDE.md) for @ts-rest usage examples
+
+**Status**: ✅ Frontend Phase 2 complete (January 2026)
 
 ### Shared Package
 
