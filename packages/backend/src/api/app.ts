@@ -2,6 +2,7 @@
  * Fastify application setup
  */
 
+import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
@@ -28,6 +29,12 @@ export interface AppConfig {
 export async function createApp(config: AppConfig): Promise<FastifyInstance> {
   const app = Fastify({
     logger: false,
+  });
+
+  // Register CORS plugin
+  await app.register(cors, {
+    origin: true, // Allow all origins in development
+    credentials: true,
   });
 
   // Register rate limiting plugin
