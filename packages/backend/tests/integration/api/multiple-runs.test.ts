@@ -13,7 +13,6 @@ import { RunStatus } from '@gander-tools/diff-voyager-shared';
 import type { FastifyInstance } from 'fastify';
 import * as tmp from 'tmp';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { createApp } from '../../../src/api/app.js';
 import {
   closeDatabase,
   createDatabase,
@@ -22,6 +21,7 @@ import {
 import { RunRepository } from '../../../src/storage/repositories/run-repository.js';
 import { HTML_FIXTURES } from '../../fixtures/html/index.js';
 import { MockServer } from '../../helpers/mock-server.js';
+import { createTestApp } from '../../helpers/test-db.js';
 
 describe('Multiple runs scenario', () => {
   let app: FastifyInstance;
@@ -48,7 +48,7 @@ describe('Multiple runs scenario', () => {
     runRepo = new RunRepository(db);
 
     // Create app
-    app = await createApp({ db, artifactsDir });
+    app = await createTestApp({ db, artifactsDir });
 
     // Start mock server with two different HTML versions
     mockServer = new MockServer({
