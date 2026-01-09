@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.3](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-shared-v0.1.2...diff-voyager-shared-v0.1.3) (2026-01-09)
+
+
+### Features
+
+* **backend:** add missing [@ts-rest](https://github.com/ts-rest) endpoints and fix field names ([9ea8f9d](https://github.com/gander-tools/diff-voyager/commit/9ea8f9d9b89583356f742a8b4a4cc8d11df29c2c))
+* **shared:** add @ts-rest/core API contract with Zod schemas ([f1eb271](https://github.com/gander-tools/diff-voyager/commit/f1eb27177241ce60a94db6ee8d1a3af5bd50f04c))
+
+
+### Bug Fixes
+
+* **backend:** fix page-details tests with proper drizzleDb ([484a646](https://github.com/gander-tools/diff-voyager/commit/484a6467c4d4f5919a755ed736f2ef75d299e08a))
+* **shared:** use z.coerce for query parameters in API contract ([24d1392](https://github.com/gander-tools/diff-voyager/commit/24d139229d40863c6791b2ebae06ed44344440fa))
+
 ## [0.1.2](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-shared-v0.1.1...diff-voyager-shared-v0.1.2) (2026-01-08)
 
 

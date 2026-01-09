@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.8](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.7...diff-voyager-frontend-v0.1.8) (2026-01-09)
+
+
+### Features
+
+* **frontend:** add type-safe Vue Router helpers ([0e9ac2a](https://github.com/gander-tools/diff-voyager/commit/0e9ac2aeda081c1db1361544e65e306807c8de77))
+* **frontend:** install @ts-rest/core for type-safe API client ([c7b03a6](https://github.com/gander-tools/diff-voyager/commit/c7b03a641d6bb43120b7b37c40e31a7eb3275aab))
+* **frontend:** integrate [@ts-rest](https://github.com/ts-rest) client in API services ([9b8aea1](https://github.com/gander-tools/diff-voyager/commit/9b8aea16777be8826957e535875bfecf59f8f41f))
+
 ## [0.1.7](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.6...diff-voyager-frontend-v0.1.7) (2026-01-08)
 
 
