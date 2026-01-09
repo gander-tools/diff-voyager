@@ -2,9 +2,9 @@
  * Domain barrel export
  */
 
-export * from './header-comparator.js';
-export * from './page-comparator.js';
-export * from './performance-comparator.js';
-export * from './seo-comparator.js';
-export * from './url-normalizer.js';
-export * from './visual-comparator.js';
+export * as HeaderComparator from './header-comparator.js';
+export * as PageComparator from './page-comparator.js';
+export * as PerformanceComparator from './performance-comparator.js';
+export * as SeoComparator from './seo-comparator.js';
+export * as UrlNormalizer from './url-normalizer.js';
+export * as VisualComparator from './visual-comparator.js';
