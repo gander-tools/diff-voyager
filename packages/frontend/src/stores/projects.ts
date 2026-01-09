@@ -98,7 +98,9 @@ export const useProjectsStore = defineStore('projects', {
      * Get ordered list of projects
      */
     projectList: (state): ProjectListItem[] => {
-      return state.list.map((id) => state.items.get(id)!).filter(Boolean);
+      return state.list
+        .map((id) => state.items.get(id))
+        .filter((item): item is ProjectListItem => item !== undefined);
     },
 
     /**
@@ -121,8 +123,8 @@ export const useProjectsStore = defineStore('projects', {
       (state) =>
       (limit = 5): ProjectListItem[] => {
         return state.list
-          .map((id) => state.items.get(id)!)
-          .filter(Boolean)
+          .map((id) => state.items.get(id))
+          .filter((item): item is ProjectListItem => item !== undefined)
           .slice(0, limit);
       },
 

@@ -139,7 +139,7 @@ describe('DashboardView', () => {
   });
 
   it('should display loading state', async () => {
-    let resolveRequest: (value: unknown) => void;
+    let resolveRequest: ((value: unknown) => void) | undefined;
     const requestPromise = new Promise((resolve) => {
       resolveRequest = resolve;
     });
@@ -159,7 +159,7 @@ describe('DashboardView', () => {
 
     expect(wrapper.text()).toContain('Loading');
 
-    resolveRequest!(null);
+    resolveRequest?.(null);
     await new Promise((resolve) => setTimeout(resolve, 100));
   });
 
