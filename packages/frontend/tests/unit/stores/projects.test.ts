@@ -118,7 +118,7 @@ describe('projectsStore', () => {
     });
 
     it('should set loading state during fetch', async () => {
-      let resolveRequest: (value: unknown) => void;
+      let resolveRequest: ((value: unknown) => void) | undefined;
       const requestPromise = new Promise((resolve) => {
         resolveRequest = resolve;
       });
@@ -138,7 +138,7 @@ describe('projectsStore', () => {
 
       expect(store.loading).toBe(true);
 
-      resolveRequest!(null);
+      resolveRequest?.(null);
       await fetchPromise;
 
       expect(store.loading).toBe(false);

@@ -147,7 +147,7 @@ describe('ProjectCreateView', () => {
   });
 
   it('should show loading state during project creation', async () => {
-    let resolveRequest: (value: unknown) => void;
+    let resolveRequest: ((value: unknown) => void) | undefined;
     const requestPromise = new Promise((resolve) => {
       resolveRequest = resolve;
     });
@@ -184,7 +184,7 @@ describe('ProjectCreateView', () => {
 
       expect(wrapper.text()).toContain('Creating');
 
-      resolveRequest!(null);
+      resolveRequest?.(null);
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
   });
