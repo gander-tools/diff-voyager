@@ -442,4 +442,97 @@ describe('@ts-rest API Routes', () => {
       expect(response.statusCode).toBe(404);
     });
   });
+
+  describe('DELETE /api/v1/projects/:projectId (@ts-rest deleteProject)', () => {
+    it('should delete a project and return 204', async () => {
+      // Create a project first
+      const createResponse = await app.inject({
+        method: 'POST',
+        url: '/api/v1/scans',
+        payload: {
+          url: `${baseUrl}/test-page`,
+          sync: true,
+          name: 'Project To Delete',
+        },
+      });
+
+      expect(createResponse.statusCode).toBe(200);
+      const project = JSON.parse(createResponse.body);
+      const projectId = project.id;
+
+      // Delete the project
+      const deleteResponse = await app.inject({
+        method: 'DELETE',
+        url: `/api/v1/projects/${projectId}`,
+      });
+
+      expect(deleteResponse.statusCode).toBe(204);
+      expect(deleteResponse.body).toBe('');
+
+      // Verify project is deleted (GET should return 404)
+      const getResponse = await app.inject({
+        method: 'GET',
+        url: `/api/v1/projects/${projectId}`,
+      });
+
+      expect(getResponse.statusCode).toBe(404);
+    });
+
+    it('should return 404 when deleting non-existent project', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: '/api/v1/projects/00000000-0000-0000-0000-000000000000',
+      });
+
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.body);
+      expect(body).toHaveProperty('error');
+    });
+
+    it('should return 400 for invalid UUID format', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: '/api/v1/projects/invalid-uuid',
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should cascade delete all related data (pages, snapshots)', async () => {
+      // Create a project with pages
+      const createResponse = await app.inject({
+        method: 'POST',
+        url: '/api/v1/scans',
+        payload: {
+          url: `${baseUrl}/test-page`,
+          sync: true,
+          name: 'Project With Pages',
+        },
+      });
+
+      const project = JSON.parse(createResponse.body);
+      const projectId = project.id;
+
+      // Verify project has pages
+      expect(project.pages).toBeDefined();
+      expect(project.pages.length).toBeGreaterThan(0);
+      const pageId = project.pages[0].id;
+
+      // Delete the project
+      const deleteResponse = await app.inject({
+        method: 'DELETE',
+        url: `/api/v1/projects/${projectId}`,
+      });
+
+      expect(deleteResponse.statusCode).toBe(204);
+
+      // Verify pages are also deleted (GET page should return 404)
+      const getPageResponse = await app.inject({
+        method: 'GET',
+        url: `/api/v1/pages/${pageId}`,
+      });
+
+      expect(getPageResponse.statusCode).toBe(404);
+    });
+  });
 });
