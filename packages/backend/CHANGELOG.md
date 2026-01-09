@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.16](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.15...diff-voyager-backend-v0.1.16) (2026-01-09)
+
+
+### Bug Fixes
+
+* **backend:** add ES module support and resolve TypeScript errors ([85d98e5](https://github.com/gander-tools/diff-voyager/commit/85d98e5ced2aa740ac114f0f6f1f7226c45d627a))
+
 ## [0.1.15](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.14...diff-voyager-backend-v0.1.15) (2026-01-09)
 
 
