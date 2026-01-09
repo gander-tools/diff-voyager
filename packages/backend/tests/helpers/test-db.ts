@@ -7,7 +7,9 @@ import { randomUUID } from 'node:crypto';
 import { existsSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import Database from 'better-sqlite3';
+import type { FastifyInstance } from 'fastify';
 import * as tmp from 'tmp';
+import { createApp } from '../../src/api/app.js';
 import { createDrizzleDb, type DrizzleDb } from '../../src/storage/drizzle/db.js';
 
 export type TestDatabase = Database.Database;
@@ -46,4 +48,22 @@ export async function cleanupTestDb(db: TestDatabase): Promise<void> {
 export async function createDrizzleTestDb(): Promise<DrizzleDb> {
   const sqliteDb = await createTestDb();
   return createDrizzleDb(sqliteDb);
+}
+
+/**
+ * Create a test Fastify application with proper drizzleDb initialization
+ * This helper ensures all tests use the correct setup with both db and drizzleDb
+ */
+export async function createTestApp(config: {
+  db: Database.Database;
+  artifactsDir: string;
+}): Promise<FastifyInstance> {
+  const drizzleDb = createDrizzleDb(config.db);
+  const app = await createApp({
+    db: config.db,
+    drizzleDb,
+    artifactsDir: config.artifactsDir,
+  });
+  await app.ready();
+  return app;
 }
