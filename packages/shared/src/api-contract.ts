@@ -38,6 +38,10 @@ const pageIdParamSchema = z.object({
   pageId: uuidSchema,
 });
 
+const taskIdParamSchema = z.object({
+  taskId: uuidSchema,
+});
+
 // Request schemas
 const createScanBodySchema = z.object({
   url: urlSchema,
@@ -154,12 +158,82 @@ const projectListItemSchema = z.object({
   updatedAt: timestampSchema,
 });
 
+// Run configuration
+const runConfigSchema = z.object({
+  viewport: viewportSchema,
+  captureScreenshots: z.boolean(),
+  captureHar: z.boolean(),
+});
+
+// Run statistics
+const runStatisticsSchema = z.object({
+  totalPages: z.number().int(),
+  completedPages: z.number().int(),
+  errorPages: z.number().int(),
+});
+
 const runResponseSchema = z.object({
   id: uuidSchema,
   projectId: uuidSchema,
   isBaseline: z.boolean(),
   status: z.string(),
   createdAt: timestampSchema,
+});
+
+const runDetailsSchema = z.object({
+  id: uuidSchema,
+  projectId: uuidSchema,
+  isBaseline: z.boolean(),
+  status: z.string(),
+  createdAt: timestampSchema,
+  config: runConfigSchema,
+  statistics: runStatisticsSchema,
+});
+
+// Task status schema
+const taskStatusSchema = z.object({
+  id: uuidSchema,
+  type: z.string(),
+  status: z.enum(['pending', 'processing', 'completed', 'failed']),
+  createdAt: timestampSchema,
+  startedAt: timestampSchema.optional(),
+  completedAt: timestampSchema.optional(),
+  attempts: z.number().int().optional(),
+  error: z.string().optional(),
+  payload: z.any().optional(),
+});
+
+// Page diff schema
+const pageDiffSchema = z.object({
+  pageId: uuidSchema,
+  hasChanges: z.boolean(),
+  seoChanges: z.array(
+    z.object({
+      field: z.string(),
+      baseline: z.string().optional(),
+      current: z.string().optional(),
+    }),
+  ),
+  headerChanges: z.array(
+    z.object({
+      header: z.string(),
+      baseline: z.string().optional(),
+      current: z.string().optional(),
+    }),
+  ),
+  performanceChanges: z.array(
+    z.object({
+      metric: z.string(),
+      baseline: z.number().optional(),
+      current: z.number().optional(),
+    }),
+  ),
+});
+
+// Run pages list schema
+const runPagesListSchema = z.object({
+  pages: z.array(pageResponseSchema),
+  pagination: paginationSchema,
 });
 
 const createScanAsyncResponseSchema = z.object({
@@ -253,18 +327,11 @@ export const apiContract = c.router({
     method: 'GET',
     path: '/runs/:runId',
     responses: {
-      200: z.object({
-        id: uuidSchema,
-        projectId: uuidSchema,
-        isBaseline: z.boolean(),
-        status: z.string(),
-        createdAt: timestampSchema,
-        // TODO: Add more detailed run response fields
-      }),
+      200: runDetailsSchema,
       404: errorResponseSchema,
     },
     pathParams: runIdParamSchema,
-    summary: 'Get run details',
+    summary: 'Get run details with config and statistics',
   },
 
   // ========== PAGES ==========
@@ -280,8 +347,48 @@ export const apiContract = c.router({
     summary: 'Get page details with diffs and artifacts',
   },
 
+  getPageDiff: {
+    method: 'GET',
+    path: '/pages/:pageId/diff',
+    responses: {
+      200: pageDiffSchema,
+      404: errorResponseSchema,
+    },
+    pathParams: pageIdParamSchema,
+    summary: 'Get page comparison diff between baseline and current',
+  },
+
+  listRunPages: {
+    method: 'GET',
+    path: '/runs/:runId/pages',
+    responses: {
+      200: runPagesListSchema,
+      404: errorResponseSchema,
+      400: errorResponseSchema,
+    },
+    pathParams: runIdParamSchema,
+    query: z.object({
+      limit: z.coerce.number().int().min(1).max(100).optional(),
+      offset: z.coerce.number().int().min(0).optional(),
+      status: z.string().optional(),
+    }),
+    summary: 'List all pages in a run with pagination',
+  },
+
+  // ========== TASKS ==========
+
+  getTaskStatus: {
+    method: 'GET',
+    path: '/tasks/:taskId',
+    responses: {
+      200: taskStatusSchema,
+      404: errorResponseSchema,
+    },
+    pathParams: taskIdParamSchema,
+    summary: 'Get task status and details',
+  },
+
   // TODO: Add artifacts endpoints
-  // TODO: Add tasks endpoints
 });
 
 // Export type inference for use in backend and frontend

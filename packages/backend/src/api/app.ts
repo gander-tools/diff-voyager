@@ -7,6 +7,7 @@ import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import { API_BASE_PATH } from '@gander-tools/diff-voyager-shared';
 import Fastify, { type FastifyInstance } from 'fastify';
+import { TaskQueue } from '../queue/task-queue.js';
 import type { DatabaseInstance } from '../storage/database.js';
 import type { DrizzleDb } from '../storage/drizzle/db.js';
 import { registerArtifactRoutes } from './routes/artifacts.js';
@@ -21,6 +22,7 @@ export interface AppConfig {
   db: DatabaseInstance;
   drizzleDb: DrizzleDb;
   artifactsDir: string;
+  taskQueue?: TaskQueue; // Optional - will be created if not provided
 }
 
 export async function createApp(config: AppConfig): Promise<FastifyInstance> {
@@ -116,10 +118,12 @@ export async function createApp(config: AppConfig): Promise<FastifyInstance> {
   );
 
   // Register @ts-rest routes (NEW - type-safe API contract)
+  const taskQueue = config.taskQueue || new TaskQueue(config.db);
   const { router: tsRestRouter, s: tsRestServer } = createTsRestRoutes({
     db: config.db,
     drizzleDb: config.drizzleDb,
     artifactsDir: config.artifactsDir,
+    taskQueue,
   });
 
   await app.register(tsRestServer.plugin(tsRestRouter), {

@@ -102,7 +102,7 @@ describe('GET /api/v1/pages/:pageId/diff', () => {
       httpStatus: 200,
       htmlHash: 'hash1',
       headers: { 'content-type': 'text/html' },
-      seo: { title: 'Home', description: 'Homepage' },
+      seo: { title: 'Home', metaDescription: 'Homepage' },
       hasScreenshot: true,
       hasHar: false,
       hasDiff: false,
@@ -165,7 +165,7 @@ describe('GET /api/v1/pages/:pageId/diff', () => {
       httpStatus: 200,
       htmlHash: 'hash1',
       headers: { 'content-type': 'text/html' },
-      seo: { title: 'Home', description: 'Homepage' },
+      seo: { title: 'Home', metaDescription: 'Homepage' },
       hasScreenshot: true,
       hasHar: false,
       hasDiff: false,
@@ -180,7 +180,7 @@ describe('GET /api/v1/pages/:pageId/diff', () => {
       httpStatus: 200,
       htmlHash: 'hash1',
       headers: { 'content-type': 'text/html' },
-      seo: { title: 'Home', description: 'Homepage' },
+      seo: { title: 'Home', metaDescription: 'Homepage' },
       hasScreenshot: true,
       hasHar: false,
       hasDiff: false,
@@ -245,7 +245,7 @@ describe('GET /api/v1/pages/:pageId/diff', () => {
       httpStatus: 200,
       htmlHash: 'hash1',
       headers: { 'content-type': 'text/html' },
-      seo: { title: 'Old Title', description: 'Homepage' },
+      seo: { title: 'Old Title', metaDescription: 'Homepage' },
       hasScreenshot: true,
       hasHar: false,
       hasDiff: false,
@@ -260,7 +260,7 @@ describe('GET /api/v1/pages/:pageId/diff', () => {
       httpStatus: 200,
       htmlHash: 'hash2',
       headers: { 'content-type': 'text/html' },
-      seo: { title: 'New Title', description: 'Homepage' },
+      seo: { title: 'New Title', metaDescription: 'Homepage' },
       hasScreenshot: true,
       hasHar: false,
       hasDiff: false,
@@ -326,7 +326,7 @@ describe('GET /api/v1/pages/:pageId/diff', () => {
       httpStatus: 200,
       htmlHash: 'hash1',
       headers: { 'content-type': 'text/html', 'cache-control': 'no-cache' },
-      seo: { title: 'Home', description: 'Homepage' },
+      seo: { title: 'Home', metaDescription: 'Homepage' },
       hasScreenshot: true,
       hasHar: false,
       hasDiff: false,
@@ -341,7 +341,7 @@ describe('GET /api/v1/pages/:pageId/diff', () => {
       httpStatus: 200,
       htmlHash: 'hash1',
       headers: { 'content-type': 'text/html', 'cache-control': 'max-age=3600' },
-      seo: { title: 'Home', description: 'Homepage' },
+      seo: { title: 'Home', metaDescription: 'Homepage' },
       hasScreenshot: true,
       hasHar: false,
       hasDiff: false,
@@ -407,14 +407,14 @@ describe('GET /api/v1/pages/:pageId/diff', () => {
       httpStatus: 200,
       htmlHash: 'hash1',
       headers: { 'content-type': 'text/html' },
-      seo: { title: 'Home', description: 'Homepage' },
-      performanceData: { loadTime: 1000, requestCount: 10, totalSize: 50000 },
+      seo: { title: 'Home', metaDescription: 'Homepage' },
+      performanceData: { loadTimeMs: 1000, requestCount: 10, totalSizeBytes: 50000 },
       hasScreenshot: true,
       hasHar: false,
       hasDiff: false,
     });
 
-    // Comparison snapshot (loadTime increased)
+    // Comparison snapshot (loadTimeMs increased)
     await snapshotRepo.create({
       runId: comparisonRun.id,
       pageId: page.id,
@@ -423,8 +423,8 @@ describe('GET /api/v1/pages/:pageId/diff', () => {
       httpStatus: 200,
       htmlHash: 'hash1',
       headers: { 'content-type': 'text/html' },
-      seo: { title: 'Home', description: 'Homepage' },
-      performanceData: { loadTime: 2000, requestCount: 10, totalSize: 50000 },
+      seo: { title: 'Home', metaDescription: 'Homepage' },
+      performanceData: { loadTimeMs: 2000, requestCount: 10, totalSizeBytes: 50000 },
       hasScreenshot: true,
       hasHar: false,
       hasDiff: false,
@@ -439,7 +439,7 @@ describe('GET /api/v1/pages/:pageId/diff', () => {
     const body = JSON.parse(response.body);
     expect(body.hasChanges).toBe(true);
     expect(body.performanceChanges).toHaveLength(1);
-    expect(body.performanceChanges[0].metric).toBe('loadTime');
+    expect(body.performanceChanges[0].metric).toBe('loadTimeMs');
     expect(body.performanceChanges[0].baseline).toBe(1000);
     expect(body.performanceChanges[0].current).toBe(2000);
   });
