@@ -294,6 +294,19 @@ export const apiContract = c.router({
     summary: 'Get project details with pages and statistics',
   },
 
+  deleteProject: {
+    method: 'DELETE',
+    path: '/projects/:projectId',
+    responses: {
+      204: z.void(),
+      404: errorResponseSchema,
+      400: errorResponseSchema,
+    },
+    pathParams: projectIdParamSchema,
+    body: z.void(),
+    summary: 'Delete a project and all associated data',
+  },
+
   // ========== RUNS ==========
 
   listProjectRuns: {
