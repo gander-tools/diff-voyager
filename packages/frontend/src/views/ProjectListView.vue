@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { NButton, NCard, NEmpty, NGrid, NGridItem, NPagination, NSpin } from 'naive-ui';
+import { NButton, NEmpty, NGrid, NGridItem, NPagination, NSpin } from 'naive-ui';
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import ProjectCard from '../components/ProjectCard.vue';
 import { useProjectsStore } from '../stores/projects';
 
 const router = useRouter();
@@ -30,6 +31,17 @@ const handleNewProject = () => {
 const handleProjectClick = (projectId: string) => {
   router.push(`/projects/${projectId}`);
 };
+
+const handleDeleteProject = async (projectId: string) => {
+  try {
+    await projectsStore.deleteProject(projectId);
+    // Refresh the list
+    const offset = (page.value - 1) * pageSize;
+    await projectsStore.fetchProjects({ limit: pageSize, offset });
+  } catch (error) {
+    console.error('Failed to delete project:', error);
+  }
+};
 </script>
 
 <template>
@@ -57,20 +69,11 @@ const handleProjectClick = (projectId: string) => {
         <div v-else>
           <NGrid :cols="3" :x-gap="16" :y-gap="16" class="projects-grid">
             <NGridItem v-for="project in projectsStore.projectList" :key="project.id">
-              <NCard
-                hoverable
-                class="project-card"
+              <ProjectCard
+                :project="project"
                 @click="handleProjectClick(project.id)"
-              >
-                <div class="project-card-content">
-                  <h3>{{ project.name }}</h3>
-                  <p class="project-url">{{ project.baseUrl }}</p>
-                  <div class="project-meta">
-                    <span class="status">{{ project.status }}</span>
-                    <span class="date">{{ new Date(project.createdAt).toLocaleDateString() }}</span>
-                  </div>
-                </div>
-              </NCard>
+                @delete="handleDeleteProject"
+              />
             </NGridItem>
           </NGrid>
 
@@ -126,46 +129,6 @@ const handleProjectClick = (projectId: string) => {
 
 .projects-grid {
   margin-bottom: 24px;
-}
-
-.project-card {
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.project-card:hover {
-  transform: translateY(-2px);
-}
-
-.project-card-content h3 {
-  font-size: 18px;
-  font-weight: 500;
-  margin: 0 0 8px 0;
-}
-
-.project-url {
-  font-size: 14px;
-  color: #666;
-  margin: 0 0 12px 0;
-  word-break: break-all;
-}
-
-.project-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 12px;
-}
-
-.status {
-  padding: 4px 8px;
-  border-radius: 4px;
-  background-color: #e0e0e0;
-  font-weight: 500;
-}
-
-.date {
-  color: #999;
 }
 
 .pagination {
