@@ -81,6 +81,7 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
             runId: run.id,
             url: body.url,
             crawl: body.crawl || false,
+            maxPages: body.maxPages,
             viewport: body.viewport || { width: 1920, height: 1080 },
             waitAfterLoad: body.waitAfterLoad ?? 1000,
             collectHar: body.collectHar || false,

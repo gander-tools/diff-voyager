@@ -32,6 +32,7 @@ export interface ProcessScanInput {
   runId: string;
   url: string;
   crawl: boolean;
+  maxPages?: number;
   viewport: { width: number; height: number };
   waitAfterLoad: number;
   collectHar: boolean;
@@ -55,7 +56,7 @@ export class ScanProcessor {
 
     try {
       // For single page (no crawl) - capture one page
-      const urls = input.crawl ? await this.discoverUrls(input.url) : [input.url];
+      const urls = input.crawl ? await this.discoverUrls(input.url, input.maxPages) : [input.url];
 
       const pagesResponse: PageResponse[] = [];
 
@@ -76,6 +77,7 @@ export class ScanProcessor {
         });
 
         // Capture page
+        console.log(`Capturing page: ${url}`);
         const captureResult = await this.capturer.capture({
           url,
           pageId: page.id,
@@ -83,6 +85,12 @@ export class ScanProcessor {
           waitAfterLoad: input.waitAfterLoad,
           collectHar: input.collectHar,
         });
+
+        if (captureResult.error) {
+          console.error(`Failed to capture ${url}: ${captureResult.error}`);
+        } else {
+          console.log(`Successfully captured ${url}`);
+        }
 
         // Update snapshot with capture results
         await snapshotRepo.update(snapshot.id, {
@@ -130,6 +138,10 @@ export class ScanProcessor {
         unchangedPages: pagesResponse.filter((p) => p.status === PageStatus.COMPLETED).length,
       };
 
+      console.log(
+        `Scan completed: ${statistics.completedPages}/${statistics.totalPages} pages successful, ${statistics.errorPages} errors`,
+      );
+
       await runRepo.updateStatistics(input.runId, statistics);
       await runRepo.updateStatus(input.runId, RunStatus.COMPLETED);
       await projectRepo.updateStatus(input.projectId, RunStatus.COMPLETED);
@@ -171,6 +183,7 @@ export class ScanProcessor {
       };
     } catch (error) {
       // Mark as failed on error
+      console.error(`Scan failed for project ${input.projectId}:`, error);
       await projectRepo.updateStatus(input.projectId, RunStatus.INTERRUPTED);
       await runRepo.updateStatus(input.runId, RunStatus.INTERRUPTED);
       throw error;
@@ -183,15 +196,15 @@ export class ScanProcessor {
    * Discover URLs using Crawlee
    * Crawls the site starting from base URL and returns all discovered URLs
    */
-  private async discoverUrls(baseUrl: string): Promise<string[]> {
+  private async discoverUrls(baseUrl: string, maxPages?: number): Promise<string[]> {
     const discoveredUrls: Set<string> = new Set();
     discoveredUrls.add(baseUrl); // Always include the base URL
 
-    // Use default max pages limit
-    const maxPages = 100;
+    // Use provided maxPages or default to 100
+    const maxPagesLimit = maxPages || 100;
 
     const crawler = new CheerioCrawler({
-      maxRequestsPerCrawl: maxPages,
+      maxRequestsPerCrawl: maxPagesLimit,
       maxConcurrency: 2, // Limit concurrency for discovery
 
       requestHandler: async ({ request, enqueueLinks }) => {
