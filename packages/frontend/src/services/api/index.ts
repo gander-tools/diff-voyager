@@ -54,7 +54,10 @@ export {
   getRun,
   listRunPages,
   listRuns,
+  retryRun,
 } from './runs';
+// Snapshots API
+export { retrySnapshot } from './snapshots';
 export type {
   TaskDetailsResponse,
   TaskStatus,
