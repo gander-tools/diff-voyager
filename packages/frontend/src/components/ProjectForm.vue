@@ -69,11 +69,11 @@ const handlePresetChange = (value: string) => {
 };
 
 const validateStep1 = async (): Promise<boolean> => {
-  // Validate only step 1 fields
+  // Validate only step 1 fields (name is optional, only url is required)
   const result = await validate();
 
-  // Check if there are errors in step 1 fields
-  const step1Errors = ['name', 'url', 'description'].some(
+  // Check if there are errors in step 1 fields (url is the only required field)
+  const step1Errors = ['url'].some(
     // biome-ignore lint/suspicious/noExplicitAny: vee-validate errors type indexing
     (field) => (errors.value as any)[field],
   );
@@ -137,16 +137,19 @@ const isLastStep = computed(() => currentStep.value === 2);
       <!-- Step 1: Basic Info -->
       <div v-if="currentStep === 0" class="step-content">
         <NFormItem
-          label="Project Name"
+          label="Project Name (optional)"
           :validation-status="errors.name ? 'error' : undefined"
         >
           <NInput
             v-model:value="name"
-            placeholder="Enter project name"
+            placeholder="Leave empty to use domain name"
             data-test="name-input"
           />
           <div v-if="errors.name" class="error-message">
             {{ errors.name }}
+          </div>
+          <div v-else class="help-text">
+            If left empty, the domain name from the URL will be used
           </div>
         </NFormItem>
 

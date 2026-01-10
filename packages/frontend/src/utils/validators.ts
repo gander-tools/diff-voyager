@@ -11,7 +11,7 @@ import { z } from 'zod';
  */
 export const createProjectSchema = z.object({
   // Basic info
-  name: z.string().trim().min(1, 'Project name is required').max(100, 'Maximum 100 characters'),
+  name: z.string().trim().max(100, 'Maximum 100 characters').optional(),
   url: z.string().url('Invalid URL format'),
   description: z.string().max(500, 'Maximum 500 characters').optional(),
 
