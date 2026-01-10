@@ -212,13 +212,16 @@ export class PageCapturer {
         const timing = performance.timing;
         const resources = performance.getEntriesByType('resource');
 
+        // Calculate total size using for...of loop (avoid arrow functions in evaluate)
+        let totalSize = 0;
+        for (const resource of resources) {
+          totalSize += (resource as PerformanceResourceTiming).transferSize || 0;
+        }
+
         return {
           loadTimeMs: timing.loadEventEnd - timing.navigationStart,
           requestCount: resources.length,
-          totalSizeBytes: resources.reduce((acc, r) => {
-            const resource = r as PerformanceResourceTiming;
-            return acc + (resource.transferSize || 0);
-          }, 0),
+          totalSizeBytes: totalSize,
         };
       });
 
