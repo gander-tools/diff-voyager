@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import { NConfigProvider, NDialogProvider, NMessageProvider } from 'naive-ui';
+import {
+  NConfigProvider,
+  NDialogProvider,
+  NMessageProvider,
+  NNotificationProvider,
+} from 'naive-ui';
 
 import { RouterView } from 'vue-router';
 
@@ -18,11 +23,13 @@ const themeOverrides = {
 <template>
   <NConfigProvider :theme-overrides="themeOverrides">
     <NMessageProvider>
-      <NDialogProvider>
-        <DefaultLayout>
-          <RouterView />
-        </DefaultLayout>
-      </NDialogProvider>
+      <NNotificationProvider>
+        <NDialogProvider>
+          <DefaultLayout>
+            <RouterView />
+          </DefaultLayout>
+        </NDialogProvider>
+      </NNotificationProvider>
     </NMessageProvider>
   </NConfigProvider>
 </template>
