@@ -71,6 +71,13 @@ export class PageCapturer {
 
     const page = await context.newPage();
 
+    // Add __name polyfill to fix tsx/esbuild transpilation issue
+    // tsx adds __name() helper calls to preserve function names, but this
+    // helper doesn't exist in page.evaluate() browser context
+    await page.addInitScript(() => {
+      (window as any).__name = (fn: any, _name: string) => fn;
+    });
+
     const redirectChain: Array<{ url: string; status: number }> = [];
     let responseHeaders: Record<string, string> = {};
     let httpStatus = 0;
