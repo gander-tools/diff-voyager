@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NButton, NCard, NEmpty, NPageHeader, NSpace, NSpin, NText } from 'naive-ui';
+import { NButton, NCard, NEmpty, NPageHeader, NSpace, NSpin, NText, useDialog } from 'naive-ui';
 import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import ProjectStatistics from '../components/ProjectStatistics.vue';
@@ -9,6 +9,7 @@ import { type ProjectDetails, useProjectsStore } from '../stores/projects';
 const route = useRoute();
 const router = useRouter();
 const projectsStore = useProjectsStore();
+const dialog = useDialog();
 
 const projectId = computed(() => route.params.projectId as string);
 const loading = ref(true);
@@ -52,16 +53,22 @@ const handleCreateRun = () => {
 };
 
 const handleDelete = async () => {
-  if (!confirm(`Are you sure you want to delete project "${project.value?.name}"?`)) {
-    return;
-  }
+  if (!project.value) return;
 
-  try {
-    await projectsStore.deleteProject(projectId.value);
-    await router.push({ name: 'projects' });
-  } catch (err) {
-    console.error('Failed to delete project:', err);
-  }
+  dialog.warning({
+    title: 'Confirm Delete',
+    content: `Are you sure you want to delete project "${project.value.name}"?`,
+    positiveText: 'Delete',
+    negativeText: 'Cancel',
+    onPositiveClick: async () => {
+      try {
+        await projectsStore.deleteProject(projectId.value);
+        await router.push({ name: 'projects' });
+      } catch (err) {
+        console.error('Failed to delete project:', err);
+      }
+    },
+  });
 };
 
 onMounted(() => {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NButton, NCard, NEmpty, NGrid, NGridItem, NSpin, NStatistic } from 'naive-ui';
+import { NButton, NCard, NEmpty, NGrid, NGridItem, NSpin, NStatistic, useDialog } from 'naive-ui';
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import ProjectCard from '../components/ProjectCard.vue';
@@ -7,6 +7,7 @@ import { useProjectsStore } from '../stores/projects';
 
 const router = useRouter();
 const projectsStore = useProjectsStore();
+const dialog = useDialog();
 
 onMounted(async () => {
   try {
@@ -29,13 +30,24 @@ const handleProjectClick = (projectId: string) => {
 };
 
 const handleDeleteProject = async (projectId: string) => {
-  try {
-    await projectsStore.deleteProject(projectId);
-    // Refresh the recent projects list
-    await projectsStore.fetchProjects({ limit: 5 });
-  } catch (error) {
-    console.error('Failed to delete project:', error);
-  }
+  const project = projectsStore.items.get(projectId);
+  if (!project) return;
+
+  dialog.warning({
+    title: 'Confirm Delete',
+    content: `Are you sure you want to delete project "${project.name}"?`,
+    positiveText: 'Delete',
+    negativeText: 'Cancel',
+    onPositiveClick: async () => {
+      try {
+        await projectsStore.deleteProject(projectId);
+        // Refresh the recent projects list
+        await projectsStore.fetchProjects({ limit: 5 });
+      } catch (error) {
+        console.error('Failed to delete project:', error);
+      }
+    },
+  });
 };
 </script>
 
