@@ -147,3 +147,21 @@ export function listRunPages(runId: string, query?: ListRunPagesQuery): Promise<
   const queryString = params.toString();
   return get<RunPageResponse[]>(`/runs/${runId}/pages${queryString ? `?${queryString}` : ''}`);
 }
+
+/**
+ * Retry snapshots in a run (all or only failed)
+ */
+export async function retryRun(runId: string, scope: 'failed' | 'all' = 'failed') {
+  const result = await tsRestClient.retryRun({
+    params: { runId },
+    query: { scope },
+    body: undefined,
+  });
+
+  if (result.status === 202) {
+    return result.body;
+  }
+
+  const errorBody = result.body as { error?: { message?: string } };
+  throw new Error(errorBody.error?.message || 'Failed to retry run');
+}
