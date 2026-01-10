@@ -178,7 +178,7 @@ export class PageCapturer {
   private async extractSeoData(page: Page): Promise<SeoData> {
     return page.evaluate(() => {
       // Use function declarations instead of arrow functions to avoid bundler issues
-      function getMetaContent(name) {
+      function getMetaContent(name: string) {
         const meta =
           document.querySelector(`meta[name="${name}"]`) ||
           document.querySelector(`meta[property="${name}"]`);
@@ -190,7 +190,7 @@ export class PageCapturer {
         return link?.getAttribute('href') || undefined;
       }
 
-      function getHeadings(tag) {
+      function getHeadings(tag: string) {
         return Array.from(document.querySelectorAll(tag)).map((el) => el.textContent?.trim() || '');
       }
 

@@ -38,11 +38,11 @@ async function main() {
   const app = await createApp({ db, drizzleDb, artifactsDir });
 
   await app.listen({ port, host: '0.0.0.0' });
-  console.log(`API server running at http://localhost:${port}`);
-  console.log(`API endpoints:`);
-  console.log(`  POST /api/v1/scans - Create scan`);
-  console.log(`  GET  /api/v1/projects/:id - Get project details`);
-  console.log(`  GET  /health - Health check`);
+  app.log.info(`API server running at http://localhost:${port}`);
+  app.log.info('API endpoints:');
+  app.log.info('  POST /api/v1/scans - Create scan');
+  app.log.info('  GET  /api/v1/projects/:id - Get project details');
+  app.log.info('  GET  /health - Health check');
 }
 
 main().catch((error) => {
