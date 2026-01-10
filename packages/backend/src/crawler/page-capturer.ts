@@ -191,7 +191,12 @@ export class PageCapturer {
       }
 
       function getHeadings(tag: string) {
-        return Array.from(document.querySelectorAll(tag)).map((el) => el.textContent?.trim() || '');
+        const elements = document.querySelectorAll(tag);
+        const headings: string[] = [];
+        for (const el of elements) {
+          headings.push(el.textContent?.trim() || '');
+        }
+        return headings;
       }
 
       return {
