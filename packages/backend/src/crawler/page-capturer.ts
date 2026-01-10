@@ -177,21 +177,22 @@ export class PageCapturer {
 
   private async extractSeoData(page: Page): Promise<SeoData> {
     return page.evaluate(() => {
-      const getMetaContent = (name: string): string | undefined => {
+      // Use function declarations instead of arrow functions to avoid bundler issues
+      function getMetaContent(name) {
         const meta =
           document.querySelector(`meta[name="${name}"]`) ||
           document.querySelector(`meta[property="${name}"]`);
         return meta?.getAttribute('content') || undefined;
-      };
+      }
 
-      const getCanonical = (): string | undefined => {
+      function getCanonical() {
         const link = document.querySelector('link[rel="canonical"]');
         return link?.getAttribute('href') || undefined;
-      };
+      }
 
-      const getHeadings = (tag: string): string[] => {
+      function getHeadings(tag) {
         return Array.from(document.querySelectorAll(tag)).map((el) => el.textContent?.trim() || '');
-      };
+      }
 
       return {
         title: document.title || undefined,
