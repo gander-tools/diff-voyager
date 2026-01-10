@@ -40,9 +40,9 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
         // URL is validated by Zod schema in contract
         const url = new URL(body.url);
 
-        // Create project
+        // Create project (use hostname as fallback if name not provided)
         const project = await projectRepo.create({
-          name: body.name || `Scan: ${url.hostname}`,
+          name: body.name || url.hostname,
           description: body.description ?? '',
           baseUrl: url.origin,
           config: {
