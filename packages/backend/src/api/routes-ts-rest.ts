@@ -167,7 +167,35 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
           };
         }
 
-        // Async mode - return immediately
+        // Async mode - return immediately and start processing after 5 second delay
+        console.log(`Project ${project.id} will start processing in 5 seconds...`);
+
+        setTimeout(() => {
+          const processor = new ScanProcessor({
+            db,
+            artifactsDir,
+            projectRepo,
+            runRepo,
+            pageRepo,
+            snapshotRepo,
+          });
+
+          processor
+            .processScan({
+              projectId: project.id,
+              runId: run.id,
+              url: body.url,
+              crawl: body.crawl || false,
+              maxPages: body.maxPages,
+              viewport: body.viewport || { width: 1920, height: 1080 },
+              waitAfterLoad: body.waitAfterLoad ?? 1000,
+              collectHar: body.collectHar || false,
+            })
+            .catch((error) => {
+              console.error(`Async scan failed for project ${project.id}:`, error);
+            });
+        }, 5000);
+
         return {
           status: 202 as const,
           body: {
