@@ -262,9 +262,9 @@ export const useProjectsStore = defineStore('projects', {
     },
 
     /**
-     * Create new project (sync mode for immediate result)
+     * Create new project (async mode with immediate response)
      */
-    async createProject(input: CreateProjectInput): Promise<ProjectDetails> {
+    async createProject(input: CreateProjectInput): Promise<{ projectId: string; status: string }> {
       this.loading = true;
       this.error = null;
 
@@ -274,7 +274,7 @@ export const useProjectsStore = defineStore('projects', {
             name: input.name,
             url: input.url,
             description: input.description,
-            sync: true, // Request sync mode for immediate result
+            sync: false, // Request async mode for immediate response
             crawl: input.crawl,
             maxPages: input.maxPages,
             viewport: input.viewport,
@@ -284,32 +284,14 @@ export const useProjectsStore = defineStore('projects', {
           },
         });
 
-        if (result.status === 200) {
-          const project = result.body;
-
-          // Add to store
-          const projectItem: ProjectListItem = {
-            id: project.id,
-            name: project.name,
-            description: project.description,
-            baseUrl: project.baseUrl,
-            status: project.status,
-            createdAt: new Date(project.createdAt),
-            updatedAt: new Date(project.updatedAt),
-          };
-
-          this.items.set(project.id, projectItem);
-          this.list.unshift(project.id); // Add to start
+        if (result.status === 202) {
+          // Async response - project created, processing will start soon
+          const { projectId, status } = result.body;
 
           // Update pagination total
           this.pagination.total += 1;
 
-          // Return full details
-          return {
-            ...projectItem,
-            config: project.config,
-            statistics: project.statistics,
-          };
+          return { projectId, status };
         }
 
         throw new Error('Failed to create project');

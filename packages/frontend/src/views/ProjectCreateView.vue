@@ -15,14 +15,15 @@ const handleSubmit = async (formData: CreateProjectInput) => {
   isCreating.value = true;
 
   try {
-    const project = await projectsStore.createProject(formData);
+    // Create project in async mode - returns immediately with project ID
+    const { projectId } = await projectsStore.createProject(formData);
 
-    if (project) {
-      await router.push({
-        name: 'project-detail',
-        params: { projectId: project.id },
-      });
-    }
+    // Immediately redirect to project detail view
+    // Project will show "processing" status initially
+    await router.push({
+      name: 'project-detail',
+      params: { projectId },
+    });
   } catch (error) {
     console.error('Failed to create project:', error);
   } finally {
