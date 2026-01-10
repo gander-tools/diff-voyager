@@ -35,6 +35,7 @@ export async function createApp(config: AppConfig): Promise<FastifyInstance> {
   await app.register(cors, {
     origin: true, // Allow all origins in development
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   });
 
   // Register rate limiting plugin
