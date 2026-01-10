@@ -107,8 +107,10 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
               url: page.normalizedUrl,
               originalUrl: page.originalUrl,
               status: snapshot?.status || PageStatus.PENDING,
+              snapshotId: snapshot?.id,
               httpStatus: snapshot?.httpStatus,
               capturedAt: snapshot?.capturedAt?.toISOString(),
+              errorMessage: snapshot?.errorMessage || undefined,
               seoData: snapshot?.seoData,
               httpHeaders: snapshot?.headers,
               performanceData: snapshot?.performanceData,
@@ -249,8 +251,10 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
               url: page.normalizedUrl,
               originalUrl: page.originalUrl,
               status: snapshot?.status || PageStatus.PENDING,
+              snapshotId: snapshot?.id,
               httpStatus: snapshot?.httpStatus,
               capturedAt: snapshot?.capturedAt?.toISOString(),
+              errorMessage: snapshot?.errorMessage || undefined,
               seoData: snapshot?.seoData,
               httpHeaders: snapshot?.headers,
               performanceData: snapshot?.performanceData,
@@ -488,8 +492,10 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
             url: page.normalizedUrl,
             originalUrl: page.originalUrl,
             status: snapshot?.status || PageStatus.PENDING,
+            snapshotId: snapshot?.id,
             httpStatus: snapshot?.httpStatus,
             capturedAt: snapshot?.capturedAt?.toISOString(),
+            errorMessage: snapshot?.errorMessage || undefined,
             seoData: snapshot?.seoData,
             httpHeaders: snapshot?.headers,
             performanceData: snapshot?.performanceData,
@@ -660,8 +666,10 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
             url: page.normalizedUrl,
             originalUrl: page.originalUrl,
             status: snapshot?.status || PageStatus.PENDING,
+            snapshotId: snapshot?.id,
             httpStatus: snapshot?.httpStatus,
             capturedAt: snapshot?.capturedAt?.toISOString(),
+            errorMessage: snapshot?.errorMessage || undefined,
             seoData: snapshot?.seoData,
             httpHeaders: snapshot?.headers,
             performanceData: snapshot?.performanceData,
@@ -718,6 +726,230 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
             attempts: task.attempts,
             error: task.error,
             payload: task.payload,
+          },
+        };
+      },
+    },
+
+    // ========== SNAPSHOTS ==========
+
+    retrySnapshot: {
+      handler: async ({ params }) => {
+        const { snapshotId } = params;
+
+        // 1. Find snapshot
+        const snapshot = await snapshotRepo.findById(snapshotId);
+        if (!snapshot) {
+          return {
+            status: 404 as const,
+            body: {
+              error: {
+                code: 'NOT_FOUND',
+                message: 'Snapshot not found',
+              },
+            },
+          };
+        }
+
+        // 2. Get page and project info
+        const page = await pageRepo.findById(snapshot.pageId);
+        if (!page) {
+          return {
+            status: 404 as const,
+            body: {
+              error: {
+                code: 'NOT_FOUND',
+                message: 'Page not found',
+              },
+            },
+          };
+        }
+
+        const run = await runRepo.findById(snapshot.runId);
+        if (!run) {
+          return {
+            status: 404 as const,
+            body: {
+              error: {
+                code: 'NOT_FOUND',
+                message: 'Run not found',
+              },
+            },
+          };
+        }
+
+        const project = await projectRepo.findById(run.projectId);
+        if (!project) {
+          return {
+            status: 404 as const,
+            body: {
+              error: {
+                code: 'NOT_FOUND',
+                message: 'Project not found',
+              },
+            },
+          };
+        }
+
+        // 3. Retry capture (synchronous for single page)
+        const capturer = new PageCapturer({ artifactsDir });
+
+        const captureResult = await capturer.capture({
+          url: page.originalUrl,
+          pageId: page.id,
+          viewport: run.config.viewport,
+          waitAfterLoad: 1000,
+          collectHar: run.config.captureHar,
+        });
+
+        // 4. Update snapshot with new results
+        await snapshotRepo.update(snapshot.id, {
+          status: captureResult.error ? PageStatus.ERROR : PageStatus.COMPLETED,
+          httpStatus: captureResult.httpStatus,
+          redirectChain: captureResult.redirectChain,
+          htmlHash: captureResult.htmlHash,
+          htmlPath: captureResult.htmlPath,
+          headers: captureResult.headers,
+          seoData: captureResult.seoData,
+          performanceData: captureResult.performanceData,
+          screenshotPath: captureResult.screenshotPath,
+          harPath: captureResult.harPath,
+          capturedAt: new Date(),
+          errorMessage: captureResult.error,
+        });
+
+        // 5. Update run statistics
+        const allSnapshots = await snapshotRepo.findByRunId(run.id);
+        const statistics = {
+          totalPages: allSnapshots.length,
+          completedPages: allSnapshots.filter((s) => s.status === PageStatus.COMPLETED).length,
+          errorPages: allSnapshots.filter((s) => s.status === PageStatus.ERROR).length,
+        };
+        await runRepo.updateStatistics(run.id, statistics);
+
+        return {
+          status: 202 as const,
+          body: {
+            snapshotId: snapshot.id,
+            status: captureResult.error ? 'ERROR' : 'COMPLETED',
+            message: captureResult.error
+              ? `Retry failed: ${captureResult.error}`
+              : 'Snapshot retried successfully',
+          },
+        };
+      },
+    },
+
+    // ========== RETRY ==========
+
+    retryRun: {
+      handler: async ({ params, query }) => {
+        const { runId } = params;
+        const scope = query.scope || 'failed';
+
+        // 1. Find run
+        const run = await runRepo.findById(runId);
+        if (!run) {
+          return {
+            status: 404 as const,
+            body: {
+              error: {
+                code: 'NOT_FOUND',
+                message: 'Run not found',
+              },
+            },
+          };
+        }
+
+        // 2. Get snapshots to retry
+        const allSnapshots = await snapshotRepo.findByRunId(runId);
+        const snapshotsToRetry =
+          scope === 'failed'
+            ? allSnapshots.filter((s) => s.status === PageStatus.ERROR)
+            : allSnapshots;
+
+        if (snapshotsToRetry.length === 0) {
+          return {
+            status: 400 as const,
+            body: {
+              error: {
+                code: 'NO_SNAPSHOTS',
+                message:
+                  scope === 'failed' ? 'No failed snapshots to retry' : 'No snapshots in this run',
+              },
+            },
+          };
+        }
+
+        // 3. Get project for config
+        const project = await projectRepo.findById(run.projectId);
+        if (!project) {
+          return {
+            status: 404 as const,
+            body: {
+              error: {
+                code: 'NOT_FOUND',
+                message: 'Project not found',
+              },
+            },
+          };
+        }
+
+        // 4. Retry each snapshot
+        const capturer = new PageCapturer({ artifactsDir });
+        let successCount = 0;
+        let errorCount = 0;
+
+        for (const snapshot of snapshotsToRetry) {
+          const page = await pageRepo.findById(snapshot.pageId);
+          if (!page) continue;
+
+          const captureResult = await capturer.capture({
+            url: page.originalUrl,
+            pageId: page.id,
+            viewport: run.config.viewport,
+            waitAfterLoad: 1000,
+            collectHar: run.config.captureHar,
+          });
+
+          await snapshotRepo.update(snapshot.id, {
+            status: captureResult.error ? PageStatus.ERROR : PageStatus.COMPLETED,
+            httpStatus: captureResult.httpStatus,
+            redirectChain: captureResult.redirectChain,
+            htmlHash: captureResult.htmlHash,
+            htmlPath: captureResult.htmlPath,
+            headers: captureResult.headers,
+            seoData: captureResult.seoData,
+            performanceData: captureResult.performanceData,
+            screenshotPath: captureResult.screenshotPath,
+            harPath: captureResult.harPath,
+            capturedAt: new Date(),
+            errorMessage: captureResult.error,
+          });
+
+          if (captureResult.error) {
+            errorCount++;
+          } else {
+            successCount++;
+          }
+        }
+
+        // 5. Update run statistics
+        const updatedSnapshots = await snapshotRepo.findByRunId(runId);
+        const statistics = {
+          totalPages: updatedSnapshots.length,
+          completedPages: updatedSnapshots.filter((s) => s.status === PageStatus.COMPLETED).length,
+          errorPages: updatedSnapshots.filter((s) => s.status === PageStatus.ERROR).length,
+        };
+        await runRepo.updateStatistics(runId, statistics);
+
+        return {
+          status: 202 as const,
+          body: {
+            runId,
+            status: 'COMPLETED',
+            message: `Retried ${snapshotsToRetry.length} snapshots: ${successCount} succeeded, ${errorCount} failed`,
+            retryCount: snapshotsToRetry.length,
           },
         };
       },

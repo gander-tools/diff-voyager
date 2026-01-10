@@ -42,6 +42,10 @@ export const taskIdParamSchema = z.object({
   taskId: uuidSchema,
 });
 
+export const snapshotIdParamSchema = z.object({
+  snapshotId: uuidSchema,
+});
+
 // Request schemas
 export const createScanBodySchema = z.object({
   url: urlSchema,
@@ -119,8 +123,10 @@ export const pageResponseSchema = z.object({
   url: z.string(),
   originalUrl: z.string(),
   status: z.string(),
+  snapshotId: uuidSchema.optional(),
   httpStatus: z.number().int().optional(),
   capturedAt: timestampSchema.optional(),
+  errorMessage: z.string().optional(),
   seoData: z.any().optional(), // TODO: Add detailed schema
   httpHeaders: z.record(z.string()).optional(),
   performanceData: z.any().optional(), // TODO: Add detailed schema
@@ -253,6 +259,26 @@ export const listRunPagesQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).optional(),
   offset: z.coerce.number().int().min(0).optional(),
   status: z.string().optional(),
+});
+
+// Retry snapshot response
+export const retrySnapshotResponseSchema = z.object({
+  snapshotId: uuidSchema,
+  status: z.string(),
+  message: z.string(),
+});
+
+// Retry run response
+export const retryRunResponseSchema = z.object({
+  runId: uuidSchema,
+  status: z.string(),
+  message: z.string(),
+  retryCount: z.number().int(),
+});
+
+// Retry run query schema
+export const retryRunQuerySchema = z.object({
+  scope: z.enum(['failed', 'all']).optional().default('failed'),
 });
 
 // ============================================================================
@@ -389,6 +415,37 @@ export const apiContract = c.router({
     pathParams: runIdParamSchema,
     query: listRunPagesQuerySchema,
     summary: 'List all pages in a run with pagination',
+  },
+
+  // ========== SNAPSHOTS ==========
+
+  retrySnapshot: {
+    method: 'POST',
+    path: '/snapshots/:snapshotId/retry',
+    responses: {
+      202: retrySnapshotResponseSchema,
+      404: errorResponseSchema,
+      400: errorResponseSchema,
+    },
+    pathParams: snapshotIdParamSchema,
+    body: z.void(),
+    summary: 'Retry capturing a failed snapshot',
+  },
+
+  // ========== RETRY ==========
+
+  retryRun: {
+    method: 'POST',
+    path: '/runs/:runId/retry',
+    responses: {
+      202: retryRunResponseSchema,
+      404: errorResponseSchema,
+      400: errorResponseSchema,
+    },
+    pathParams: runIdParamSchema,
+    query: retryRunQuerySchema,
+    body: z.void(),
+    summary: 'Retry snapshots in a run (all or only failed)',
   },
 
   // ========== TASKS ==========
