@@ -213,6 +213,7 @@ async function registerPlugins(app: FastifyInstance, config: AppConfig) {
     drizzleDb: config.drizzleDb,
     artifactsDir: config.artifactsDir,
     taskQueue,
+    logger: app.log as any,
   });
 
   await app.register(tsRestServer.plugin(tsRestRouter), {
