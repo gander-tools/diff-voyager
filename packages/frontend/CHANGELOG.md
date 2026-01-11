@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.14](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.13...diff-voyager-frontend-v0.1.14) (2026-01-11)
+
+
+### Features
+
+* **frontend:** migrate getPageDiff and listRunPages to [@ts-rest](https://github.com/ts-rest) ([dafdd7a](https://github.com/gander-tools/diff-voyager/commit/dafdd7ad93cff4d5cfe071016d3d10098b41a01a))
+
+
+### Bug Fixes
+
+* **frontend:** make project name optional and reorder form fields ([533666c](https://github.com/gander-tools/diff-voyager/commit/533666cb13d3d7a41d41515ec667f44c8d2b5da7))
+
 ## [0.1.13](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.12...diff-voyager-frontend-v0.1.13) (2026-01-11)
 
 

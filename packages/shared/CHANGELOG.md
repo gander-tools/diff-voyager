@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.8](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-shared-v0.1.7...diff-voyager-shared-v0.1.8) (2026-01-11)
+
+
+### Features
+
+* **shared:** add Swagger tags metadata to API contract routes ([0c736e2](https://github.com/gander-tools/diff-voyager/commit/0c736e2adb437a16f37a2c173a8384ccf5f4552a))
+
 ## [0.1.7](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-shared-v0.1.6...diff-voyager-shared-v0.1.7) (2026-01-11)
 
 
