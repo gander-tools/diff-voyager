@@ -73,10 +73,8 @@ const validateStep1 = async (): Promise<boolean> => {
   const result = await validate();
 
   // Check if there are errors in step 1 fields
-  const step1Errors = ['name', 'url', 'description'].some(
-    // biome-ignore lint/suspicious/noExplicitAny: vee-validate errors type indexing
-    (field) => (errors.value as any)[field],
-  );
+  // biome-ignore lint/suspicious/noExplicitAny: vee-validate errors type indexing
+  const step1Errors = ['name', 'url', 'description'].some((field) => (errors.value as any)[field]);
 
   return !step1Errors && result.valid;
 };
