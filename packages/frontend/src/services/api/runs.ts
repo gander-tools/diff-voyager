@@ -1,5 +1,5 @@
 import type { RunProfile } from '@gander-tools/diff-voyager-shared';
-import { get, tsRestClient } from './client';
+import { tsRestClient } from './client';
 
 /**
  * Request body for creating a run
@@ -137,15 +137,28 @@ export interface RunPageResponse {
 /**
  * List pages in a run
  * GET /runs/:runId/pages
+ *
+ * Uses @ts-rest client for type-safe API calls
  */
-export function listRunPages(runId: string, query?: ListRunPagesQuery): Promise<RunPageResponse[]> {
-  const params = new URLSearchParams();
-  if (query?.limit) params.append('limit', query.limit.toString());
-  if (query?.offset) params.append('offset', query.offset.toString());
-  if (query?.status) params.append('status', query.status);
+export async function listRunPages(
+  runId: string,
+  query?: ListRunPagesQuery,
+): Promise<RunPageResponse[]> {
+  const result = await tsRestClient.listRunPages({
+    params: { runId },
+    query: {
+      limit: query?.limit,
+      offset: query?.offset,
+      status: query?.status,
+    },
+  });
 
-  const queryString = params.toString();
-  return get<RunPageResponse[]>(`/runs/${runId}/pages${queryString ? `?${queryString}` : ''}`);
+  if (result.status === 200) {
+    return result.body.pages as unknown as RunPageResponse[];
+  }
+
+  const errorBody = result.body as { message?: string };
+  throw new Error(errorBody.message || 'Failed to list run pages');
 }
 
 /**
