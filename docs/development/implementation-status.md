@@ -390,53 +390,28 @@ See [Frontend Implementation Plan](../features/frontend-plan.md) and [Frontend S
 
 ## Skipped Tests
 
-The following tests are currently skipped with documented reasons:
+**Total**: 4 backend integration tests currently skipped. See detailed tracking in GitHub Issues:
 
-### 1. Page Details Endpoint - SEO Data Retrieval
+### Phase 1: Fix Skipped Tests (High Priority)
 
-**File**: `tests/integration/api/page-details-endpoint.test.ts`
+- [Issue #156](https://github.com/gander-tools/diff-voyager/issues/156) - `includePages` parameter coercion (HIGH)
+- [Issue #148](https://github.com/gander-tools/diff-voyager/issues/148) - Page details response structure investigation (MEDIUM, parent)
+  - [Issue #151](https://github.com/gander-tools/diff-voyager/issues/151) - SEO data in response
+  - [Issue #152](https://github.com/gander-tools/diff-voyager/issues/152) - HTTP headers in response
+  - [Issue #153](https://github.com/gander-tools/diff-voyager/issues/153) - Performance metrics in response
+- [Issue #157](https://github.com/gander-tools/diff-voyager/issues/157) - HAR file URL handling (MEDIUM)
 
-**Skipped Tests** (3):
-- `should include SEO data from latest snapshot` (line 125)
-- `should include HTTP headers from latest snapshot` (line 181)
-- `should include performance metrics from latest snapshot` (line 237)
-
-**Reason**: Snapshot data retrieval bug - SEO data, headers, and performance metrics are not being properly included in the API response despite being stored in the database.
-
-**Root Cause**: Likely an issue with the repository query or response serialization in the page details endpoint.
-
-**Impact**: Low - Core functionality works, only detailed snapshot data display affected.
-
-**Priority**: Medium - Fix before frontend development begins.
-
-**Planned Fix**: Investigate SnapshotRepository.findByPageAndRun() and PageDetailsEndpoint response mapping.
-
-### 2. Scan Processor - HAR File Collection
-
-**File**: `tests/integration/services/scan-processor.test.ts`
-
-**Skipped Test**:
-- `should collect HAR file when collectHar is true` (line 213)
-
-**Reason**: HAR file URL handling issue - PageCapturer collects HAR data but the harUrl is undefined in the API response.
-
-**Root Cause**: Artifact path construction or serialization issue when returning HAR file references.
-
-**Impact**: Low - HAR files are captured and stored, but URL reference not properly returned.
-
-**Priority**: Low - HAR collection is optional feature.
-
-**Planned Fix**: Verify artifact path construction in PageCapturer and ArtifactStorage.
-
-**TODO Annotation**: Line 210 contains detailed explanation of the issue.
+Full documentation: [Skipped Tests Guide](./skipped-tests.md)
 
 ## Next Priorities
 
 1. **Frontend Phase 3** - Run management UI (RunList, RunCreate, RunDetail)
-2. **Fix Skipped Tests** - Resolve snapshot data retrieval and HAR URL issues
-3. **Diff Workflow Integration** - Connect comparators to scan workflow (Phase 6)
+2. **Fix Skipped Tests** - [Tracked in issues #156, #148, #151-153, #157](https://github.com/gander-tools/diff-voyager/milestone/1)
+3. **Diff Workflow Integration** - [Issue #149](https://github.com/gander-tools/diff-voyager/issues/149), [Issue #154](https://github.com/gander-tools/diff-voyager/issues/154)
 4. **Frontend Phase 4** - Diff review interface with visual comparison
-5. **Multi-page Crawl Verification** - End-to-end testing of full site crawls
+5. **Multi-page Crawl Verification** - [Issue #158](https://github.com/gander-tools/diff-voyager/issues/158)
+
+See [GitHub Milestone: Documentation TODO Cleanup](https://github.com/gander-tools/diff-voyager/milestone/1) for complete tracking of backend tasks.
 
 ## Performance Metrics
 

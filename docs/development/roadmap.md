@@ -12,134 +12,54 @@
 
 **Target**: Week 1-2
 
-- [ ] Fix snapshot data retrieval in page details endpoint
-  - Investigate SnapshotRepository query
-  - Fix response serialization
-  - Enable 3 skipped tests in `page-details-endpoint.test.ts`
+See GitHub Issues for detailed tracking:
+- [ ] Fix `includePages` parameter coercion → [#156](https://github.com/gander-tools/diff-voyager/issues/156)
+- [ ] Investigate page details endpoint response structure → [#148](https://github.com/gander-tools/diff-voyager/issues/148) (parent)
+  - [ ] Include SEO data → [#151](https://github.com/gander-tools/diff-voyager/issues/151)
+  - [ ] Include HTTP headers → [#152](https://github.com/gander-tools/diff-voyager/issues/152)
+  - [ ] Include performance metrics → [#153](https://github.com/gander-tools/diff-voyager/issues/153)
+- [ ] Fix HAR file URL handling → [#157](https://github.com/gander-tools/diff-voyager/issues/157)
 
-- [ ] Fix HAR file URL handling
-  - Verify artifact path construction
-  - Fix harUrl serialization
-  - Enable skipped test in `scan-processor.test.ts`
-
-**Acceptance Criteria**:
-- All currently skipped tests passing
-- No regression in existing tests
+**Acceptance Criteria**: See individual issues for detailed criteria.
 
 ### 2. Complete Phase 6: Integration Workflows (Priority: High)
 
 **Target**: Weeks 3-4
 
-#### 2.1 Diff Generation Workflow
+See GitHub Issues for detailed tracking:
+- [ ] Implement automatic diff generation → [#149](https://github.com/gander-tools/diff-voyager/issues/149) (parent)
+  - [ ] Create integration tests for diff workflow → [#154](https://github.com/gander-tools/diff-voyager/issues/154)
+- [ ] End-to-end testing of Crawlee integration → [#158](https://github.com/gander-tools/diff-voyager/issues/158)
+- [ ] Performance optimization for crawls → [#159](https://github.com/gander-tools/diff-voyager/issues/159)
 
-- [ ] Implement automatic diff generation during comparison runs
-  - Trigger PageComparator when comparison snapshot created
-  - Store diff results in DiffRepository
-  - Update run statistics with diff counts
-
-- [ ] Create integration tests for diff workflow
-  - Baseline run → comparison run → automatic diff
-  - Verify SEO changes detected
-  - Verify visual changes detected
-  - Verify header/performance changes detected
-
-#### 2.2 Multi-page Crawl Workflow
-
-- [ ] End-to-end testing of Crawlee integration
-  - Create test site with multiple linked pages
-  - Verify URL discovery
-  - Verify concurrent processing
-  - Verify progress tracking
-
-- [ ] Performance optimization
-  - Tune concurrency settings
-  - Add crawl progress callbacks
-  - Implement crawl cancellation
-
-**Acceptance Criteria**:
-- Diffs automatically generated for all comparison runs
-- Multi-page crawls complete successfully
-- Integration tests passing
+**Acceptance Criteria**: See individual issues for detailed criteria.
 
 ### 3. Complete Phase 7: Production Polish (Priority: Medium)
 
 **Target**: Weeks 5-6
 
-#### 3.1 Database Optimization
+See GitHub Issues for detailed tracking:
+- [ ] Add database indexes for query optimization → [#160](https://github.com/gander-tools/diff-voyager/issues/160)
+- [ ] Analyze and optimize slow queries → [#161](https://github.com/gander-tools/diff-voyager/issues/161)
+- [ ] Complete error scenario tests → [#162](https://github.com/gander-tools/diff-voyager/issues/162)
+- [ ] Improve error messages for better UX → [#163](https://github.com/gander-tools/diff-voyager/issues/163)
+- [ ] Performance benchmarking and baselines → [#164](https://github.com/gander-tools/diff-voyager/issues/164)
 
-- [ ] Add database indexes
-  - Index on projects.base_url
-  - Index on pages.normalized_url
-  - Index on runs.project_id + is_baseline
-  - Index on snapshots.page_id + run_id
-
-- [ ] Query optimization
-  - Analyze slow queries with EXPLAIN
-  - Optimize N+1 queries
-  - Add query result caching where appropriate
-
-#### 3.2 Error Handling
-
-- [ ] Complete error scenario tests
-  - Network timeout scenarios
-  - Invalid URL handling
-  - Disk space exhaustion
-  - Browser crashes
-
-- [ ] Improve error messages
-  - User-friendly error descriptions
-  - Actionable error guidance
-  - Detailed logging for debugging
-
-#### 3.3 Performance Benchmarking
-
-- [ ] Establish performance baselines
-  - Single page scan: < 5 seconds
-  - 10-page crawl: < 30 seconds
-  - 100-page crawl: < 5 minutes
-  - API endpoints: < 100ms
-
-- [ ] Load testing
-  - Concurrent API requests
-  - Large project handling (500+ pages)
-  - Long-running crawls
-
-**Acceptance Criteria**:
-- All error scenarios handled gracefully
-- Performance meets baseline targets
-- Database queries optimized
+**Acceptance Criteria**: See individual issues for detailed criteria.
 
 ### 4. MVP Feature Completion (Priority: Medium)
 
 **Target**: Weeks 7-8
 
-#### 4.1 Export Functionality
+See GitHub Issues for detailed tracking:
+- [ ] Implement project export functionality → [#150](https://github.com/gander-tools/diff-voyager/issues/150) (parent)
+  - [ ] Add export API endpoint → [#155](https://github.com/gander-tools/diff-voyager/issues/155)
+- [ ] Implement diff filtering → [#165](https://github.com/gander-tools/diff-voyager/issues/165)
+- [ ] Add search functionality for diffs and pages → [#166](https://github.com/gander-tools/diff-voyager/issues/166)
 
-- [ ] Implement project export
-  - JSON manifest generation
-  - Artifact bundling
-  - Zip archive creation
+**Acceptance Criteria**: See individual issues for detailed criteria.
 
-- [ ] Add export API endpoint
-  - GET /api/v1/projects/:id/export
-  - Streaming response for large exports
-  - Configurable export options
-
-#### 4.2 Diff Filtering and Search
-
-- [ ] Implement diff filtering
-  - Filter by change type (SEO, visual, header, performance)
-  - Filter by severity (critical, warning, info)
-  - Filter by status (new, accepted, muted)
-
-- [ ] Add search functionality
-  - Search by page URL
-  - Search by diff content
-  - Full-text search in HTML
-
-**Acceptance Criteria**:
-- Export generates valid archive with all artifacts
-- Diff filtering and search working via API
+**GitHub Milestone**: All issues tracked in [Documentation TODO Cleanup](https://github.com/gander-tools/diff-voyager/milestone/1)
 
 ## Medium-term Goals (Frontend MVP)
 

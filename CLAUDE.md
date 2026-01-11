@@ -1027,3 +1027,45 @@ When working on Diff Voyager:
   - Example: `fix(frontend): resolve visual diff rendering issue`
   - Example: `docs: update CLAUDE.md with commit guidelines`
 - Push regularly to backup work
+
+## TODO Management
+
+**Policy:** All TODOs must be created as GitHub Issues and linked in documentation.
+
+### Creating New TODOs
+
+1. **Create GitHub Issue:**
+   - Use Conventional Commits format for title: `<type>(<scope>): <description>`
+   - Add appropriate labels: type (bug/enhancement/test), scope (backend/frontend/shared), priority
+   - Add to relevant milestone
+   - Assign to appropriate person
+
+2. **Link in Documentation:**
+   - Reference issue in documentation: `🔗 [Issue #X](https://github.com/gander-tools/diff-voyager/issues/X)`
+   - Keep documentation concise, details in GitHub issue
+   - Update documentation when issue status changes
+
+3. **Avoid Inline TODOs:**
+   - Don't add `// TODO:` comments in code without corresponding issue
+   - Code TODOs should reference GitHub issue: `// TODO(#123): Fix this`
+
+### Examples
+
+**Good:**
+```markdown
+### Next Steps
+
+- [ ] Implement project export → [Issue #150](https://github.com/gander-tools/diff-voyager/issues/150)
+- [ ] Add diff filtering → [Issue #165](https://github.com/gander-tools/diff-voyager/issues/165)
+```
+
+**Avoid:**
+```markdown
+### Next Steps
+
+- [ ] Implement project export
+  - JSON manifest generation
+  - Artifact bundling
+  - Zip archive creation
+  [... long detailed description ...]
+```
