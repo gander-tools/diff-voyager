@@ -208,18 +208,18 @@ export const tsRestClient = initClient(apiContract, {
   baseUrl: API_BASE_URL,
   baseHeaders: {},
   api: async ({ path, method, headers, body }) => {
-    // Use our existing retry logic with ofetch
+    // Use ofetch.raw() to get status code along with body
     try {
-      const response = await fetchWithRetry(path, {
+      const rawResponse = await apiClient.raw(path, {
         method,
         headers,
         body,
       });
 
       return {
-        status: 200,
-        body: response,
-        headers: new Headers(),
+        status: rawResponse.status,
+        body: rawResponse._data,
+        headers: rawResponse.headers,
       };
     } catch (error) {
       if (error instanceof ApiError) {
