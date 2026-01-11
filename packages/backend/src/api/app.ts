@@ -27,6 +27,8 @@ export interface AppConfig {
   drizzleDb: DrizzleDb;
   artifactsDir: string;
   taskQueue?: TaskQueue; // Optional - will be created if not provided
+  logLevelConsole?: string; // Console log level (default: debug in dev, info in prod)
+  logLevelFile?: string; // File log level (default: debug)
 }
 
 export async function createApp(config: AppConfig): Promise<FastifyInstance> {
@@ -36,11 +38,22 @@ export async function createApp(config: AppConfig): Promise<FastifyInstance> {
 
   // Configure Pino logger with multiple transports
   const isDevelopment = process.env.NODE_ENV !== 'production';
-  const logLevel = process.env.LOG_LEVEL || (isDevelopment ? 'debug' : 'info');
+  const defaultLogLevel = isDevelopment ? 'debug' : 'info';
+
+  // Use provided log levels or defaults
+  const logLevelConsole = config.logLevelConsole || defaultLogLevel;
+  const logLevelFile = config.logLevelFile || 'debug';
+
+  // The base logger level must be the lowest of all transports
+  const baseLogLevel =
+    ['trace', 'debug', 'info', 'warn', 'error', 'fatal'].indexOf(logLevelConsole) <
+    ['trace', 'debug', 'info', 'warn', 'error', 'fatal'].indexOf(logLevelFile)
+      ? logLevelConsole
+      : logLevelFile;
 
   const app = Fastify({
     logger: {
-      level: logLevel,
+      level: baseLogLevel,
       // Serialize errors with full stack trace
       serializers: {
         err: stdSerializers.err,
@@ -51,7 +64,7 @@ export async function createApp(config: AppConfig): Promise<FastifyInstance> {
           // Console transport with pino-pretty (colored, human-readable)
           {
             target: 'pino-pretty',
-            level: logLevel,
+            level: logLevelConsole,
             options: {
               colorize: true,
               translateTime: 'SYS:HH:MM:ss',
@@ -64,7 +77,7 @@ export async function createApp(config: AppConfig): Promise<FastifyInstance> {
           // File transport with full error stack traces
           {
             target: 'pino/file',
-            level: 'debug', // Log everything to file
+            level: logLevelFile,
             options: {
               destination: join(logsDir, 'app.log'),
               mkdir: true,
@@ -226,6 +239,9 @@ export async function createApp(config: AppConfig): Promise<FastifyInstance> {
     prefix: API_BASE_PATH,
     artifactsDir: config.artifactsDir,
   });
+
+  // Log configured log levels
+  app.log.info(`Logger configured: console=${logLevelConsole}, file=${logLevelFile}`);
 
   return app;
 }
