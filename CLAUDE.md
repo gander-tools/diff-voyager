@@ -310,7 +310,27 @@ npm run dev:backend
 
 # Or with custom port/data directory
 PORT=3001 DATA_DIR=./my-data npm run dev:backend
+
+# Configure log levels via environment variables
+LOG_LEVEL_CONSOLE=info LOG_LEVEL_FILE=debug npm run dev:backend
+
+# Or via CLI arguments (takes priority over env vars)
+node packages/backend/dist/index.js --log-level-console info --log-level-file debug
+
+# All available options
+node packages/backend/dist/index.js \
+  --port 3001 \
+  --data-dir ./my-data \
+  --log-level-console warn \
+  --log-level-file debug
 ```
+
+**Log Level Configuration:**
+- **Environment variables:** `LOG_LEVEL_CONSOLE`, `LOG_LEVEL_FILE` (or `LOG_LEVEL` for both)
+- **CLI flags:** `--log-level-console`, `--log-level-file` (or `--log-level` for both)
+- **Priority:** CLI flags > environment variables > defaults
+- **Valid levels:** `trace`, `debug`, `info`, `warn`, `error`, `fatal`
+- **Defaults:** Console=`debug` (dev) or `info` (prod), File=`debug`
 
 The server will be available at `http://localhost:3000` with endpoints:
 - `POST /api/v1/scans` - Create a scan (single page or crawl)

@@ -13,9 +13,41 @@ import { createDrizzleDb } from './storage/drizzle/db.js';
 const DEFAULT_PORT = 3000;
 const DEFAULT_DATA_DIR = './data';
 
+/**
+ * Parse command line arguments
+ */
+function parseArgs() {
+  const args = process.argv.slice(2);
+  const parsed: Record<string, string | undefined> = {};
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg.startsWith('--')) {
+      const key = arg.slice(2);
+      const value = args[i + 1];
+      if (value && !value.startsWith('--')) {
+        parsed[key] = value;
+        i++; // Skip next arg as it's the value
+      }
+    }
+  }
+
+  return parsed;
+}
+
 async function main() {
-  const port = Number(process.env.PORT) || DEFAULT_PORT;
-  const dataDir = process.env.DATA_DIR || DEFAULT_DATA_DIR;
+  const args = parseArgs();
+
+  const port = Number(args.port || process.env.PORT) || DEFAULT_PORT;
+  const dataDir = args['data-dir'] || process.env.DATA_DIR || DEFAULT_DATA_DIR;
+
+  // Parse log levels with priority: CLI args > env vars > defaults
+  const isDevelopment = process.env.NODE_ENV !== 'production';
+  const defaultLogLevel = isDevelopment ? 'debug' : 'info';
+
+  const logLevel = args['log-level'] || process.env.LOG_LEVEL || defaultLogLevel;
+  const logLevelConsole = args['log-level-console'] || process.env.LOG_LEVEL_CONSOLE || logLevel;
+  const logLevelFile = args['log-level-file'] || process.env.LOG_LEVEL_FILE || 'debug';
 
   // Ensure data directories exist with restricted permissions
   const dbPath = join(dataDir, 'diff-voyager.db');
@@ -35,7 +67,13 @@ async function main() {
   console.log('Drizzle ORM initialized');
 
   // Create and start app
-  const app = await createApp({ db, drizzleDb, artifactsDir });
+  const app = await createApp({
+    db,
+    drizzleDb,
+    artifactsDir,
+    logLevelConsole,
+    logLevelFile,
+  });
 
   await app.listen({ port, host: '0.0.0.0' });
   console.log(`API server running at http://localhost:${port}`);

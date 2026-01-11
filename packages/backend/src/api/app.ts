@@ -2,12 +2,15 @@
  * Fastify application setup
  */
 
+import { mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import { API_BASE_PATH } from '@gander-tools/diff-voyager-shared';
 import Fastify, { type FastifyInstance } from 'fastify';
+import { stdSerializers } from 'pino';
 import { TaskQueue } from '../queue/task-queue.js';
 import type { DatabaseInstance } from '../storage/database.js';
 import type { DrizzleDb } from '../storage/drizzle/db.js';
@@ -24,11 +27,67 @@ export interface AppConfig {
   drizzleDb: DrizzleDb;
   artifactsDir: string;
   taskQueue?: TaskQueue; // Optional - will be created if not provided
+  logLevelConsole?: string; // Console log level (default: debug in dev, info in prod)
+  logLevelFile?: string; // File log level (default: debug)
 }
 
 export async function createApp(config: AppConfig): Promise<FastifyInstance> {
+  // Ensure logs directory exists
+  const logsDir = join(process.cwd(), 'data', 'logs');
+  await mkdir(logsDir, { recursive: true, mode: 0o700 });
+
+  // Configure Pino logger with multiple transports
+  const isDevelopment = process.env.NODE_ENV !== 'production';
+  const defaultLogLevel = isDevelopment ? 'debug' : 'info';
+
+  // Use provided log levels or defaults
+  const logLevelConsole = config.logLevelConsole || defaultLogLevel;
+  const logLevelFile = config.logLevelFile || 'debug';
+
+  // The base logger level must be the lowest of all transports
+  const baseLogLevel =
+    ['trace', 'debug', 'info', 'warn', 'error', 'fatal'].indexOf(logLevelConsole) <
+    ['trace', 'debug', 'info', 'warn', 'error', 'fatal'].indexOf(logLevelFile)
+      ? logLevelConsole
+      : logLevelFile;
+
   const app = Fastify({
-    logger: false,
+    logger: {
+      level: baseLogLevel,
+      // Serialize errors with full stack trace
+      serializers: {
+        err: stdSerializers.err,
+        error: stdSerializers.err,
+      },
+      transport: {
+        targets: [
+          // Console transport with pino-pretty (colored, human-readable)
+          {
+            target: 'pino-pretty',
+            level: logLevelConsole,
+            options: {
+              colorize: true,
+              translateTime: 'SYS:HH:MM:ss',
+              ignore: 'pid,hostname',
+              singleLine: false,
+              // Show minimal info in console, full details in file
+              errorLikeObjectKeys: ['err', 'error'],
+            },
+          },
+          // File transport with full error stack traces
+          {
+            target: 'pino/file',
+            level: logLevelFile,
+            options: {
+              destination: join(logsDir, 'app.log'),
+              mkdir: true,
+            },
+          },
+        ],
+      },
+    },
+    // Disable request logging for health checks (too noisy)
+    disableRequestLogging: false,
   });
 
   // Register CORS plugin
@@ -164,6 +223,9 @@ export async function createApp(config: AppConfig): Promise<FastifyInstance> {
     prefix: API_BASE_PATH,
     artifactsDir: config.artifactsDir,
   });
+
+  // Log configured log levels
+  app.log.info(`Logger configured: console=${logLevelConsole}, file=${logLevelFile}`);
 
   return app;
 }
