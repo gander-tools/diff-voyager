@@ -29,9 +29,21 @@ export interface AppConfig {
   taskQueue?: TaskQueue; // Optional - will be created if not provided
   logLevelConsole?: string; // Console log level (default: debug in dev, info in prod)
   logLevelFile?: string; // File log level (default: debug)
+  disableLogging?: boolean; // Disable logging entirely (for tests)
 }
 
 export async function createApp(config: AppConfig): Promise<FastifyInstance> {
+  // If logging is disabled (e.g., for tests), create app without logger
+  if (config.disableLogging) {
+    const app = Fastify({
+      logger: false,
+    });
+
+    // Skip logger setup, just register plugins
+    await registerPlugins(app, config);
+    return app;
+  }
+
   // Ensure logs directory exists
   const logsDir = join(process.cwd(), 'data', 'logs');
   await mkdir(logsDir, { recursive: true, mode: 0o700 });
@@ -90,6 +102,17 @@ export async function createApp(config: AppConfig): Promise<FastifyInstance> {
     disableRequestLogging: false,
   });
 
+  // Log configured log levels
+  app.log.info(`Logger configured: console=${logLevelConsole}, file=${logLevelFile}`);
+
+  await registerPlugins(app, config);
+  return app;
+}
+
+/**
+ * Register all Fastify plugins and routes
+ */
+async function registerPlugins(app: FastifyInstance, config: AppConfig) {
   // Register CORS plugin
   await app.register(cors, {
     origin: true, // Allow all origins in development
@@ -223,9 +246,4 @@ export async function createApp(config: AppConfig): Promise<FastifyInstance> {
     prefix: API_BASE_PATH,
     artifactsDir: config.artifactsDir,
   });
-
-  // Log configured log levels
-  app.log.info(`Logger configured: console=${logLevelConsole}, file=${logLevelFile}`);
-
-  return app;
 }
