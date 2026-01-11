@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.19](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.18...diff-voyager-backend-v0.1.19) (2026-01-11)
+
+
+### Features
+
+* **backend:** implement [@ts-rest](https://github.com/ts-rest) handlers for artifacts endpoints ([2777a1a](https://github.com/gander-tools/diff-voyager/commit/2777a1a64b52c322662c8050a5b776f8558f92e2))
+
 ## [0.1.18](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.17...diff-voyager-backend-v0.1.18) (2026-01-11)
 
 
