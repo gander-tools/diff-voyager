@@ -39,7 +39,7 @@ describe('@ts-rest API Routes', () => {
     const drizzleDb = createDrizzleDb(db);
 
     // Create app with @ts-rest routes
-    app = await createApp({ db, drizzleDb, artifactsDir });
+    app = await createApp({ db, drizzleDb, artifactsDir, disableLogging: true });
 
     // Start mock server
     mockServer = new MockServer({
