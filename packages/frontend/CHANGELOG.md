@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.13](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.12...diff-voyager-frontend-v0.1.13) (2026-01-11)
+
+
+### Bug Fixes
+
+* **frontend:** only set Content-Type header when request has body ([f56196d](https://github.com/gander-tools/diff-voyager/commit/f56196da420c07d652ef489546bd2eff1cb5cbd0))
+
 ## [0.1.12](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.11...diff-voyager-frontend-v0.1.12) (2026-01-11)
 
 
