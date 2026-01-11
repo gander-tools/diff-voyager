@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.18](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.17...diff-voyager-backend-v0.1.18) (2026-01-11)
+
+
+### Features
+
+* **backend:** add CaptureLogger utility for comprehensive page capture diagnostics ([a5db43a](https://github.com/gander-tools/diff-voyager/commit/a5db43a27c0a933ceb3f0bb9b973348342c4db6b))
+* **backend:** integrate CaptureLogger into page capture pipeline ([5eef516](https://github.com/gander-tools/diff-voyager/commit/5eef5168e44e42e06b9233ef38a68d0f593e7f06))
+
+
+### Bug Fixes
+
+* **backend:** organize Swagger routes with proper tags using onRoute hook ([317ce22](https://github.com/gander-tools/diff-voyager/commit/317ce22d84e8f2ead99c485aa78b94afa592eaf1))
+
 ## [0.1.17](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.16...diff-voyager-backend-v0.1.17) (2026-01-11)
 
 
