@@ -7,6 +7,7 @@
 
 import { apiContract, PageStatus } from '@gander-tools/diff-voyager-shared';
 import { initServer } from '@ts-rest/fastify';
+import { PageCapturer } from '../crawler/page-capturer.js';
 import type { TaskQueue } from '../queue/task-queue.js';
 import { ScanProcessor } from '../services/scan-processor.js';
 import type { DatabaseInstance } from '../storage/database.js';
