@@ -202,6 +202,8 @@ See [Drizzle Migration Guide](../guides/drizzle-migration.md) for details.
 
 **Status**: Partial - Core workflows working, retry functionality complete
 
+**Milestone**: [#2 - Phase 6: Integration Workflows](https://github.com/gander-tools/diff-voyager/milestone/2) - Due Jan 24, 2026
+
 **Completed**:
 - ✅ ScanProcessor (orchestrates project → run → capture → storage)
 - ✅ Single page baseline capture (sync mode)
@@ -213,14 +215,18 @@ See [Drizzle Migration Guide](../guides/drizzle-migration.md) for details.
 
 **Pending**:
 - ⏳ Baseline vs run comparison workflow
-- ⏳ Automatic diff generation during comparison runs
-- ⏳ Multi-page crawl workflow (Crawlee integration exists but not fully tested)
+- ⏳ 🔵 Automatic diff generation during comparison runs → [#149](https://github.com/gander-tools/diff-voyager/issues/149) (Feature)
+  - ⏳ 🟡 Create integration tests for diff workflow → [#154](https://github.com/gander-tools/diff-voyager/issues/154) (Task)
+- ⏳ 🟡 Multi-page crawl workflow → [#158](https://github.com/gander-tools/diff-voyager/issues/158) (Task)
+- ⏳ 🟡 Performance optimization for crawls → [#159](https://github.com/gander-tools/diff-voyager/issues/159) (Task)
 
 **Blockers**: None - all dependencies complete (Phase 2, 3, 4 done)
 
 ### Phase 7: Polish & Production Ready 🟡 (50%)
 
 **Status**: Partial - Core security in place, optimization pending
+
+**Milestone**: [#3 - Phase 7: Production Polish](https://github.com/gander-tools/diff-voyager/milestone/3) - Due Feb 7, 2026
 
 **Completed**:
 - ✅ Rate limiting on all API endpoints
@@ -230,9 +236,10 @@ See [Drizzle Migration Guide](../guides/drizzle-migration.md) for details.
 - ✅ Integration tests with mock server
 
 **Pending**:
-- ⏳ Complete error scenario tests
-- ⏳ Database query optimization and indexing
-- ⏳ Performance benchmarking and optimization
+- ⏳ 🟡 Complete error scenario tests → [#162](https://github.com/gander-tools/diff-voyager/issues/162) (Task)
+- ⏳ 🟡 Database query optimization and indexing → [#160](https://github.com/gander-tools/diff-voyager/issues/160) & [#161](https://github.com/gander-tools/diff-voyager/issues/161) (Task)
+- ⏳ 🟡 Performance benchmarking and optimization → [#164](https://github.com/gander-tools/diff-voyager/issues/164) (Task)
+- ⏳ 🟡 Improve error messages for better UX → [#163](https://github.com/gander-tools/diff-voyager/issues/163) (Task)
 - ⏳ Connection pooling
 
 ### Frontend UI 🟡 (40%)
@@ -392,26 +399,51 @@ See [Frontend Implementation Plan](../features/frontend-plan.md) and [Frontend S
 
 **Total**: 4 backend integration tests currently skipped. See detailed tracking in GitHub Issues:
 
+**Milestone**: [#1 - Documentation TODO Cleanup](https://github.com/gander-tools/diff-voyager/milestone/1)
+
 ### Phase 1: Fix Skipped Tests (High Priority)
 
-- [Issue #156](https://github.com/gander-tools/diff-voyager/issues/156) - `includePages` parameter coercion (HIGH)
-- [Issue #148](https://github.com/gander-tools/diff-voyager/issues/148) - Page details response structure investigation (MEDIUM, parent)
-  - [Issue #151](https://github.com/gander-tools/diff-voyager/issues/151) - SEO data in response
-  - [Issue #152](https://github.com/gander-tools/diff-voyager/issues/152) - HTTP headers in response
-  - [Issue #153](https://github.com/gander-tools/diff-voyager/issues/153) - Performance metrics in response
-- [Issue #157](https://github.com/gander-tools/diff-voyager/issues/157) - HAR file URL handling (MEDIUM)
+All issues are **Bug** type (🔴):
+
+- 🔴 [Issue #156](https://github.com/gander-tools/diff-voyager/issues/156) - `includePages` parameter coercion (HIGH)
+- 🔴 [Issue #148](https://github.com/gander-tools/diff-voyager/issues/148) - Page details response structure investigation (MEDIUM, parent)
+  - 🔴 [Issue #151](https://github.com/gander-tools/diff-voyager/issues/151) - SEO data in response
+  - 🔴 [Issue #152](https://github.com/gander-tools/diff-voyager/issues/152) - HTTP headers in response
+  - 🔴 [Issue #153](https://github.com/gander-tools/diff-voyager/issues/153) - Performance metrics in response
+- 🔴 [Issue #157](https://github.com/gander-tools/diff-voyager/issues/157) - HAR file URL handling (MEDIUM)
 
 Full documentation: [Skipped Tests Guide](./skipped-tests.md)
 
 ## Next Priorities
 
-1. **Frontend Phase 3** - Run management UI (RunList, RunCreate, RunDetail)
-2. **Fix Skipped Tests** - [Tracked in issues #156, #148, #151-153, #157](https://github.com/gander-tools/diff-voyager/milestone/1)
-3. **Diff Workflow Integration** - [Issue #149](https://github.com/gander-tools/diff-voyager/issues/149), [Issue #154](https://github.com/gander-tools/diff-voyager/issues/154)
-4. **Frontend Phase 4** - Diff review interface with visual comparison
-5. **Multi-page Crawl Verification** - [Issue #158](https://github.com/gander-tools/diff-voyager/issues/158)
+### Short-term (Weeks 1-2)
+1. **Fix Skipped Tests** - [Milestone #1](https://github.com/gander-tools/diff-voyager/milestone/1)
+   - 🔴 All Bug type issues (#156, #148, #151-153, #157)
 
-See [GitHub Milestone: Documentation TODO Cleanup](https://github.com/gander-tools/diff-voyager/milestone/1) for complete tracking of backend tasks.
+### Short-term (Weeks 3-4)
+2. **Complete Phase 6: Integration Workflows** - [Milestone #2](https://github.com/gander-tools/diff-voyager/milestone/2)
+   - 🔵 Diff workflow integration [#149](https://github.com/gander-tools/diff-voyager/issues/149)
+   - 🟡 Integration tests [#154](https://github.com/gander-tools/diff-voyager/issues/154)
+   - 🟡 E2E testing [#158](https://github.com/gander-tools/diff-voyager/issues/158)
+   - 🟡 Performance optimization [#159](https://github.com/gander-tools/diff-voyager/issues/159)
+
+### Medium-term (Weeks 5-6)
+3. **Complete Phase 7: Production Polish** - [Milestone #3](https://github.com/gander-tools/diff-voyager/milestone/3)
+   - 🟡 All Task type issues (#160-164)
+
+### Medium-term (Weeks 7-8)
+4. **Backend MVP Complete** - [Milestone #4](https://github.com/gander-tools/diff-voyager/milestone/4)
+   - 🔵 Export functionality [#150](https://github.com/gander-tools/diff-voyager/issues/150), [#155](https://github.com/gander-tools/diff-voyager/issues/155)
+   - 🔵 Diff filtering [#165](https://github.com/gander-tools/diff-voyager/issues/165)
+   - 🔵 Search functionality [#166](https://github.com/gander-tools/diff-voyager/issues/166)
+
+### Long-term (Weeks 9-16)
+5. **Frontend Phase 3-7** - [Milestones #5-7](https://github.com/gander-tools/diff-voyager/milestone/5)
+   - Run management UI (Phase 3)
+   - Diff review interface (Phase 4)
+   - Rules and settings (Phase 5)
+
+See [Roadmap](roadmap.md) for complete development timeline and milestones.
 
 ## Performance Metrics
 
