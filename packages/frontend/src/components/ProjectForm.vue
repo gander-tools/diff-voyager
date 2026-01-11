@@ -69,12 +69,11 @@ const handlePresetChange = (value: string) => {
 };
 
 const validateStep1 = async (): Promise<boolean> => {
-  // Validate only step 1 fields
+  // Validate only step 1 fields (name is optional, only url is required)
   const result = await validate();
 
-  // Check if there are errors in step 1 fields
-  // biome-ignore lint/suspicious/noExplicitAny: vee-validate errors type indexing
-  const step1Errors = ['name', 'url', 'description'].some((field) => (errors.value as any)[field]);
+  // Check if there are errors in step 1 fields (url is the only required field)
+  const step1Errors = ['url'].some((field) => (errors.value as any)[field]);
 
   return !step1Errors && result.valid;
 };
@@ -135,20 +134,6 @@ const isLastStep = computed(() => currentStep.value === 2);
       <!-- Step 1: Basic Info -->
       <div v-if="currentStep === 0" class="step-content">
         <NFormItem
-          label="Project Name"
-          :validation-status="errors.name ? 'error' : undefined"
-        >
-          <NInput
-            v-model:value="name"
-            placeholder="Enter project name"
-            data-test="name-input"
-          />
-          <div v-if="errors.name" class="error-message">
-            {{ errors.name }}
-          </div>
-        </NFormItem>
-
-        <NFormItem
           label="Website URL"
           :validation-status="errors.url ? 'error' : undefined"
         >
@@ -159,6 +144,23 @@ const isLastStep = computed(() => currentStep.value === 2);
           />
           <div v-if="errors.url" class="error-message">
             {{ errors.url }}
+          </div>
+        </NFormItem>
+
+        <NFormItem
+          label="Project Name (optional)"
+          :validation-status="errors.name ? 'error' : undefined"
+        >
+          <NInput
+            v-model:value="name"
+            placeholder="Leave empty to use domain name"
+            data-test="name-input"
+          />
+          <div v-if="errors.name" class="error-message">
+            {{ errors.name }}
+          </div>
+          <div v-else class="help-text">
+            If left empty, the domain name from the URL will be used
           </div>
         </NFormItem>
 
