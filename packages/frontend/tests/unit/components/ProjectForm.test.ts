@@ -38,7 +38,7 @@ describe('ProjectForm', () => {
     expect(wrapper.text()).toContain('Project Name');
   });
 
-  it('should validate required fields in step 1', async () => {
+  it('should validate required URL field in step 1', async () => {
     const wrapper = mount(ProjectForm);
     const submitButton = wrapper.find('[data-test="next-step-btn"]');
 
@@ -46,7 +46,32 @@ describe('ProjectForm', () => {
       await submitButton.trigger('click');
       await wrapper.vm.$nextTick();
       await new Promise((resolve) => setTimeout(resolve, 50)); // Wait for async validation
-      expect(wrapper.text()).toContain('required');
+      // Should show URL validation error since it's the only required field
+      expect(wrapper.text()).toContain('Invalid URL format');
+    }
+  });
+
+  it('should allow proceeding to step 2 with empty name field', async () => {
+    const wrapper = mount(ProjectForm);
+
+    const nameInput = wrapper.find('input[data-test="name-input"]');
+    const urlInput = wrapper.find('input[data-test="url-input"]');
+
+    if (nameInput.exists() && urlInput.exists()) {
+      // Leave name empty, only fill URL
+      await nameInput.setValue('');
+      await urlInput.setValue('https://example.com');
+
+      const nextButton = wrapper.find('[data-test="next-step-btn"]');
+      if (nextButton.exists()) {
+        await nextButton.trigger('click');
+        await wrapper.vm.$nextTick();
+
+        // Should move to step 2 (Crawl Settings)
+        expect(wrapper.text()).toContain('Crawl');
+        // Should not show validation error
+        expect(wrapper.text()).not.toContain('required');
+      }
     }
   });
 

@@ -26,16 +26,13 @@ describe('validators', () => {
         expect(result.success).toBe(true);
       });
 
-      it('should require name field', () => {
-        const invalidData = {
+      it('should allow missing name field (optional)', () => {
+        const validData = {
           url: 'https://example.com',
         };
 
-        const result = createProjectSchema.safeParse(invalidData);
-        expect(result.success).toBe(false);
-        if (!result.success) {
-          expect(result.error.issues[0]?.path).toContain('name');
-        }
+        const result = createProjectSchema.safeParse(validData);
+        expect(result.success).toBe(true);
       });
 
       it('should require url field', () => {
@@ -50,14 +47,14 @@ describe('validators', () => {
         }
       });
 
-      it('should allow empty name after trimming to fail', () => {
-        const invalidData = {
+      it('should allow empty name (optional field)', () => {
+        const validData = {
           name: '',
           url: 'https://example.com',
         };
 
-        const result = createProjectSchema.safeParse(invalidData);
-        expect(result.success).toBe(false);
+        const result = createProjectSchema.safeParse(validData);
+        expect(result.success).toBe(true);
       });
     });
 
