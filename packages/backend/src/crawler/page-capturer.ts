@@ -8,10 +8,13 @@ import { constants } from 'node:fs';
 import { access, chmod, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { PerformanceData, SeoData } from '@gander-tools/diff-voyager-shared';
+import type { Logger } from 'pino';
 import { type Browser, chromium, type Page } from 'playwright';
+import { CaptureLogger } from './capture-logger.js';
 
 export interface PageCapturerConfig {
   artifactsDir: string;
+  logger?: Logger;
 }
 
 export interface CaptureInput {
@@ -38,12 +41,25 @@ export interface CaptureResult {
 export class PageCapturer {
   private browser: Browser | null = null;
   private artifactsDir: string;
+  private logger?: Logger;
 
   constructor(config: PageCapturerConfig) {
     this.artifactsDir = config.artifactsDir;
+    this.logger = config.logger;
   }
 
   async capture(input: CaptureInput): Promise<CaptureResult> {
+    // Create capture logger if we have a logger
+    const captureLogger = this.logger
+      ? new CaptureLogger({
+          logger: this.logger,
+          url: input.url,
+          pageId: input.pageId,
+        })
+      : null;
+
+    captureLogger?.logLifecycle('Starting page capture');
+
     const pageDir = join(this.artifactsDir, input.pageId);
     // Create directory with restricted permissions (owner only: rwx------)
     await mkdir(pageDir, { recursive: true, mode: 0o700 });
@@ -71,6 +87,11 @@ export class PageCapturer {
 
     const page = await context.newPage();
 
+    // Attach capture logger to page for automatic event logging
+    if (captureLogger) {
+      captureLogger.attachToPage(page);
+    }
+
     const redirectChain: Array<{ url: string; status: number }> = [];
     let responseHeaders: Record<string, string> = {};
     let httpStatus = 0;
@@ -95,6 +116,8 @@ export class PageCapturer {
 
     try {
       // Navigate to page
+      captureLogger?.logNavigationStart();
+
       const response = await page.goto(input.url, {
         waitUntil: 'networkidle',
         timeout: 30000,
@@ -106,6 +129,8 @@ export class PageCapturer {
           Object.entries(response.headers()).map(([k, v]) => [k.toLowerCase(), v]),
         );
       }
+
+      captureLogger?.logNavigationComplete(httpStatus, redirectChain.length);
 
       // Wait additional time if specified
       if (input.waitAfterLoad > 0) {
@@ -119,6 +144,8 @@ export class PageCapturer {
       // Write file with restricted permissions (owner only: rw-------)
       await writeFile(htmlPath, html, { encoding: 'utf-8', mode: 0o600 });
 
+      captureLogger?.logHtmlCaptured(html.length, htmlHash);
+
       // Capture screenshot
       const screenshotPath = join(pageDir, 'screenshot.png');
       await page.screenshot({
@@ -128,11 +155,25 @@ export class PageCapturer {
       // Ensure screenshot has restricted permissions (owner only: rw-------)
       await chmod(screenshotPath, 0o600);
 
+      captureLogger?.logScreenshotCaptured(screenshotPath);
+
       // Extract SEO data
       const seoData = await this.extractSeoData(page);
+      captureLogger?.logSeoDataExtracted(
+        !!seoData.title,
+        !!seoData.metaDescription,
+        seoData.h1?.length || 0,
+      );
 
       // Get performance metrics
       const performanceData = await this.getPerformanceData(page);
+      if (performanceData) {
+        captureLogger?.logPerformanceMetrics(
+          performanceData.loadTimeMs,
+          performanceData.requestCount,
+          performanceData.totalSizeBytes,
+        );
+      }
 
       await context.close();
 
@@ -148,7 +189,7 @@ export class PageCapturer {
         }
       }
 
-      return {
+      const result = {
         httpStatus,
         redirectChain,
         htmlHash,
@@ -159,9 +200,31 @@ export class PageCapturer {
         screenshotPath,
         harPath,
       };
+
+      captureLogger?.logCaptureComplete();
+
+      // Log summary if logger exists
+      if (captureLogger) {
+        const summary = captureLogger.getSummary();
+        this.logger?.debug(
+          {
+            summary,
+            consoleErrorCount: summary.consoleLogs.filter((l) => l.type === 'error').length,
+            http4xxCount: summary.responses.filter((r) => r.status >= 400 && r.status < 500).length,
+            http5xxCount: summary.responses.filter((r) => r.status >= 500).length,
+          },
+          '[CAPTURE] Summary',
+        );
+      }
+
+      return result;
     } catch (error) {
       await context.close();
-      return {
+
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      captureLogger?.logCaptureError(error);
+
+      const errorResult = {
         httpStatus: 0,
         redirectChain: [],
         htmlHash: '',
@@ -170,8 +233,10 @@ export class PageCapturer {
         seoData: {},
         screenshotPath: '',
         harPath: undefined,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: errorMessage,
       };
+
+      return errorResult;
     }
   }
 

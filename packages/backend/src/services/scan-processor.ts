@@ -11,6 +11,7 @@ import {
 } from '@gander-tools/diff-voyager-shared';
 import type { Database } from 'better-sqlite3';
 import { CheerioCrawler } from 'crawlee';
+import type { Logger } from 'pino';
 import { PageCapturer } from '../crawler/page-capturer.js';
 import * as UrlNormalizer from '../domain/url-normalizer.js';
 import type { IPageRepository } from '../storage/repositories/interfaces/page-repository.interface.js';
@@ -25,6 +26,7 @@ export interface ScanProcessorConfig {
   runRepo: IRunRepository;
   pageRepo: IPageRepository;
   snapshotRepo: ISnapshotRepository;
+  logger?: Logger;
 }
 
 export interface ProcessScanInput {
@@ -39,10 +41,13 @@ export interface ProcessScanInput {
 
 export class ScanProcessor {
   private capturer: PageCapturer;
+  private logger?: Logger;
 
   constructor(private config: ScanProcessorConfig) {
+    this.logger = config.logger;
     this.capturer = new PageCapturer({
       artifactsDir: config.artifactsDir,
+      logger: config.logger,
     });
   }
 
@@ -83,6 +88,20 @@ export class ScanProcessor {
           waitAfterLoad: input.waitAfterLoad,
           collectHar: input.collectHar,
         });
+
+        // DIAGNOSTIC: Log the exact captureResult and status determination
+        this.logger?.info(
+          {
+            pageId: page.id,
+            url,
+            captureResult,
+            hasErrorField: 'error' in captureResult,
+            errorValue: captureResult.error,
+            errorTruthy: !!captureResult.error,
+            statusToSet: captureResult.error ? PageStatus.ERROR : PageStatus.COMPLETED,
+          },
+          '[DIAGNOSTIC] Processing capture result in scan-processor',
+        );
 
         // Update snapshot with capture results
         await snapshotRepo.update(snapshot.id, {

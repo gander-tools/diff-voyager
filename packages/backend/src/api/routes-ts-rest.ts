@@ -7,6 +7,7 @@
 
 import { apiContract, PageStatus } from '@gander-tools/diff-voyager-shared';
 import { initServer } from '@ts-rest/fastify';
+import type { Logger } from 'pino';
 import { PageCapturer } from '../crawler/page-capturer.js';
 import type { TaskQueue } from '../queue/task-queue.js';
 import { ScanProcessor } from '../services/scan-processor.js';
@@ -22,10 +23,11 @@ export interface TsRestRoutesConfig {
   drizzleDb: DrizzleDb;
   artifactsDir: string;
   taskQueue: TaskQueue;
+  logger: Logger;
 }
 
 export function createTsRestRoutes(config: TsRestRoutesConfig) {
-  const { db, drizzleDb, artifactsDir, taskQueue } = config;
+  const { db, drizzleDb, artifactsDir, taskQueue, logger } = config;
   const projectRepo = new ProjectRepositoryDrizzle(drizzleDb);
   const runRepo = new RunRepositoryDrizzle(drizzleDb);
   const pageRepo = new PageRepositoryDrizzle(drizzleDb);
@@ -75,6 +77,7 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
             runRepo,
             pageRepo,
             snapshotRepo,
+            logger,
           });
 
           await processor.processScan({
@@ -423,6 +426,7 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
             runRepo,
             pageRepo,
             snapshotRepo,
+            logger,
           });
 
           processor
@@ -431,7 +435,6 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
               runId: run.id,
               url: body.url,
               crawl: project.config.crawl,
-              maxPages: project.config.maxPages,
               viewport: body.viewport || { width: 1920, height: 1080 },
               waitAfterLoad: body.waitAfterLoad ?? 1000,
               collectHar: body.collectHar || false,
@@ -822,7 +825,7 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
         }
 
         // 3. Retry capture (synchronous for single page)
-        const capturer = new PageCapturer({ artifactsDir });
+        const capturer = new PageCapturer({ artifactsDir, logger });
 
         const captureResult = await capturer.capture({
           url: page.originalUrl,
@@ -854,6 +857,11 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
           totalPages: allSnapshots.length,
           completedPages: allSnapshots.filter((s) => s.status === PageStatus.COMPLETED).length,
           errorPages: allSnapshots.filter((s) => s.status === PageStatus.ERROR).length,
+          unchangedPages: 0,
+          changedPages: 0,
+          criticalDifferences: 0,
+          acceptedDifferences: 0,
+          mutedDifferences: 0,
         };
         await runRepo.updateStatistics(run.id, statistics);
 
@@ -926,7 +934,7 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
         }
 
         // 4. Retry each snapshot
-        const capturer = new PageCapturer({ artifactsDir });
+        const capturer = new PageCapturer({ artifactsDir, logger });
         let successCount = 0;
         let errorCount = 0;
 
@@ -970,6 +978,11 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
           totalPages: updatedSnapshots.length,
           completedPages: updatedSnapshots.filter((s) => s.status === PageStatus.COMPLETED).length,
           errorPages: updatedSnapshots.filter((s) => s.status === PageStatus.ERROR).length,
+          unchangedPages: 0,
+          changedPages: 0,
+          criticalDifferences: 0,
+          acceptedDifferences: 0,
+          mutedDifferences: 0,
         };
         await runRepo.updateStatistics(runId, statistics);
 
