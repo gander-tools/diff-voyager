@@ -298,6 +298,7 @@ export const apiContract = c.router({
     },
     body: createScanBodySchema,
     summary: 'Create a new scan or crawl',
+    metadata: { tags: ['scans'] } as const,
   },
 
   // ========== PROJECTS ==========
@@ -313,6 +314,7 @@ export const apiContract = c.router({
     },
     query: listProjectsQuerySchema,
     summary: 'List all projects with pagination',
+    metadata: { tags: ['projects'] } as const,
   },
 
   getProject: {
@@ -325,6 +327,7 @@ export const apiContract = c.router({
     pathParams: projectIdParamSchema,
     query: getProjectQuerySchema,
     summary: 'Get project details with pages and statistics',
+    metadata: { tags: ['projects'] } as const,
   },
 
   deleteProject: {
@@ -338,6 +341,7 @@ export const apiContract = c.router({
     pathParams: projectIdParamSchema,
     body: z.void(),
     summary: 'Delete a project and all associated data',
+    metadata: { tags: ['projects'] } as const,
   },
 
   // ========== RUNS ==========
@@ -355,6 +359,7 @@ export const apiContract = c.router({
     pathParams: projectIdParamSchema,
     query: listRunsQuerySchema,
     summary: 'List all runs for a project',
+    metadata: { tags: ['runs'] } as const,
   },
 
   createProjectRun: {
@@ -367,6 +372,7 @@ export const apiContract = c.router({
     pathParams: projectIdParamSchema,
     body: createRunBodySchema,
     summary: 'Create a new comparison run for an existing project',
+    metadata: { tags: ['runs'] } as const,
   },
 
   getRunDetails: {
@@ -378,6 +384,7 @@ export const apiContract = c.router({
     },
     pathParams: runIdParamSchema,
     summary: 'Get run details with config and statistics',
+    metadata: { tags: ['runs'] } as const,
   },
 
   // ========== PAGES ==========
@@ -391,6 +398,7 @@ export const apiContract = c.router({
     },
     pathParams: pageIdParamSchema,
     summary: 'Get page details with diffs and artifacts',
+    metadata: { tags: ['pages'] } as const,
   },
 
   getPageDiff: {
@@ -402,6 +410,7 @@ export const apiContract = c.router({
     },
     pathParams: pageIdParamSchema,
     summary: 'Get page comparison diff between baseline and current',
+    metadata: { tags: ['pages'] } as const,
   },
 
   listRunPages: {
@@ -415,6 +424,7 @@ export const apiContract = c.router({
     pathParams: runIdParamSchema,
     query: listRunPagesQuerySchema,
     summary: 'List all pages in a run with pagination',
+    metadata: { tags: ['pages'] } as const,
   },
 
   // ========== SNAPSHOTS ==========
@@ -430,6 +440,7 @@ export const apiContract = c.router({
     pathParams: snapshotIdParamSchema,
     body: z.void(),
     summary: 'Retry capturing a failed snapshot',
+    metadata: { tags: ['runs'] } as const,
   },
 
   // ========== RETRY ==========
@@ -446,6 +457,7 @@ export const apiContract = c.router({
     query: retryRunQuerySchema,
     body: z.void(),
     summary: 'Retry snapshots in a run (all or only failed)',
+    metadata: { tags: ['runs'] } as const,
   },
 
   // ========== TASKS ==========
@@ -459,6 +471,7 @@ export const apiContract = c.router({
     },
     pathParams: taskIdParamSchema,
     summary: 'Get task status and details',
+    metadata: { tags: ['tasks'] } as const,
   },
 
   // TODO: Add artifacts endpoints
