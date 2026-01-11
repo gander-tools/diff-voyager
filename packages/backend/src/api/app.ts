@@ -15,11 +15,6 @@ import { TaskQueue } from '../queue/task-queue.js';
 import type { DatabaseInstance } from '../storage/database.js';
 import type { DrizzleDb } from '../storage/drizzle/db.js';
 import { registerArtifactRoutes } from './routes/artifacts.js';
-import { registerPageRoutes } from './routes/pages.js';
-import { registerProjectRoutes } from './routes/projects.js';
-import { registerRunRoutes } from './routes/runs.js';
-import { registerScanRoutes } from './routes/scans.js';
-import { registerTaskRoutes } from './routes/tasks.js';
 import { createTsRestRoutes } from './routes-ts-rest.js';
 
 export interface AppConfig {
@@ -126,6 +121,48 @@ async function registerPlugins(app: FastifyInstance, config: AppConfig) {
     timeWindow: '1 minute',
   });
 
+  // Add onRoute hook to create schema for @ts-rest routes (so Swagger can see them)
+  app.addHook('onRoute', (routeOptions) => {
+    // Check if this is a @ts-rest route (has tsRestRoute in config but no schema)
+    const tsRestRoute = (routeOptions.config as any)?.tsRestRoute;
+
+    if (tsRestRoute && !routeOptions.schema) {
+      const url = routeOptions.url;
+      let tags: string[] = [];
+
+      // Assign tags based on URL patterns
+      if (url.includes('/scans')) {
+        tags = ['scans'];
+      } else if (url.includes('/projects') && url.includes('/runs')) {
+        tags = ['runs'];
+      } else if (url.includes('/projects')) {
+        tags = ['projects'];
+      } else if (url.includes('/runs')) {
+        tags = ['runs'];
+      } else if (url.includes('/pages')) {
+        tags = ['pages'];
+      } else if (url.includes('/tasks')) {
+        tags = ['tasks'];
+      } else if (url.includes('/snapshots')) {
+        tags = ['runs'];
+      }
+
+      // CREATE schema for Swagger with tags and summary
+      routeOptions.schema = {
+        tags,
+        summary: tsRestRoute.summary || '',
+        description: tsRestRoute.description || '',
+      };
+
+      console.log(`[onRoute Hook] Created schema for ${url} with tags: [${tags.join(', ')}]`);
+    } else if (routeOptions.schema && routeOptions.url?.startsWith(API_BASE_PATH)) {
+      // Route already has schema (e.g., artifacts) - just log it
+      console.log(
+        `[onRoute Hook] Route ${routeOptions.url} already has schema with tags: [${(routeOptions.schema as any).tags?.join(', ')}]`,
+      );
+    }
+  });
+
   // Register Swagger
   await app.register(swagger, {
     openapi: {
@@ -150,6 +187,45 @@ async function registerPlugins(app: FastifyInstance, config: AppConfig) {
         { name: 'health', description: 'Health check' },
       ],
     },
+    transform: ({ schema, url }) => {
+      // Assign tags based on URL patterns for @ts-rest routes
+      if (!schema) {
+        return { schema, url };
+      }
+
+      let tags: string[] = [];
+
+      if (url.includes('/scans')) {
+        tags = ['scans'];
+      } else if (url.includes('/projects') && url.includes('/runs')) {
+        tags = ['runs'];
+      } else if (url.includes('/projects')) {
+        tags = ['projects'];
+      } else if (url.includes('/runs')) {
+        tags = ['runs'];
+      } else if (url.includes('/pages')) {
+        tags = ['pages'];
+      } else if (url.includes('/tasks')) {
+        tags = ['tasks'];
+      } else if (url.includes('/snapshots')) {
+        tags = ['runs'];
+      }
+
+      // Add tags to schema if we found a match
+      if (tags.length > 0) {
+        console.log(`[Swagger Transform] URL: ${url} -> Tags: ${tags.join(', ')}`);
+        return {
+          schema: {
+            ...schema,
+            tags,
+          },
+          url,
+        };
+      }
+
+      console.log(`[Swagger Transform] URL: ${url} -> No tags (default)`);
+      return { schema, url };
+    },
   });
 
   await app.register(swaggerUi, {
@@ -158,30 +234,6 @@ async function registerPlugins(app: FastifyInstance, config: AppConfig) {
       docExpansion: 'list',
       deepLinking: true,
     },
-  });
-
-  // Error handler
-  app.setErrorHandler(
-    (error: Error & { statusCode?: number; validation?: unknown }, _request, reply) => {
-      const statusCode = error.statusCode || 500;
-      reply.status(statusCode).send({
-        error: {
-          code: statusCode === 400 ? 'VALIDATION_ERROR' : 'INTERNAL_ERROR',
-          message: error.message,
-          details: error.validation || undefined,
-        },
-      });
-    },
-  );
-
-  // Not found handler
-  app.setNotFoundHandler((_request, reply) => {
-    reply.status(404).send({
-      error: {
-        code: 'NOT_FOUND',
-        message: 'Resource not found',
-      },
-    });
   });
 
   // Health check
@@ -206,7 +258,7 @@ async function registerPlugins(app: FastifyInstance, config: AppConfig) {
     },
   );
 
-  // Register @ts-rest routes (NEW - type-safe API contract)
+  // Register @ts-rest routes
   const taskQueue = config.taskQueue || new TaskQueue(config.db);
   const { router: tsRestRouter, s: tsRestServer } = createTsRestRoutes({
     db: config.db,
@@ -220,31 +272,33 @@ async function registerPlugins(app: FastifyInstance, config: AppConfig) {
     prefix: API_BASE_PATH,
   });
 
-  // OLD routes - TODO: Remove after verifying @ts-rest routes work
-  // Keeping for now for backwards compatibility
-  await app.register(registerScanRoutes, {
-    prefix: `${API_BASE_PATH}/old`,
-    db: config.db,
-    artifactsDir: config.artifactsDir,
-  });
-  await app.register(registerProjectRoutes, {
-    prefix: `${API_BASE_PATH}/old`,
-    db: config.db,
-  });
-  await app.register(registerRunRoutes, {
-    prefix: `${API_BASE_PATH}/old`,
-    db: config.db,
-  });
-  await app.register(registerPageRoutes, {
-    prefix: `${API_BASE_PATH}/old`,
-    db: config.db,
-  });
-  await app.register(registerTaskRoutes, {
-    prefix: `${API_BASE_PATH}/old`,
-    db: config.db,
-  });
+  // Artifact routes
   await app.register(registerArtifactRoutes, {
     prefix: API_BASE_PATH,
     artifactsDir: config.artifactsDir,
+  });
+
+  // Error handler
+  app.setErrorHandler(
+    (error: Error & { statusCode?: number; validation?: unknown }, _request, reply) => {
+      const statusCode = error.statusCode || 500;
+      reply.status(statusCode).send({
+        error: {
+          code: statusCode === 400 ? 'VALIDATION_ERROR' : 'INTERNAL_ERROR',
+          message: error.message,
+          details: error.validation || undefined,
+        },
+      });
+    },
+  );
+
+  // Not found handler
+  app.setNotFoundHandler((_request, reply) => {
+    reply.status(404).send({
+      error: {
+        code: 'NOT_FOUND',
+        message: 'Resource not found',
+      },
+    });
   });
 }
