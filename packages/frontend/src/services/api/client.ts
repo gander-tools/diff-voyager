@@ -67,10 +67,14 @@ export const apiClient = ofetch.create({
   onRequest({ options }) {
     // Add default headers
     const headers = options.headers || {};
+
+    // Only set Content-Type if body is present (avoid Fastify error for void bodies)
+    const shouldSetContentType = options.body !== undefined && options.body !== null;
+
     // biome-ignore lint/suspicious/noExplicitAny: ofetch headers type compatibility
     options.headers = {
       ...(typeof headers === 'object' ? headers : {}),
-      'Content-Type': 'application/json',
+      ...(shouldSetContentType ? { 'Content-Type': 'application/json' } : {}),
     } as any;
   },
 
