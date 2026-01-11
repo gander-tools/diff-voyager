@@ -1,6 +1,6 @@
 # Implementation Status
 
-**Last Updated**: 2026-01-09
+**Last Updated**: 2026-01-11
 
 ## Current Phase: Phase 5 Complete ✅ | Frontend Phase 2 Complete ✅
 
@@ -20,6 +20,7 @@ Diff Voyager has completed the core backend implementation with all API endpoint
 | 2026-01-08 | Drizzle ORM migration complete (all 6 repositories) |
 | 2026-01-08 | Frontend Phase 1 complete (Foundation & Infrastructure) |
 | 2026-01-09 | Frontend Phase 2 complete (Project Management UI) |
+| 2026-01-11 | Retry functionality complete (Phase 6) |
 
 ## Phase Completion Overview
 
@@ -30,8 +31,8 @@ Diff Voyager has completed the core backend implementation with all API endpoint
 | **Phase 2** | ✅ Complete | 100% | Domain logic and comparators |
 | **Phase 3** | ✅ Complete | 100% | Crawler and browser automation |
 | **Phase 4** | ✅ Complete | 100% | Task queue and async processing |
-| **Phase 5** | ✅ Complete | 100% | API layer (all 13 endpoints) |
-| **Phase 6** | 🟡 Partial | 50% | Integration workflows |
+| **Phase 5** | ✅ Complete | 100% | API layer (all 15 endpoints) |
+| **Phase 6** | 🟡 Partial | 60% | Integration workflows |
 | **Phase 7** | 🟡 Partial | 50% | Production polish |
 | **Frontend** | 🟡 In Progress | 40% | Vue 3 UI (Phase 1 & 2 Complete) |
 
@@ -49,6 +50,7 @@ Diff Voyager has completed the core backend implementation with all API endpoint
 - ✅ HTML fixtures for SEO testing
 - ✅ Shared TypeScript types (API requests/responses)
 - ✅ Build automation for shared package
+- ✅ Zod schema validation tests (32 tests for shared package schemas)
 
 **Test Coverage**:
 - Unit tests: Comprehensive coverage
@@ -162,7 +164,7 @@ See [Drizzle Migration Guide](../guides/drizzle-migration.md) for details.
 
 ### Phase 5: API Layer ✅ (100%)
 
-**Status**: Complete - All 13 endpoints implemented
+**Status**: Complete - All 15 endpoints implemented
 
 **Completed Endpoints**:
 - ✅ `POST /api/v1/scans` - Create scan (single page, sync/async modes)
@@ -172,8 +174,10 @@ See [Drizzle Migration Guide](../guides/drizzle-migration.md) for details.
 - ✅ `GET /api/v1/projects/:id/runs` - List runs for project
 - ✅ `GET /api/v1/runs/:id` - Run details with statistics
 - ✅ `GET /api/v1/runs/:id/pages` - Pages list with filtering
+- ✅ `POST /api/v1/runs/:runId/retry` - Retry failed pages in run ⚡NEW
 - ✅ `GET /api/v1/pages/:id` - Page details with latest snapshot
 - ✅ `GET /api/v1/pages/:id/diff` - Detailed diff comparison
+- ✅ `POST /api/v1/snapshots/:snapshotId/retry` - Retry failed snapshot ⚡NEW
 - ✅ `GET /api/v1/tasks/:id` - Task status and progress
 - ✅ `GET /api/v1/artifacts/:pageId/*` - Retrieve artifacts (screenshot, HTML, HAR)
 - ✅ `GET /health` - Health check
@@ -194,9 +198,9 @@ See [Drizzle Migration Guide](../guides/drizzle-migration.md) for details.
 **Known Issues**:
 - 3 tests skipped (snapshot data retrieval) - see [Skipped Tests](#skipped-tests)
 
-### Phase 6: Integration & Workflows 🟡 (50%)
+### Phase 6: Integration & Workflows 🟡 (60%)
 
-**Status**: Partial - Core workflows working, diff integration pending
+**Status**: Partial - Core workflows working, retry functionality complete
 
 **Completed**:
 - ✅ ScanProcessor (orchestrates project → run → capture → storage)
@@ -204,6 +208,8 @@ See [Drizzle Migration Guide](../guides/drizzle-migration.md) for details.
 - ✅ Multiple comparison runs per project
 - ✅ Artifact persistence (screenshots, HTML, performance data)
 - ✅ Async task processing integration
+- ✅ Retry functionality for failed snapshots ⚡NEW
+- ✅ Retry functionality for failed runs (all or failed-only scope) ⚡NEW
 
 **Pending**:
 - ⏳ Baseline vs run comparison workflow
