@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.7](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-shared-v0.1.6...diff-voyager-shared-v0.1.7) (2026-01-11)
+
+
+### Features
+
+* **backend:** add retry functionality for snapshots and runs ([f2cbed7](https://github.com/gander-tools/diff-voyager/commit/f2cbed7802635ad332c429cc32d1f5b5d3080832))
+
 ## [0.1.6](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-shared-v0.1.5...diff-voyager-shared-v0.1.6) (2026-01-09)
 
 

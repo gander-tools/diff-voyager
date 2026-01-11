@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.1.17](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.16...diff-voyager-backend-v0.1.17) (2026-01-11)
+
+
+### Features
+
+* **backend:** add retry functionality for snapshots and runs ([f2cbed7](https://github.com/gander-tools/diff-voyager/commit/f2cbed7802635ad332c429cc32d1f5b5d3080832))
+* **backend:** add separate log level configuration for console and file ([43a1388](https://github.com/gander-tools/diff-voyager/commit/43a1388a7e11e448453fb00a5290144bcc024585))
+
+
+### Bug Fixes
+
+* **backend,frontend:** fix re-scan not starting and incorrect status codes ([f7d072b](https://github.com/gander-tools/diff-voyager/commit/f7d072b56f8f1687f9c10aeed1363e8a4ae62da3))
+* **backend:** add disableLogging option for tests ([d26c456](https://github.com/gander-tools/diff-voyager/commit/d26c456594da7782374cc27caf84431771577ec9))
+* **backend:** add disableLogging to all integration tests ([ddb9dc9](https://github.com/gander-tools/diff-voyager/commit/ddb9dc91b0074d2591acf69e8795a7565130e3d2))
+* resolve Biome lint errors in retry functionality ([fb5cb75](https://github.com/gander-tools/diff-voyager/commit/fb5cb75275f76e5ec554936bfbfca37e96f1010a))
+
 ## [0.1.16](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.15...diff-voyager-backend-v0.1.16) (2026-01-09)
 
 

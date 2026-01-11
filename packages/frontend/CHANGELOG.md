@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.12](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.11...diff-voyager-frontend-v0.1.12) (2026-01-11)
+
+
+### Features
+
+* **frontend:** add retry functionality UI for failed pages ([6f4fa06](https://github.com/gander-tools/diff-voyager/commit/6f4fa06e72ed7ea688fedf20a7615e07850aada9))
+
+
+### Bug Fixes
+
+* **backend,frontend:** fix re-scan not starting and incorrect status codes ([f7d072b](https://github.com/gander-tools/diff-voyager/commit/f7d072b56f8f1687f9c10aeed1363e8a4ae62da3))
+* **frontend:** add missing NNotificationProvider to App.vue ([1d0878f](https://github.com/gander-tools/diff-voyager/commit/1d0878f82d4a52add550cbc049f2f9323c2f21f2))
+* resolve Biome lint errors in retry functionality ([fb5cb75](https://github.com/gander-tools/diff-voyager/commit/fb5cb75275f76e5ec554936bfbfca37e96f1010a))
+
 ## [0.1.11](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.10...diff-voyager-frontend-v0.1.11) (2026-01-09)
 
 
