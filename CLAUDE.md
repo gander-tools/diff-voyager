@@ -1032,12 +1032,34 @@ When working on Diff Voyager:
 
 **Policy:** All TODOs must be created as GitHub Issues and linked in documentation.
 
+### Issue Types
+
+The project uses GitHub Issue Types to categorize work:
+
+- **Bug** (🔴 red) - Unexpected problems, test failures, regressions
+- **Feature** (🔵 blue) - New functionality, enhancements, user-facing improvements
+- **Task** (🟡 yellow) - Implementation work, refactoring, technical tasks
+
+### Milestones
+
+Development is tracked through phase-specific milestones:
+
+- [Milestone #1: Documentation TODO Cleanup](https://github.com/gander-tools/diff-voyager/milestone/1) - Fix skipped tests
+- [Milestone #2: Phase 6: Integration Workflows](https://github.com/gander-tools/diff-voyager/milestone/2) - Due Jan 24, 2026
+- [Milestone #3: Phase 7: Production Polish](https://github.com/gander-tools/diff-voyager/milestone/3) - Due Feb 7, 2026
+- [Milestone #4: Backend MVP Complete](https://github.com/gander-tools/diff-voyager/milestone/4) - Due Feb 21, 2026
+- [Milestone #5: Frontend Phase 3: Run Management](https://github.com/gander-tools/diff-voyager/milestone/5) - Due Mar 31, 2026
+- [Milestone #6: Frontend Phase 4: Diff Review](https://github.com/gander-tools/diff-voyager/milestone/6) - Due Apr 30, 2026
+- [Milestone #7: Frontend MVP Complete](https://github.com/gander-tools/diff-voyager/milestone/7) - Due May 31, 2026
+- [Milestone #8: v1.0 Public Release](https://github.com/gander-tools/diff-voyager/milestone/8) - Due Jun 30, 2026
+
 ### Creating New TODOs
 
 1. **Create GitHub Issue:**
    - Use Conventional Commits format for title: `<type>(<scope>): <description>`
-   - Add appropriate labels: type (bug/enhancement/test), scope (backend/frontend/shared), priority
-   - Add to relevant milestone
+   - **Set Issue Type:** Bug, Feature, or Task (required)
+   - Add appropriate labels: scope (backend/frontend/shared), priority (high/medium/low)
+   - **Add to milestone:** Choose appropriate phase milestone
    - Assign to appropriate person
 
 2. **Link in Documentation:**
