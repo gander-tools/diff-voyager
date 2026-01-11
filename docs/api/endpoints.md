@@ -427,3 +427,95 @@ Content-Type: text/html; charset=utf-8
 | GET | `/artifacts/:pageId/diff` | Get diff image | 3 |
 | GET | `/artifacts/:pageId/har` | Get HAR file | 3 |
 | GET | `/artifacts/:pageId/html` | Get HTML | 3 |
+| POST | `/snapshots/:snapshotId/retry` | Retry failed snapshot | - |
+| POST | `/runs/:runId/retry` | Retry failed pages in run | - |
+
+---
+
+## Retry Endpoints
+
+### POST /snapshots/:snapshotId/retry
+
+Retry capturing a failed snapshot. Re-executes the page capture process for a single snapshot.
+
+**Path Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `snapshotId` | UUID | Snapshot identifier to retry |
+
+**Request Body:** None (void)
+
+**Response: 202 Accepted**
+
+```json
+{
+  "snapshotId": "550e8400-e29b-41d4-a716-446655440001",
+  "status": "COMPLETED",
+  "message": "Snapshot retried successfully"
+}
+```
+
+**Response: 404 Not Found**
+
+```json
+{
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Snapshot not found"
+  }
+}
+```
+
+---
+
+### POST /runs/:runId/retry
+
+Retry snapshots in a run. Can retry all snapshots or only failed ones based on the `scope` query parameter.
+
+**Path Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `runId` | UUID | Run identifier |
+
+**Query Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `scope` | enum | `failed` | Retry scope: `failed` (only failed snapshots) or `all` (all snapshots) |
+
+**Request Body:** None (void)
+
+**Response: 202 Accepted**
+
+```json
+{
+  "runId": "550e8400-e29b-41d4-a716-446655440002",
+  "status": "COMPLETED",
+  "message": "Retried 5 snapshots: 3 succeeded, 2 failed",
+  "retryCount": 5
+}
+```
+
+**Response: 400 Bad Request**
+
+```json
+{
+  "error": {
+    "code": "NO_SNAPSHOTS",
+    "message": "No failed snapshots to retry"
+  }
+}
+```
+
+**Response: 404 Not Found**
+
+```json
+{
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Run not found"
+  }
+}
+```

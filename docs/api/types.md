@@ -463,6 +463,32 @@ export interface ArtifactInfo {
   size: number;
   url: string;
 }
+
+/**
+ * Response from retrying a snapshot
+ */
+export interface RetrySnapshotResponse {
+  snapshotId: string;
+  status: string;
+  message: string;
+}
+
+/**
+ * Response from retrying a run
+ */
+export interface RetryRunResponse {
+  runId: string;
+  status: string;
+  message: string;
+  retryCount: number;
+}
+
+/**
+ * Query parameters for retry run endpoint
+ */
+export interface RetryRunQuery {
+  scope?: 'failed' | 'all'; // Default: 'failed'
+}
 ```
 
 ### Storage Layer Types
