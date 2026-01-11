@@ -8,13 +8,13 @@ import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
-import { API_BASE_PATH } from '@gander-tools/diff-voyager-shared';
+import { API_BASE_PATH, swaggerTags } from '@gander-tools/diff-voyager-shared';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { stdSerializers } from 'pino';
 import { TaskQueue } from '../queue/task-queue.js';
 import type { DatabaseInstance } from '../storage/database.js';
 import type { DrizzleDb } from '../storage/drizzle/db.js';
-import { registerArtifactRoutes } from './routes/artifacts.js';
+import { FILE_SYSTEM_RATE_LIMIT, LARGE_FILE_RATE_LIMIT } from './middleware/rate-limiting.js';
 import { createTsRestRoutes } from './routes-ts-rest.js';
 
 export interface AppConfig {
@@ -127,38 +127,31 @@ async function registerPlugins(app: FastifyInstance, config: AppConfig) {
     const tsRestRoute = (routeOptions.config as any)?.tsRestRoute;
 
     if (tsRestRoute && !routeOptions.schema) {
-      const url = routeOptions.url;
-      let tags: string[] = [];
+      // 1. Read tags from metadata (NO URL pattern matching!)
+      const tags = tsRestRoute.metadata?.tags || [];
 
-      // Assign tags based on URL patterns
-      if (url.includes('/scans')) {
-        tags = ['scans'];
-      } else if (url.includes('/projects') && url.includes('/runs')) {
-        tags = ['runs'];
-      } else if (url.includes('/projects')) {
-        tags = ['projects'];
-      } else if (url.includes('/runs')) {
-        tags = ['runs'];
-      } else if (url.includes('/pages')) {
-        tags = ['pages'];
-      } else if (url.includes('/tasks')) {
-        tags = ['tasks'];
-      } else if (url.includes('/snapshots')) {
-        tags = ['runs'];
-      }
-
-      // CREATE schema for Swagger with tags and summary
+      // 2. Create schema for Swagger
       routeOptions.schema = {
         tags,
         summary: tsRestRoute.summary || '',
         description: tsRestRoute.description || '',
       };
 
-      console.log(`[onRoute Hook] Created schema for ${url} with tags: [${tags.join(', ')}]`);
-    } else if (routeOptions.schema && routeOptions.url?.startsWith(API_BASE_PATH)) {
-      // Route already has schema (e.g., artifacts) - just log it
+      // 3. Apply rate limiting from metadata
+      const rateLimitType = tsRestRoute.metadata?.rateLimit;
+      if (rateLimitType === 'FILE_SYSTEM' && routeOptions.config) {
+        Object.assign(routeOptions.config, FILE_SYSTEM_RATE_LIMIT);
+      } else if (rateLimitType === 'LARGE_FILE' && routeOptions.config) {
+        Object.assign(routeOptions.config, LARGE_FILE_RATE_LIMIT);
+      }
+
       console.log(
-        `[onRoute Hook] Route ${routeOptions.url} already has schema with tags: [${(routeOptions.schema as any).tags?.join(', ')}]`,
+        `[onRoute] ${routeOptions.url} - tags: [${tags.join(', ')}]${rateLimitType ? ` - rate limit: ${rateLimitType}` : ''}`,
+      );
+    } else if (routeOptions.schema && routeOptions.url?.startsWith(API_BASE_PATH)) {
+      // Legacy routes (e.g., health) - just log
+      console.log(
+        `[onRoute] ${routeOptions.url} already has schema with tags: [${(routeOptions.schema as any).tags?.join(', ')}]`,
       );
     }
   });
@@ -177,54 +170,7 @@ async function registerPlugins(app: FastifyInstance, config: AppConfig) {
           description: 'Development server',
         },
       ],
-      tags: [
-        { name: 'scans', description: 'Scan and crawl operations' },
-        { name: 'projects', description: 'Project management' },
-        { name: 'runs', description: 'Comparison runs' },
-        { name: 'pages', description: 'Page details and diffs' },
-        { name: 'tasks', description: 'Task status and monitoring' },
-        { name: 'artifacts', description: 'Access captured artifacts' },
-        { name: 'health', description: 'Health check' },
-      ],
-    },
-    transform: ({ schema, url }) => {
-      // Assign tags based on URL patterns for @ts-rest routes
-      if (!schema) {
-        return { schema, url };
-      }
-
-      let tags: string[] = [];
-
-      if (url.includes('/scans')) {
-        tags = ['scans'];
-      } else if (url.includes('/projects') && url.includes('/runs')) {
-        tags = ['runs'];
-      } else if (url.includes('/projects')) {
-        tags = ['projects'];
-      } else if (url.includes('/runs')) {
-        tags = ['runs'];
-      } else if (url.includes('/pages')) {
-        tags = ['pages'];
-      } else if (url.includes('/tasks')) {
-        tags = ['tasks'];
-      } else if (url.includes('/snapshots')) {
-        tags = ['runs'];
-      }
-
-      // Add tags to schema if we found a match
-      if (tags.length > 0) {
-        console.log(`[Swagger Transform] URL: ${url} -> Tags: ${tags.join(', ')}`);
-        return {
-          schema: {
-            ...schema,
-            tags,
-          },
-          url,
-        };
-      }
-
-      console.log(`[Swagger Transform] URL: ${url} -> No tags (default)`);
-      return { schema, url };
+      tags: swaggerTags,
     },
   });
 
@@ -270,12 +216,6 @@ async function registerPlugins(app: FastifyInstance, config: AppConfig) {
 
   await app.register(tsRestServer.plugin(tsRestRouter), {
     prefix: API_BASE_PATH,
-  });
-
-  // Artifact routes
-  await app.register(registerArtifactRoutes, {
-    prefix: API_BASE_PATH,
-    artifactsDir: config.artifactsDir,
   });
 
   // Error handler
