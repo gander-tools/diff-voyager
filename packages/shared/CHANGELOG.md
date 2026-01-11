@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.9](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-shared-v0.1.8...diff-voyager-shared-v0.1.9) (2026-01-11)
+
+
+### Features
+
+* **shared:** add artifacts endpoints to [@ts-rest](https://github.com/ts-rest) API contract ([3f9e32c](https://github.com/gander-tools/diff-voyager/commit/3f9e32c5315b20c47ed7932a1a638edcfaa29362))
+
 ## [0.1.8](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-shared-v0.1.7...diff-voyager-shared-v0.1.8) (2026-01-11)
 
 
