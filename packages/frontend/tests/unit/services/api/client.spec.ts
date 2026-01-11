@@ -178,7 +178,7 @@ describe('API Client', () => {
       expect(result.received.name).toBe('test');
     });
 
-    it('should include Content-Type header', async () => {
+    it('should NOT include Content-Type header for GET requests without body', async () => {
       let headers: Headers | undefined;
 
       server.use(
@@ -189,6 +189,20 @@ describe('API Client', () => {
       );
 
       await get('/test-headers');
+      expect(headers?.get('Content-Type')).toBeNull();
+    });
+
+    it('should include Content-Type header for POST requests with body', async () => {
+      let headers: Headers | undefined;
+
+      server.use(
+        http.post(`${API_BASE_URL}/test-headers`, ({ request }) => {
+          headers = request.headers;
+          return HttpResponse.json({ success: true });
+        }),
+      );
+
+      await post('/test-headers', { data: 'test' });
       expect(headers?.get('Content-Type')).toBe('application/json');
     });
   });
