@@ -15,6 +15,7 @@ import {
   createDatabase,
   type DatabaseInstance,
 } from '../../../src/storage/database.js';
+import { createDrizzleDb } from '../../../src/storage/drizzle/db.js';
 
 // Helper to create a test PNG buffer
 function createTestImage(
@@ -65,9 +66,10 @@ describe('Artifact Endpoints', () => {
 
     // Create database
     db = createDatabase({ dbPath, baseDir: testDir, artifactsDir });
+    const drizzleDb = createDrizzleDb(db);
 
     // Create app
-    app = await createApp({ db, artifactsDir });
+    app = await createApp({ db, drizzleDb, artifactsDir, disableLogging: true });
     await app.ready();
   });
 

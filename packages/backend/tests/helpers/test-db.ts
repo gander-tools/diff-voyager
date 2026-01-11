@@ -67,6 +67,7 @@ export async function createTestApp(config: {
     drizzleDb,
     artifactsDir: config.artifactsDir,
     taskQueue,
+    disableLogging: true,
   });
   await app.ready();
   return app;
