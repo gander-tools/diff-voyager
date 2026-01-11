@@ -98,6 +98,14 @@ export const errorResponseSchema = z.object({
   }),
 });
 
+/**
+ * Binary response schema for artifact endpoints (PNG images)
+ * Uses z.custom to allow Buffer type while maintaining type safety
+ */
+export const binaryResponseSchema = z.custom<Buffer>((data) => Buffer.isBuffer(data), {
+  message: 'Expected Buffer',
+});
+
 export const projectConfigSchema = z.object({
   crawl: z.boolean(),
   viewport: viewportSchema,
@@ -474,8 +482,113 @@ export const apiContract = c.router({
     metadata: { tags: ['tasks'] } as const,
   },
 
-  // TODO: Add artifacts endpoints
+  // ========== ARTIFACTS ==========
+
+  getScreenshot: {
+    method: 'GET',
+    path: '/artifacts/:pageId/screenshot',
+    responses: {
+      200: binaryResponseSchema,
+      404: errorResponseSchema,
+      400: errorResponseSchema,
+    },
+    pathParams: pageIdParamSchema,
+    summary: 'Get page screenshot (PNG)',
+    metadata: {
+      tags: ['artifacts'],
+      rateLimit: 'FILE_SYSTEM',
+      contentType: 'image/png',
+      contentDisposition: 'inline; filename="screenshot.png"',
+    } as const,
+  },
+
+  getBaselineScreenshot: {
+    method: 'GET',
+    path: '/artifacts/:pageId/baseline-screenshot',
+    responses: {
+      200: binaryResponseSchema,
+      404: errorResponseSchema,
+      400: errorResponseSchema,
+    },
+    pathParams: pageIdParamSchema,
+    summary: 'Get baseline screenshot (PNG)',
+    metadata: {
+      tags: ['artifacts'],
+      rateLimit: 'FILE_SYSTEM',
+      contentType: 'image/png',
+      contentDisposition: 'inline; filename="baseline-screenshot.png"',
+    } as const,
+  },
+
+  getDiff: {
+    method: 'GET',
+    path: '/artifacts/:pageId/diff',
+    responses: {
+      200: binaryResponseSchema,
+      404: errorResponseSchema,
+      400: errorResponseSchema,
+    },
+    pathParams: pageIdParamSchema,
+    summary: 'Get visual diff image (PNG)',
+    metadata: {
+      tags: ['artifacts'],
+      rateLimit: 'FILE_SYSTEM',
+      contentType: 'image/png',
+      contentDisposition: 'inline; filename="diff.png"',
+    } as const,
+  },
+
+  getHar: {
+    method: 'GET',
+    path: '/artifacts/:pageId/har',
+    responses: {
+      200: z.string(),
+      404: errorResponseSchema,
+      400: errorResponseSchema,
+    },
+    pathParams: pageIdParamSchema,
+    summary: 'Get HAR (HTTP Archive) file',
+    metadata: {
+      tags: ['artifacts'],
+      rateLimit: 'LARGE_FILE',
+      contentType: 'application/json',
+      contentDisposition: 'attachment; filename="page.har"',
+    } as const,
+  },
+
+  getHtml: {
+    method: 'GET',
+    path: '/artifacts/:pageId/html',
+    responses: {
+      200: z.string(),
+      404: errorResponseSchema,
+      400: errorResponseSchema,
+    },
+    pathParams: pageIdParamSchema,
+    summary: 'Get captured HTML content',
+    metadata: {
+      tags: ['artifacts'],
+      rateLimit: 'LARGE_FILE',
+      contentType: 'text/html; charset=utf-8',
+    } as const,
+  },
 });
 
 // Export type inference for use in backend and frontend
 export type ApiContract = typeof apiContract;
+
+/**
+ * Swagger tag definitions for API documentation
+ * Used in backend Swagger configuration
+ */
+export const swaggerTags = [
+  { name: 'scans', description: 'Scan and crawl operations' },
+  { name: 'projects', description: 'Project management' },
+  { name: 'runs', description: 'Comparison runs' },
+  { name: 'pages', description: 'Page details and diffs' },
+  { name: 'tasks', description: 'Task status and monitoring' },
+  { name: 'artifacts', description: 'Access captured artifacts' },
+  { name: 'health', description: 'Health check' },
+];
+
+export type SwaggerTag = 'scans' | 'projects' | 'runs' | 'pages' | 'tasks' | 'artifacts' | 'health';
