@@ -7,6 +7,7 @@
 
 import { apiContract, PageStatus } from '@gander-tools/diff-voyager-shared';
 import { initServer } from '@ts-rest/fastify';
+import type { FastifyReply } from 'fastify';
 import type { Logger } from 'pino';
 import { PageCapturer } from '../crawler/page-capturer.js';
 import type { TaskQueue } from '../queue/task-queue.js';
@@ -17,6 +18,7 @@ import { PageRepositoryDrizzle } from '../storage/repositories/page-repository.d
 import { ProjectRepositoryDrizzle } from '../storage/repositories/project-repository.drizzle.js';
 import { RunRepositoryDrizzle } from '../storage/repositories/run-repository.drizzle.js';
 import { SnapshotRepositoryDrizzle } from '../storage/repositories/snapshot-repository.drizzle.js';
+import { getSecureFile } from './utils/secure-file.js';
 
 export interface TsRestRoutesConfig {
   db: DatabaseInstance;
@@ -995,6 +997,233 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
             retryCount: snapshotsToRetry.length,
           },
         };
+      },
+    },
+
+    // ========== ARTIFACTS ==========
+
+    getScreenshot: {
+      handler: async ({ params, reply }) => {
+        const fastifyReply = reply as unknown as FastifyReply;
+
+        try {
+          const file = await getSecureFile(artifactsDir, params.pageId, 'screenshot.png');
+
+          // Read metadata from contract
+          const metadata = apiContract.getScreenshot.metadata;
+
+          // Set headers from metadata (DRY!)
+          fastifyReply.header('Content-Type', metadata.contentType);
+          if (metadata.contentDisposition) {
+            fastifyReply.header('Content-Disposition', metadata.contentDisposition);
+          }
+
+          return {
+            status: 200 as const,
+            body: file.content as Buffer,
+          };
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unknown error';
+
+          if (message.includes('not found')) {
+            return {
+              status: 404 as const,
+              body: {
+                error: {
+                  code: 'NOT_FOUND',
+                  message: 'Screenshot not found',
+                },
+              },
+            };
+          }
+
+          return {
+            status: 400 as const,
+            body: {
+              error: {
+                code: 'INVALID_REQUEST',
+                message: 'Invalid request',
+              },
+            },
+          };
+        }
+      },
+    },
+
+    getBaselineScreenshot: {
+      handler: async ({ params, reply }) => {
+        const fastifyReply = reply as unknown as FastifyReply;
+
+        try {
+          const file = await getSecureFile(artifactsDir, params.pageId, 'baseline-screenshot.png');
+
+          const metadata = apiContract.getBaselineScreenshot.metadata;
+          fastifyReply.header('Content-Type', metadata.contentType);
+          if (metadata.contentDisposition) {
+            fastifyReply.header('Content-Disposition', metadata.contentDisposition);
+          }
+
+          return {
+            status: 200 as const,
+            body: file.content as Buffer,
+          };
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unknown error';
+
+          if (message.includes('not found')) {
+            return {
+              status: 404 as const,
+              body: {
+                error: {
+                  code: 'NOT_FOUND',
+                  message: 'Baseline screenshot not found',
+                },
+              },
+            };
+          }
+
+          return {
+            status: 400 as const,
+            body: {
+              error: {
+                code: 'INVALID_REQUEST',
+                message: 'Invalid request',
+              },
+            },
+          };
+        }
+      },
+    },
+
+    getDiff: {
+      handler: async ({ params, reply }) => {
+        const fastifyReply = reply as unknown as FastifyReply;
+
+        try {
+          const file = await getSecureFile(artifactsDir, params.pageId, 'diff.png');
+
+          const metadata = apiContract.getDiff.metadata;
+          fastifyReply.header('Content-Type', metadata.contentType);
+          if (metadata.contentDisposition) {
+            fastifyReply.header('Content-Disposition', metadata.contentDisposition);
+          }
+
+          return {
+            status: 200 as const,
+            body: file.content as Buffer,
+          };
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unknown error';
+
+          if (message.includes('not found')) {
+            return {
+              status: 404 as const,
+              body: {
+                error: {
+                  code: 'NOT_FOUND',
+                  message: 'Diff image not found',
+                },
+              },
+            };
+          }
+
+          return {
+            status: 400 as const,
+            body: {
+              error: {
+                code: 'INVALID_REQUEST',
+                message: 'Invalid request',
+              },
+            },
+          };
+        }
+      },
+    },
+
+    getHar: {
+      handler: async ({ params, reply }) => {
+        const fastifyReply = reply as unknown as FastifyReply;
+
+        try {
+          const file = await getSecureFile(artifactsDir, params.pageId, 'page.har');
+
+          const metadata = apiContract.getHar.metadata;
+          fastifyReply.header('Content-Type', metadata.contentType);
+          if (metadata.contentDisposition) {
+            fastifyReply.header('Content-Disposition', metadata.contentDisposition);
+          }
+
+          return {
+            status: 200 as const,
+            body: file.content as string,
+          };
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unknown error';
+
+          if (message.includes('not found')) {
+            return {
+              status: 404 as const,
+              body: {
+                error: {
+                  code: 'NOT_FOUND',
+                  message: 'HAR file not found',
+                },
+              },
+            };
+          }
+
+          return {
+            status: 400 as const,
+            body: {
+              error: {
+                code: 'INVALID_REQUEST',
+                message: 'Invalid request',
+              },
+            },
+          };
+        }
+      },
+    },
+
+    getHtml: {
+      handler: async ({ params, reply }) => {
+        const fastifyReply = reply as unknown as FastifyReply;
+
+        try {
+          const file = await getSecureFile(artifactsDir, params.pageId, 'page.html');
+
+          const metadata = apiContract.getHtml.metadata;
+          fastifyReply.header('Content-Type', metadata.contentType);
+
+          return {
+            status: 200 as const,
+            body: file.content as string,
+          };
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unknown error';
+
+          if (message.includes('not found')) {
+            return {
+              status: 404 as const,
+              body: {
+                error: {
+                  code: 'NOT_FOUND',
+                  message: 'HTML file not found',
+                },
+              },
+            };
+          }
+
+          return {
+            status: 400 as const,
+            body: {
+              error: {
+                code: 'INVALID_REQUEST',
+                message: 'Invalid request',
+              },
+            },
+          };
+        }
       },
     },
   });
