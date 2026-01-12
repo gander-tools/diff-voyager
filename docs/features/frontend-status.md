@@ -1,8 +1,8 @@
 # Frontend Implementation Status
 
 **Last Updated**: 2026-01-12
-**Current Phase**: Phase 1 & 2 Complete ✅
-**Next Phase**: Phase 3 (Run Management Views) → [#179](https://github.com/gander-tools/diff-voyager/issues/179)
+**Current Phase**: Phase 1, 2 & 3 Complete ✅
+**Next Phase**: Phase 4 (Diff Review Interface) → [#180](https://github.com/gander-tools/diff-voyager/issues/180)
 
 ---
 
@@ -177,6 +177,73 @@ Now displays **fully functional project management views**:
    - Viewport: Width x Height (e.g., 1920x1080)
    - Visual Diff Threshold: Percentage (e.g., 1%)
    - HAR Collection: Enabled/Disabled
+
+#### Run Management ✅
+
+**Phase 3 Complete** → [#179](https://github.com/gander-tools/diff-voyager/issues/179)
+
+##### Run List (/projects/:projectId/runs)
+
+![Run List View](../screenshots/05-run-create.png)
+
+**Features**:
+- List of all runs for a project
+- RunCard components showing:
+  - Run name and description
+  - RunStatusBadge (color-coded status)
+  - RunProgress component (for in-progress runs)
+  - RunStatistics (pages processed, diffs found)
+  - Creation and completion timestamps
+- "New Run" button
+- Empty state when no runs exist
+
+##### Run Create (/projects/:projectId/runs/new) ✅
+
+![Run Create View](../screenshots/05-run-create.png)
+
+**Features**:
+- RunForm component with validation
+- Form fields:
+  - Run name (optional)
+  - Description (optional)
+  - Crawl enabled toggle
+  - Max pages limit
+  - Viewport dimensions
+  - Visual diff threshold
+  - HAR collection toggle
+  - Wait after load
+- Real-time validation with vee-validate + Zod
+- "Create Run" and "Cancel" buttons
+
+##### Run Detail (/runs/:runId) ✅
+
+![Run Detail View](../screenshots/06-run-detail.png)
+
+**Sections**:
+
+1. **Header**:
+   - Back button to project detail
+   - Run name (title)
+   - RunStatusBadge
+   - RunProgress (for in-progress runs)
+
+2. **RunStatistics Grid** (4 cards):
+   - Total Pages
+   - Pages with Diffs
+   - Pages with Errors
+   - Pending Pages
+
+3. **Pages List**:
+   - Table with columns: URL, Status, HTTP Status
+   - Click row to navigate to page detail
+   - Loading state while fetching
+   - Empty state when no pages
+
+4. **Auto-refresh**:
+   - Polls backend every 5 seconds for in-progress runs
+   - Stops polling when run completes or fails
+
+---
 
 #### Rules (/rules) ⏳
 
@@ -514,18 +581,6 @@ All requests use shared TypeScript types from `@gander-tools/diff-voyager-shared
 
 ## What's NOT Working Yet
 
-### Run Management
-
-**Partially implemented (Phase 3)** → [#179](https://github.com/gander-tools/diff-voyager/issues/179):
-- ✅ Run list view → [#185](https://github.com/gander-tools/diff-voyager/issues/185)
-- ✅ Run creation form → [#186](https://github.com/gander-tools/diff-voyager/issues/186)
-- ✅ RunCard component → [#188](https://github.com/gander-tools/diff-voyager/issues/188)
-- ✅ RunForm component → [#189](https://github.com/gander-tools/diff-voyager/issues/189)
-- ✅ RunStatusBadge component → [#190](https://github.com/gander-tools/diff-voyager/issues/190)
-- ✅ Run detail view with page list → [#187](https://github.com/gander-tools/diff-voyager/issues/187)
-- ✅ RunProgress component → [#191](https://github.com/gander-tools/diff-voyager/issues/191)
-- ✅ RunStatistics component → [#192](https://github.com/gander-tools/diff-voyager/issues/192)
-
 ### Diff Visualization
 
 **Not implemented (Phase 4)** → [#180](https://github.com/gander-tools/diff-voyager/issues/180):
@@ -715,24 +770,26 @@ All requests use shared TypeScript types from `@gander-tools/diff-voyager-shared
 
 ---
 
-## Next Steps (Phase 3)
+## Next Steps (Phase 4)
 
-**Parent Issue**: [#179 - feat(frontend): implement Run Management views](https://github.com/gander-tools/diff-voyager/issues/179)
+**Parent Issue**: [#180 - feat(frontend): implement Diff Review interface](https://github.com/gander-tools/diff-voyager/issues/180)
 
 **Immediate Next Priorities**:
 
-1. **Run List View** → [#185](https://github.com/gander-tools/diff-voyager/issues/185) - Display runs for a project with filtering
-2. **Run Create View** → [#186](https://github.com/gander-tools/diff-voyager/issues/186) - Form to create comparison runs
-3. **Run Components** → [#188](https://github.com/gander-tools/diff-voyager/issues/188)-[#192](https://github.com/gander-tools/diff-voyager/issues/192):
-   - RunCard, RunForm, RunStatusBadge, RunProgress, RunStatistics
+1. **Page Detail View** → [#193](https://github.com/gander-tools/diff-voyager/issues/193) - Display page comparison with all diffs
+2. **Page Components** → [#194](https://github.com/gander-tools/diff-voyager/issues/194)-[#196](https://github.com/gander-tools/diff-voyager/issues/196):
+   - PageList, PageStatusBadge, PageFilters
+3. **Diff Components** → [#197](https://github.com/gander-tools/diff-voyager/issues/197)-[#202](https://github.com/gander-tools/diff-voyager/issues/202):
+   - DiffSummary, DiffBadge, SeoDiffView, VisualDiffView, PerformanceDiffView, DiffActions
 
 **Expected Outcomes**:
-- Users can create comparison runs
-- Users can view run progress in real-time
-- Users can see list of pages in a run
-- Full run management workflow working
+- Users can view detailed page comparisons
+- Users can see SEO differences (title, meta, headers)
+- Users can view visual diffs (screenshots side-by-side)
+- Users can see performance differences (HAR metrics)
+- Users can accept or mute specific differences
 
-**Milestone**: [#5 - Frontend Phase 3: Run Management](https://github.com/gander-tools/diff-voyager/milestone/5) - Due Mar 31, 2026
+**Milestone**: [#6 - Frontend Phase 4: Diff Review](https://github.com/gander-tools/diff-voyager/milestone/6) - Due Apr 30, 2026
 
 ---
 
