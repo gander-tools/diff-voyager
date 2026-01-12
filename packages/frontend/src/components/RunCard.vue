@@ -1,0 +1,135 @@
+<script setup lang="ts">
+import { NButton, NCard, NProgress, NSpace, NText, NTime } from 'naive-ui';
+import { computed } from 'vue';
+import RunStatusBadge from './RunStatusBadge.vue';
+
+interface RunStatistics {
+  totalPages: number;
+  completedPages: number;
+  errorPages: number;
+  diffsCount: number;
+}
+
+interface Run {
+  id: string;
+  projectId: string;
+  baselineId: string;
+  status: string;
+  createdAt: string;
+  startedAt?: string;
+  completedAt?: string;
+  statistics: RunStatistics;
+}
+
+interface Props {
+  run: Run;
+}
+
+const props = defineProps<Props>();
+
+const emit = defineEmits<{
+  click: [];
+}>();
+
+const handleCardClick = () => {
+  emit('click');
+};
+
+const progress = computed(() => {
+  const { totalPages, completedPages, errorPages } = props.run.statistics;
+  if (totalPages === 0) return 0;
+  return Math.round(((completedPages + errorPages) / totalPages) * 100);
+});
+
+const isInProgress = computed(() => {
+  return props.run.status === 'in_progress' || props.run.status === 'pending';
+});
+
+const createdDate = computed(() => {
+  return new Date(props.run.createdAt);
+});
+
+const completedDate = computed(() => {
+  return props.run.completedAt ? new Date(props.run.completedAt) : null;
+});
+</script>
+
+<template>
+  <NCard
+    class="run-card"
+    hoverable
+    data-test="run-card"
+    @click="handleCardClick"
+  >
+    <template #header>
+      <NSpace justify="space-between" align="center">
+        <NText strong>Run #{{ run.id.slice(0, 8) }}</NText>
+        <RunStatusBadge :status="run.status" size="small" />
+      </NSpace>
+    </template>
+
+    <NSpace vertical :size="12">
+      <!-- Progress bar for in-progress runs -->
+      <div v-if="isInProgress">
+        <NText depth="3" style="font-size: 12px; display: block; margin-bottom: 4px">
+          Progress: {{ run.statistics.completedPages + run.statistics.errorPages }} /
+          {{ run.statistics.totalPages }} pages
+        </NText>
+        <NProgress
+          type="line"
+          :percentage="progress"
+          :status="run.statistics.errorPages > 0 ? 'error' : 'default'"
+        />
+      </div>
+
+      <!-- Statistics for completed runs -->
+      <NSpace v-else :size="16">
+        <NText depth="3">
+          <strong>{{ run.statistics.totalPages }}</strong> pages
+        </NText>
+        <NText v-if="run.statistics.diffsCount > 0" type="warning">
+          <strong>{{ run.statistics.diffsCount }}</strong> diffs
+        </NText>
+        <NText v-if="run.statistics.errorPages > 0" type="error">
+          <strong>{{ run.statistics.errorPages }}</strong> errors
+        </NText>
+      </NSpace>
+
+      <!-- Timestamps -->
+      <NSpace vertical :size="4">
+        <NText depth="3" style="font-size: 12px">
+          Created: <NTime :time="createdDate" format="yyyy-MM-dd HH:mm" />
+        </NText>
+        <NText v-if="completedDate" depth="3" style="font-size: 12px">
+          Completed: <NTime :time="completedDate" format="yyyy-MM-dd HH:mm" />
+        </NText>
+      </NSpace>
+    </NSpace>
+
+    <template #footer>
+      <NSpace justify="end">
+        <NButton
+          size="small"
+          type="primary"
+          secondary
+          data-test="view-button"
+          @click.stop="handleCardClick"
+        >
+          View Details
+        </NButton>
+      </NSpace>
+    </template>
+  </NCard>
+</template>
+
+<style scoped>
+.run-card {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.run-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+</style>

@@ -60,6 +60,14 @@ export const vueRoutes = {
   },
 
   /**
+   * Runs list for project route: /projects/:projectId/runs
+   */
+  runList: (params: { projectId: string }): string => {
+    const validated = projectIdSchema.parse(params);
+    return `/projects/${validated.projectId}/runs`;
+  },
+
+  /**
    * Create new run for project route: /projects/:projectId/runs/new
    */
   runCreate: (params: { projectId: string }): string => {
@@ -114,6 +122,7 @@ export const RouteNames = {
   PROJECTS: 'projects',
   PROJECT_CREATE: 'project-create',
   PROJECT_DETAIL: 'project-detail',
+  RUNS: 'runs',
   RUN_CREATE: 'run-create',
   RUN_DETAIL: 'run-detail',
   PAGE_DETAIL: 'page-detail',
