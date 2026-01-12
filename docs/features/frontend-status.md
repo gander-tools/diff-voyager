@@ -516,11 +516,15 @@ All requests use shared TypeScript types from `@gander-tools/diff-voyager-shared
 
 ### Run Management
 
-**Not implemented (Phase 3)** → [#179](https://github.com/gander-tools/diff-voyager/issues/179):
-- Run list view → [#185](https://github.com/gander-tools/diff-voyager/issues/185)
-- Run creation form → [#186](https://github.com/gander-tools/diff-voyager/issues/186)
-- Run detail view with page list → [#187](https://github.com/gander-tools/diff-voyager/issues/187)
-- Run components → [#188](https://github.com/gander-tools/diff-voyager/issues/188)-[#192](https://github.com/gander-tools/diff-voyager/issues/192)
+**Partially implemented (Phase 3)** → [#179](https://github.com/gander-tools/diff-voyager/issues/179):
+- ✅ Run list view → [#185](https://github.com/gander-tools/diff-voyager/issues/185)
+- ✅ Run creation form → [#186](https://github.com/gander-tools/diff-voyager/issues/186)
+- ✅ RunCard component → [#188](https://github.com/gander-tools/diff-voyager/issues/188)
+- ✅ RunForm component → [#189](https://github.com/gander-tools/diff-voyager/issues/189)
+- ✅ RunStatusBadge component → [#190](https://github.com/gander-tools/diff-voyager/issues/190)
+- ⏳ Run detail view with page list → [#187](https://github.com/gander-tools/diff-voyager/issues/187)
+- ⏳ RunProgress component → [#191](https://github.com/gander-tools/diff-voyager/issues/191)
+- ⏳ RunStatistics component → [#192](https://github.com/gander-tools/diff-voyager/issues/192)
 
 ### Diff Visualization
 

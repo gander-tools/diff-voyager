@@ -101,14 +101,14 @@ See GitHub Issues for detailed tracking (all **Feature** type):
 **Parent Issue**: [#179 - feat(frontend): implement Run Management views](https://github.com/gander-tools/diff-voyager/issues/179)
 
 **Views**:
-- [ ] 🔵 RunListView → [#185](https://github.com/gander-tools/diff-voyager/issues/185)
-- [ ] 🔵 RunCreateView → [#186](https://github.com/gander-tools/diff-voyager/issues/186)
+- [x] 🔵 RunListView → [#185](https://github.com/gander-tools/diff-voyager/issues/185) ✅
+- [x] 🔵 RunCreateView → [#186](https://github.com/gander-tools/diff-voyager/issues/186) ✅
 - [ ] 🔵 RunDetailView → [#187](https://github.com/gander-tools/diff-voyager/issues/187)
 
 **Components**:
-- [ ] 🟡 RunCard → [#188](https://github.com/gander-tools/diff-voyager/issues/188)
-- [ ] 🟡 RunForm → [#189](https://github.com/gander-tools/diff-voyager/issues/189)
-- [ ] 🟡 RunStatusBadge → [#190](https://github.com/gander-tools/diff-voyager/issues/190)
+- [x] 🟡 RunCard → [#188](https://github.com/gander-tools/diff-voyager/issues/188) ✅
+- [x] 🟡 RunForm → [#189](https://github.com/gander-tools/diff-voyager/issues/189) ✅
+- [x] 🟡 RunStatusBadge → [#190](https://github.com/gander-tools/diff-voyager/issues/190) ✅
 - [ ] 🟡 RunProgress → [#191](https://github.com/gander-tools/diff-voyager/issues/191)
 - [ ] 🟡 RunStatistics → [#192](https://github.com/gander-tools/diff-voyager/issues/192)
 
