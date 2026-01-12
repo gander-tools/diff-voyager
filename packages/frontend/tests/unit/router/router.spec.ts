@@ -28,6 +28,10 @@ describe('Router', () => {
   it('should have runs routes', () => {
     const routes = router.getRoutes();
 
+    const runsList = routes.find((r) => r.path === '/projects/:projectId/runs');
+    expect(runsList).toBeDefined();
+    expect(runsList?.name).toBe('runs');
+
     const runCreate = routes.find((r) => r.path === '/projects/:projectId/runs/new');
     expect(runCreate).toBeDefined();
     expect(runCreate?.name).toBe('run-create');
@@ -67,9 +71,9 @@ describe('Router', () => {
     expect(route?.name).toBe('not-found');
   });
 
-  it('should have 11 routes defined', () => {
+  it('should have 12 routes defined', () => {
     const routes = router.getRoutes();
-    expect(routes).toHaveLength(11);
+    expect(routes).toHaveLength(12);
   });
 
   it('should have route names for all routes', () => {
