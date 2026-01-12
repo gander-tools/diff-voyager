@@ -274,7 +274,7 @@ See [Drizzle Migration Guide](../guides/drizzle-migration.md) for details.
 **Pending (Phase 3)** → [#179](https://github.com/gander-tools/diff-voyager/issues/179):
 - ⏳ RunListView → [#185](https://github.com/gander-tools/diff-voyager/issues/185)
 - ⏳ RunCreateView → [#186](https://github.com/gander-tools/diff-voyager/issues/186)
-- ⏳ RunDetailView → [#187](https://github.com/gander-tools/diff-voyager/issues/187)
+- ✅ RunDetailView → [#187](https://github.com/gander-tools/diff-voyager/issues/187)
 - ⏳ RunCard, RunForm, RunStatusBadge, RunProgress, RunStatistics → [#188](https://github.com/gander-tools/diff-voyager/issues/188)-[#192](https://github.com/gander-tools/diff-voyager/issues/192)
 
 **Pending (Phase 4)** → [#180](https://github.com/gander-tools/diff-voyager/issues/180):

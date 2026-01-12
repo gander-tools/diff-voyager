@@ -103,7 +103,7 @@ See GitHub Issues for detailed tracking (all **Feature** type):
 **Views**:
 - [ ] 🔵 RunListView → [#185](https://github.com/gander-tools/diff-voyager/issues/185)
 - [ ] 🔵 RunCreateView → [#186](https://github.com/gander-tools/diff-voyager/issues/186)
-- [ ] 🔵 RunDetailView → [#187](https://github.com/gander-tools/diff-voyager/issues/187)
+- [x] 🔵 RunDetailView → [#187](https://github.com/gander-tools/diff-voyager/issues/187)
 
 **Components**:
 - [ ] 🟡 RunCard → [#188](https://github.com/gander-tools/diff-voyager/issues/188)
