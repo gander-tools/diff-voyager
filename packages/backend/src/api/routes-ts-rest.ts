@@ -418,7 +418,7 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
         });
 
         // Start processing async (after 5 second delay)
-        console.log(`Run ${run.id} will start processing in 5 seconds...`);
+        logger.info({ runId: run.id, delayMs: 5000 }, 'Run scheduled for async processing');
 
         setTimeout(() => {
           const processor = new ScanProcessor({
@@ -442,7 +442,7 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
               collectHar: body.collectHar || false,
             })
             .catch((err) => {
-              console.error(`Run ${run.id} failed:`, err);
+              logger.error({ runId: run.id, error: err }, 'Run processing failed');
             });
         }, 5000);
 

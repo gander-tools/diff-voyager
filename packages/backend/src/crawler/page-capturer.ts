@@ -185,7 +185,7 @@ export class PageCapturer {
           await chmod(harFilePath, 0o600);
         } catch {
           // HAR file doesn't exist, log warning but continue
-          console.warn(`HAR file not found at ${harFilePath}`);
+          this.logger?.warn({ harFilePath }, 'HAR file not found, continuing without HAR data');
         }
       }
 
