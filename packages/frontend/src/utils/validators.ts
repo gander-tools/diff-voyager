@@ -36,3 +36,28 @@ export const createProjectSchema = z.object({
  * Type inference from schema
  */
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
+
+/**
+ * Schema for creating a new run
+ * Matches backend API expectations for creating a comparison run
+ */
+export const createRunSchema = z.object({
+  // URL to scan
+  url: z.string().url('Invalid URL format'),
+
+  // Run profile
+  viewport: z
+    .object({
+      width: z.number().int().min(320).max(3840),
+      height: z.number().int().min(240).max(2160),
+    })
+    .default({ width: 1920, height: 1080 }),
+
+  collectHar: z.boolean().default(false),
+  waitAfterLoad: z.number().int().min(0).max(30000).default(1000),
+});
+
+/**
+ * Type inference from schema
+ */
+export type CreateRunInput = z.infer<typeof createRunSchema>;
