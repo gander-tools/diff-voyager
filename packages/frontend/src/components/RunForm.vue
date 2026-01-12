@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { toTypedSchema } from '@vee-validate/zod';
 import {
+  NAlert,
   NButton,
   NForm,
   NFormItem,
@@ -16,6 +17,8 @@ import { type CreateRunInput, createRunSchema } from '../utils/validators';
 
 interface Props {
   projectUrl?: string;
+  loading?: boolean;
+  submitError?: string;
 }
 
 const props = defineProps<Props>();
@@ -70,11 +73,22 @@ const handleCancel = () => {
 
 <template>
   <NForm :model="values" label-placement="top" label-width="auto">
+    <!-- Submission Error Alert -->
+    <NAlert
+      v-if="submitError"
+      type="error"
+      :title="submitError"
+      closable
+      style="margin-bottom: 24px"
+      data-test="submit-error-alert"
+    />
+
     <!-- URL -->
     <NFormItem label="URL" :validation-status="errors.url ? 'error' : undefined" :feedback="errors.url">
       <NInput
         v-model:value="url"
         placeholder="https://example.com"
+        :disabled="loading"
         data-test="url-input"
       />
     </NFormItem>
@@ -85,6 +99,7 @@ const handleCancel = () => {
         <NSelect
           v-model:value="selectedPreset"
           :options="viewportPresets"
+          :disabled="loading"
           @update:value="handlePresetChange"
           data-test="viewport-preset-select"
         />
@@ -99,6 +114,7 @@ const handleCancel = () => {
               :min="320"
               :max="3840"
               :step="10"
+              :disabled="loading"
               style="width: 150px"
               data-test="viewport-width-input"
             />
@@ -113,6 +129,7 @@ const handleCancel = () => {
               :min="240"
               :max="2160"
               :step="10"
+              :disabled="loading"
               style="width: 150px"
               data-test="viewport-height-input"
             />
@@ -123,7 +140,7 @@ const handleCancel = () => {
 
     <!-- Advanced Options -->
     <NFormItem label="Collect HAR Files">
-      <NSwitch v-model:value="collectHar" data-test="collect-har-switch">
+      <NSwitch v-model:value="collectHar" :disabled="loading" data-test="collect-har-switch">
         <template #checked>Yes</template>
         <template #unchecked>No</template>
       </NSwitch>
@@ -135,6 +152,7 @@ const handleCancel = () => {
         :min="0"
         :max="30000"
         :step="100"
+        :disabled="loading"
         style="width: 200px"
         data-test="wait-after-load-input"
       />
@@ -143,10 +161,10 @@ const handleCancel = () => {
     <!-- Actions -->
     <NFormItem>
       <NSpace>
-        <NButton type="primary" @click="onSubmit" data-test="submit-button">
+        <NButton type="primary" :loading="loading" :disabled="loading" @click="onSubmit" data-test="submit-button">
           Create Run
         </NButton>
-        <NButton @click="handleCancel" data-test="cancel-button">
+        <NButton :disabled="loading" @click="handleCancel" data-test="cancel-button">
           Cancel
         </NButton>
       </NSpace>
