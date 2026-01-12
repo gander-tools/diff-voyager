@@ -261,9 +261,7 @@ describe('GET /api/v1/projects/:projectId - Project Details', () => {
     expect(body.pages[0].artifacts.htmlUrl).toBe(`/api/v1/artifacts/${page.id}/html`);
   });
 
-  // TODO: Fix includePages query parameter coercion in @ts-rest
-  // The parameter is not being properly coerced from string to boolean
-  it.skip('should respect includePages=false query parameter', async () => {
+  it('should respect includePages=false query parameter', async () => {
     const project = await projectRepo.create({
       name: 'Test Project Include Pages False',
       baseUrl: 'https://example.com',
