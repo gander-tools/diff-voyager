@@ -37,6 +37,14 @@ const router = createRouter({
       },
     },
     {
+      path: '/projects/:projectId/runs',
+      name: 'runs',
+      component: () => import('../views/RunListView.vue'),
+      meta: {
+        title: 'runs.list',
+      },
+    },
+    {
       path: '/projects/:projectId/runs/new',
       name: 'run-create',
       component: () => import('../views/RunCreateView.vue'),
