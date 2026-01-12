@@ -37,7 +37,7 @@ Diff Voyager is a local website version comparison tool designed for solo develo
 diff-voyager/
 ├── packages/
 │   ├── backend/          # Node.js + TypeScript crawler & API
-│   ├── frontend/         # Vue 3 + TypeScript UI (built with bun)
+│   ├── frontend/         # Vue 3 + TypeScript UI
 │   └── shared/           # Shared TypeScript types
 ├── docs/                 # Documentation
 ├── .claude/              # Claude Code configuration
@@ -60,7 +60,7 @@ diff-voyager/
 - Pinia for state management
 - Vue Router for routing
 - @ts-rest for type-safe API calls
-- Built with bun
+- Built with Vite
 
 **Shared:**
 - TypeScript types shared between backend and frontend
@@ -416,9 +416,9 @@ packages/backend/tests/
 ### Frontend Development
 ```bash
 cd packages/frontend
-bun install
-bun run dev              # Start dev server
-bun test                 # Run tests
+npm install
+npm run dev              # Start dev server
+npm test                 # Run tests
 ```
 
 #### Common Frontend Issues
