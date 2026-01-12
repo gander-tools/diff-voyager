@@ -1,6 +1,6 @@
 # Implementation Status
 
-**Last Updated**: 2026-01-11
+**Last Updated**: 2026-01-12
 
 ## Current Phase: Phase 5 Complete ✅ | Frontend Phase 2 Complete ✅
 
@@ -271,13 +271,25 @@ See [Drizzle Migration Guide](../guides/drizzle-migration.md) for details.
 - ✅ ProjectDetailView with full project information (10 tests)
 - ✅ 62 new tests (167 total frontend tests passing)
 
-**In Progress (Phase 3)**:
-- ⏳ Run management views (RunList, RunCreate, RunDetail)
+**Pending (Phase 3)** → [#179](https://github.com/gander-tools/diff-voyager/issues/179):
+- ⏳ RunListView → [#185](https://github.com/gander-tools/diff-voyager/issues/185)
+- ⏳ RunCreateView → [#186](https://github.com/gander-tools/diff-voyager/issues/186)
+- ⏳ RunDetailView → [#187](https://github.com/gander-tools/diff-voyager/issues/187)
+- ⏳ RunCard, RunForm, RunStatusBadge, RunProgress, RunStatistics → [#188](https://github.com/gander-tools/diff-voyager/issues/188)-[#192](https://github.com/gander-tools/diff-voyager/issues/192)
 
-**Pending**:
-- ⏳ Diff review interface (Phase 4)
-- ⏳ Rules and settings views (Phase 5)
-- ⏳ Polish, accessibility, and E2E testing (Phase 6)
+**Pending (Phase 4)** → [#180](https://github.com/gander-tools/diff-voyager/issues/180):
+- ⏳ PageDetailView → [#193](https://github.com/gander-tools/diff-voyager/issues/193)
+- ⏳ Page components (PageList, PageStatusBadge, PageFilters) → [#194](https://github.com/gander-tools/diff-voyager/issues/194)-[#196](https://github.com/gander-tools/diff-voyager/issues/196)
+- ⏳ Diff components (DiffSummary, DiffBadge, SeoDiffView, VisualDiffView, PerformanceDiffView, DiffActions) → [#197](https://github.com/gander-tools/diff-voyager/issues/197)-[#202](https://github.com/gander-tools/diff-voyager/issues/202)
+
+**Pending (Phase 5)** → [#183](https://github.com/gander-tools/diff-voyager/issues/183):
+- ⏳ RulesListView, RuleCreateView, SettingsView → [#203](https://github.com/gander-tools/diff-voyager/issues/203)-[#205](https://github.com/gander-tools/diff-voyager/issues/205)
+- ⏳ RuleForm, RuleCard, RuleConditionBuilder → [#206](https://github.com/gander-tools/diff-voyager/issues/206)-[#208](https://github.com/gander-tools/diff-voyager/issues/208)
+
+**Pending (Phase 6)** → [#184](https://github.com/gander-tools/diff-voyager/issues/184):
+- ⏳ Accessibility improvements → [#209](https://github.com/gander-tools/diff-voyager/issues/209)
+- ⏳ E2E tests with Playwright → [#210](https://github.com/gander-tools/diff-voyager/issues/210)
+- ⏳ Performance, error handling, loading states → [#211](https://github.com/gander-tools/diff-voyager/issues/211)-[#213](https://github.com/gander-tools/diff-voyager/issues/213)
 
 **Current UI Capabilities**:
 - Responsive layout with collapsible sidebar
@@ -391,9 +403,10 @@ See [Frontend Implementation Plan](../features/frontend-plan.md) and [Frontend S
 - ❌ Mute rules creation and application
 
 **Frontend UI**:
-- ❌ Run management UI (Phase 3)
-- ❌ Visual diff review (Phase 4)
-- ❌ Rules and settings UI (Phase 5)
+- ❌ Run management UI (Phase 3) → [#179](https://github.com/gander-tools/diff-voyager/issues/179)
+- ❌ Visual diff review (Phase 4) → [#180](https://github.com/gander-tools/diff-voyager/issues/180)
+- ❌ Rules and settings UI (Phase 5) → [#183](https://github.com/gander-tools/diff-voyager/issues/183)
+- ❌ Polish and accessibility (Phase 6) → [#184](https://github.com/gander-tools/diff-voyager/issues/184)
 
 ## Skipped Tests
 
@@ -438,10 +451,11 @@ Full documentation: [Skipped Tests Guide](./skipped-tests.md)
    - 🔵 Search functionality [#166](https://github.com/gander-tools/diff-voyager/issues/166)
 
 ### Long-term (Weeks 9-16)
-5. **Frontend Phase 3-7** - [Milestones #5-7](https://github.com/gander-tools/diff-voyager/milestone/5)
-   - Run management UI (Phase 3)
-   - Diff review interface (Phase 4)
-   - Rules and settings (Phase 5)
+5. **Frontend Phase 3-6** - [Milestones #5-7](https://github.com/gander-tools/diff-voyager/milestone/5)
+   - 🔵 Run management UI (Phase 3) → [#179](https://github.com/gander-tools/diff-voyager/issues/179) (8 sub-issues: #185-#192)
+   - 🔵 Diff review interface (Phase 4) → [#180](https://github.com/gander-tools/diff-voyager/issues/180) (10 sub-issues: #193-#202)
+   - 🔵 Rules and settings (Phase 5) → [#183](https://github.com/gander-tools/diff-voyager/issues/183) (6 sub-issues: #203-#208)
+   - 🔵 Polish and accessibility (Phase 6) → [#184](https://github.com/gander-tools/diff-voyager/issues/184) (5 sub-issues: #209-#213)
 
 See [Roadmap](roadmap.md) for complete development timeline and milestones.
 
