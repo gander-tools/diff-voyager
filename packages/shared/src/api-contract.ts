@@ -61,7 +61,10 @@ export const createScanBodySchema = z.object({
 });
 
 export const getProjectQuerySchema = z.object({
-  includePages: z.coerce.boolean().optional(),
+  includePages: z
+    .union([z.boolean(), z.enum(['true', 'false'])])
+    .optional()
+    .transform((val) => (typeof val === 'string' ? val === 'true' : val)),
   pageLimit: z.coerce.number().int().min(1).optional(),
   pageOffset: z.coerce.number().int().min(0).optional(),
 });

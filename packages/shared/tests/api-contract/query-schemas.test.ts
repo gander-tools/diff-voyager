@@ -53,15 +53,15 @@ describe('Query Schemas', () => {
         }
       });
 
-      it('should coerce non-empty string to boolean true (Zod behavior)', () => {
-        // Note: z.coerce.boolean() uses JavaScript Boolean() coercion
-        // Any non-empty string (including "false") becomes true
+      it('should transform string "false" to boolean false (explicit string parsing)', () => {
+        // Note: Uses z.enum(['true', 'false']).transform() for explicit string parsing
+        // String "false" correctly becomes boolean false
         const validData = { includePages: 'false' };
         const result = getProjectQuerySchema.safeParse(validData);
 
         expect(result.success).toBe(true);
         if (result.success) {
-          expect(result.data.includePages).toBe(true);
+          expect(result.data.includePages).toBe(false);
           expect(typeof result.data.includePages).toBe('boolean');
         }
       });
