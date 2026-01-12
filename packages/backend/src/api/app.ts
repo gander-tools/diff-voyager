@@ -16,6 +16,11 @@ import type { DatabaseInstance } from '../storage/database.js';
 import type { DrizzleDb } from '../storage/drizzle/db.js';
 import { FILE_SYSTEM_RATE_LIMIT, LARGE_FILE_RATE_LIMIT } from './middleware/rate-limiting.js';
 import { createTsRestRoutes } from './routes-ts-rest.js';
+import {
+  assertCompatibleLogger,
+  hasSwaggerTags,
+  isTsRestRoute,
+} from './types/fastify-extensions.js';
 
 export interface AppConfig {
   db: DatabaseInstance;
@@ -124,9 +129,8 @@ async function registerPlugins(app: FastifyInstance, config: AppConfig) {
   // Add onRoute hook to create schema for @ts-rest routes (so Swagger can see them)
   app.addHook('onRoute', (routeOptions) => {
     // Check if this is a @ts-rest route (has tsRestRoute in config but no schema)
-    const tsRestRoute = (routeOptions.config as any)?.tsRestRoute;
-
-    if (tsRestRoute && !routeOptions.schema) {
+    if (isTsRestRoute(routeOptions.config) && !routeOptions.schema) {
+      const tsRestRoute = routeOptions.config.tsRestRoute;
       // 1. Read tags from metadata (NO URL pattern matching!)
       const tags = tsRestRoute.metadata?.tags || [];
 
@@ -155,10 +159,12 @@ async function registerPlugins(app: FastifyInstance, config: AppConfig) {
       );
     } else if (routeOptions.schema && routeOptions.url?.startsWith(API_BASE_PATH)) {
       // Legacy routes (e.g., health) - just log
+      const tags = hasSwaggerTags(routeOptions.schema) ? routeOptions.schema.tags : undefined;
+
       app.log.debug(
         {
           url: routeOptions.url,
-          tags: (routeOptions.schema as any).tags,
+          tags,
         },
         'Legacy route registered',
       );
@@ -220,7 +226,7 @@ async function registerPlugins(app: FastifyInstance, config: AppConfig) {
     drizzleDb: config.drizzleDb,
     artifactsDir: config.artifactsDir,
     taskQueue,
-    logger: app.log as any,
+    logger: assertCompatibleLogger(app.log),
   });
 
   await app.register(tsRestServer.plugin(tsRestRouter), {

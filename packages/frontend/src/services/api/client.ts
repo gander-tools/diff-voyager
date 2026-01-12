@@ -1,6 +1,7 @@
 import { apiContract } from '@gander-tools/diff-voyager-shared';
 import { initClient } from '@ts-rest/core';
 import { ofetch } from 'ofetch';
+import { mergeHeaders } from './types';
 
 /**
  * API Error class with status code and message
@@ -66,16 +67,15 @@ export const apiClient = ofetch.create({
   // Request interceptor
   onRequest({ options }) {
     // Add default headers
-    const headers = options.headers || {};
+    const existingHeaders = options.headers;
 
     // Only set Content-Type if body is present (avoid Fastify error for void bodies)
     const shouldSetContentType = options.body !== undefined && options.body !== null;
 
-    // biome-ignore lint/suspicious/noExplicitAny: ofetch headers type compatibility
-    options.headers = {
-      ...(typeof headers === 'object' ? headers : {}),
-      ...(shouldSetContentType ? { 'Content-Type': 'application/json' } : {}),
-    } as any;
+    options.headers = mergeHeaders(
+      typeof existingHeaders === 'object' ? existingHeaders : undefined,
+      shouldSetContentType ? { 'Content-Type': 'application/json' } : undefined,
+    ) as typeof options.headers;
   },
 
   // Response interceptor for error handling

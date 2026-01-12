@@ -1,4 +1,5 @@
 import { apiClient } from './client';
+import { fetchAs } from './types';
 
 /**
  * Get artifact URL for a page
@@ -16,10 +17,7 @@ export function getArtifactUrl(
  * GET /artifacts/:pageId/screenshot
  */
 export function getScreenshot(pageId: string): Promise<Blob> {
-  // biome-ignore lint/suspicious/noExplicitAny: ofetch responseType compatibility
-  return apiClient<Blob>(`/artifacts/${pageId}/screenshot`, {
-    responseType: 'blob',
-  }) as any;
+  return fetchAs('blob', apiClient(`/artifacts/${pageId}/screenshot`, { responseType: 'blob' }));
 }
 
 /**
@@ -27,10 +25,10 @@ export function getScreenshot(pageId: string): Promise<Blob> {
  * GET /artifacts/:pageId/baseline-screenshot
  */
 export function getBaselineScreenshot(pageId: string): Promise<Blob> {
-  // biome-ignore lint/suspicious/noExplicitAny: ofetch responseType compatibility
-  return apiClient<Blob>(`/artifacts/${pageId}/baseline-screenshot`, {
-    responseType: 'blob',
-  }) as any;
+  return fetchAs(
+    'blob',
+    apiClient(`/artifacts/${pageId}/baseline-screenshot`, { responseType: 'blob' }),
+  );
 }
 
 /**
@@ -38,10 +36,7 @@ export function getBaselineScreenshot(pageId: string): Promise<Blob> {
  * GET /artifacts/:pageId/diff
  */
 export function getDiffImage(pageId: string): Promise<Blob> {
-  // biome-ignore lint/suspicious/noExplicitAny: ofetch responseType compatibility
-  return apiClient<Blob>(`/artifacts/${pageId}/diff`, {
-    responseType: 'blob',
-  }) as any;
+  return fetchAs('blob', apiClient(`/artifacts/${pageId}/diff`, { responseType: 'blob' }));
 }
 
 /**
@@ -57,8 +52,5 @@ export function getHarFile(pageId: string): Promise<unknown> {
  * GET /artifacts/:pageId/html
  */
 export function getHtml(pageId: string): Promise<string> {
-  // biome-ignore lint/suspicious/noExplicitAny: ofetch responseType compatibility
-  return apiClient<string>(`/artifacts/${pageId}/html`, {
-    responseType: 'text',
-  }) as any;
+  return fetchAs('text', apiClient(`/artifacts/${pageId}/html`, { responseType: 'text' }));
 }
