@@ -6,9 +6,10 @@
 import { mount } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
 import RunCard from '../../../src/components/RunCard.vue';
+import type { RunDetailsResponse } from '../../../src/services/api';
 
 describe('RunCard', () => {
-  const mockRun = {
+  const mockRun: RunDetailsResponse = {
     id: 'run-12345678-abcd-1234-efgh-ijklmnopqrst',
     projectId: 'proj-123',
     baselineId: 'baseline-456',

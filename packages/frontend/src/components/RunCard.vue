@@ -1,28 +1,11 @@
 <script setup lang="ts">
 import { NButton, NCard, NProgress, NSpace, NText, NTime } from 'naive-ui';
 import { computed } from 'vue';
+import type { RunDetailsResponse } from '@/services/api';
 import RunStatusBadge from './RunStatusBadge.vue';
 
-interface RunStatistics {
-  totalPages: number;
-  completedPages: number;
-  errorPages: number;
-  diffsCount: number;
-}
-
-interface Run {
-  id: string;
-  projectId: string;
-  baselineId: string;
-  status: string;
-  createdAt: string;
-  startedAt?: string;
-  completedAt?: string;
-  statistics: RunStatistics;
-}
-
 interface Props {
-  run: Run;
+  run: RunDetailsResponse;
 }
 
 const props = defineProps<Props>();
