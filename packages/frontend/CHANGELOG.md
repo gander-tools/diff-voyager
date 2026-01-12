@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.1.15](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.14...diff-voyager-frontend-v0.1.15) (2026-01-12)
+
+
+### Features
+
+* **frontend:** implement RunCreateView for issue [#186](https://github.com/gander-tools/diff-voyager/issues/186) ([f23a141](https://github.com/gander-tools/diff-voyager/commit/f23a14139a0cc08a14ad2757a6df9bde84a9e71b))
+* **frontend:** implement RunDetailView for issue [#187](https://github.com/gander-tools/diff-voyager/issues/187) ([78b5840](https://github.com/gander-tools/diff-voyager/commit/78b58402f99307e3bfe47b2ee8095bef749c6159))
+* **frontend:** implement RunForm component with loading and error states ([9536ba2](https://github.com/gander-tools/diff-voyager/commit/9536ba2827864856caebc092c8a0d3e21db0b6eb))
+* **frontend:** implement RunListView for issue [#185](https://github.com/gander-tools/diff-voyager/issues/185) ([c7278e9](https://github.com/gander-tools/diff-voyager/commit/c7278e93c66e561969ab4fe070c00a015b64b64f))
+* **frontend:** implement RunProgress component for issue [#191](https://github.com/gander-tools/diff-voyager/issues/191) ([9dd1f6b](https://github.com/gander-tools/diff-voyager/commit/9dd1f6bccad9b0a05afeed3284c2bfa5eada9ccd))
+* **frontend:** implement RunStatistics component for issue [#192](https://github.com/gander-tools/diff-voyager/issues/192) ([950c914](https://github.com/gander-tools/diff-voyager/commit/950c914d9db3621e1c1b2ef33c75903ad2466a21))
+* **frontend:** implement RunStatusBadge component with proper types and animation ([bfe19fe](https://github.com/gander-tools/diff-voyager/commit/bfe19fe058155332cea272772454122bba173526)), closes [#190](https://github.com/gander-tools/diff-voyager/issues/190)
+* **frontend:** refactor RunCard to use shared API types ([#188](https://github.com/gander-tools/diff-voyager/issues/188)) ([d8694cc](https://github.com/gander-tools/diff-voyager/commit/d8694ccef29cf23d0f2bab5582f7a6b1f037d7db))
+* **frontend:** refactor RunCard to use shared API types ([#188](https://github.com/gander-tools/diff-voyager/issues/188)) ([7f20ebe](https://github.com/gander-tools/diff-voyager/commit/7f20ebe73fe54dd71cbf1ad0c58e4ec835641e03))
+
 ## [0.1.14](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.13...diff-voyager-frontend-v0.1.14) (2026-01-11)
 
 
