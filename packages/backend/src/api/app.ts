@@ -145,13 +145,22 @@ async function registerPlugins(app: FastifyInstance, config: AppConfig) {
         Object.assign(routeOptions.config, LARGE_FILE_RATE_LIMIT);
       }
 
-      console.log(
-        `[onRoute] ${routeOptions.url} - tags: [${tags.join(', ')}]${rateLimitType ? ` - rate limit: ${rateLimitType}` : ''}`,
+      app.log.debug(
+        {
+          url: routeOptions.url,
+          tags,
+          rateLimitType,
+        },
+        'Route registered with @ts-rest metadata',
       );
     } else if (routeOptions.schema && routeOptions.url?.startsWith(API_BASE_PATH)) {
       // Legacy routes (e.g., health) - just log
-      console.log(
-        `[onRoute] ${routeOptions.url} already has schema with tags: [${(routeOptions.schema as any).tags?.join(', ')}]`,
+      app.log.debug(
+        {
+          url: routeOptions.url,
+          tags: (routeOptions.schema as any).tags,
+        },
+        'Legacy route registered',
       );
     }
   });

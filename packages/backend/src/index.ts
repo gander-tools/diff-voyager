@@ -55,16 +55,11 @@ async function main() {
   // Create directory with restricted permissions (owner only: rwx------)
   await mkdir(artifactsDir, { recursive: true, mode: 0o700 });
 
-  console.log('Diff Voyager Backend - Starting...');
-  console.log(`Data directory: ${dataDir}`);
-
   // Initialize database
   const db = createDatabase({ dbPath, baseDir: dataDir, artifactsDir });
-  console.log('Database initialized');
 
   // Create Drizzle DB instance for type-safe queries
   const drizzleDb = createDrizzleDb(db);
-  console.log('Drizzle ORM initialized');
 
   // Create and start app
   const app = await createApp({
@@ -75,15 +70,19 @@ async function main() {
     logLevelFile,
   });
 
+  // Now that app is created, log startup information
+  app.log.info('Diff Voyager Backend - Starting...');
+  app.log.info({ dataDir, dbPath, artifactsDir }, 'Data directory configured');
+  app.log.info('Database initialized');
+  app.log.info('Drizzle ORM initialized');
+
   await app.listen({ port, host: '0.0.0.0' });
-  console.log(`API server running at http://localhost:${port}`);
-  console.log(`API endpoints:`);
-  console.log(`  POST /api/v1/scans - Create scan`);
-  console.log(`  GET  /api/v1/projects/:id - Get project details`);
-  console.log(`  GET  /health - Health check`);
+  app.log.info({ port }, `API server running at http://localhost:${port}`);
+  app.log.info('API endpoints: POST /api/v1/scans, GET /api/v1/projects/:id, GET /health');
 }
 
 main().catch((error) => {
-  console.error('Fatal error:', error);
+  // eslint-disable-next-line no-console
+  console.error('Fatal error during startup:', error);
   process.exit(1);
 });
