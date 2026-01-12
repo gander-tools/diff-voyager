@@ -1,6 +1,6 @@
 # Development Roadmap
 
-**Last Updated**: 2026-01-08
+**Last Updated**: 2026-01-12
 
 ## Current Focus
 
@@ -88,71 +88,80 @@ See GitHub Issues for detailed tracking (all **Feature** type):
 - [#6 - Frontend Phase 4: Diff Review](https://github.com/gander-tools/diff-voyager/milestone/6) - Due Apr 30, 2026
 - [#7 - Frontend MVP Complete](https://github.com/gander-tools/diff-voyager/milestone/7) - Due May 31, 2026
 
-#### 5.1 Project Setup
+#### 5.1 Project Setup ✅
 
-- [ ] Vue 3 + Vite project scaffolding
-- [ ] Pinia store setup
-- [ ] Vue Router configuration
-- [ ] API client service
-- [ ] Component library selection
+- [x] Vue 3 + Vite project scaffolding
+- [x] Pinia store setup
+- [x] Vue Router configuration
+- [x] API client service (@ts-rest)
+- [x] Component library selection (Naive UI)
 
-#### 5.2 Core Views
+#### 5.2 Phase 3: Run Management
 
-- [ ] Project List View
-  - List all projects
-  - Create new project
-  - Delete project
-  - Search and filter
+**Parent Issue**: [#179 - feat(frontend): implement Run Management views](https://github.com/gander-tools/diff-voyager/issues/179)
 
-- [ ] Project Detail View
-  - Project configuration
-  - Runs list with status
-  - Statistics dashboard
-  - Start new comparison run
+**Views**:
+- [ ] 🔵 RunListView → [#185](https://github.com/gander-tools/diff-voyager/issues/185)
+- [ ] 🔵 RunCreateView → [#186](https://github.com/gander-tools/diff-voyager/issues/186)
+- [ ] 🔵 RunDetailView → [#187](https://github.com/gander-tools/diff-voyager/issues/187)
 
-- [ ] Run Detail View
-  - Run metadata and status
-  - Pages list with diff indicators
-  - Filter by change type
-  - Export run results
+**Components**:
+- [ ] 🟡 RunCard → [#188](https://github.com/gander-tools/diff-voyager/issues/188)
+- [ ] 🟡 RunForm → [#189](https://github.com/gander-tools/diff-voyager/issues/189)
+- [ ] 🟡 RunStatusBadge → [#190](https://github.com/gander-tools/diff-voyager/issues/190)
+- [ ] 🟡 RunProgress → [#191](https://github.com/gander-tools/diff-voyager/issues/191)
+- [ ] 🟡 RunStatistics → [#192](https://github.com/gander-tools/diff-voyager/issues/192)
 
-- [ ] Page Diff View
-  - Side-by-side comparison
-  - Visual diff viewer (screenshot overlay)
-  - SEO changes table
-  - Header changes table
-  - Performance metrics chart
+#### 5.3 Phase 4: Diff Review
 
-- [ ] Settings View
-  - Project configuration editor
-  - Mute rules management
-  - Global settings
+**Parent Issue**: [#180 - feat(frontend): implement Diff Review interface](https://github.com/gander-tools/diff-voyager/issues/180)
 
-#### 5.3 Diff Management Features
+**Views**:
+- [ ] 🔵 PageDetailView → [#193](https://github.com/gander-tools/diff-voyager/issues/193)
 
-- [ ] Diff acceptance workflow
-  - Accept individual changes
-  - Accept all changes for page
-  - Undo acceptance
+**Page Components**:
+- [ ] 🟡 PageList → [#194](https://github.com/gander-tools/diff-voyager/issues/194)
+- [ ] 🟡 PageStatusBadge → [#195](https://github.com/gander-tools/diff-voyager/issues/195)
+- [ ] 🟡 PageFilters → [#196](https://github.com/gander-tools/diff-voyager/issues/196)
 
-- [ ] Mute rules creation
-  - Create rule from specific diff
-  - CSS selector picker
-  - XPath generator
-  - Preview affected diffs
+**Diff Components**:
+- [ ] 🟡 DiffSummary → [#197](https://github.com/gander-tools/diff-voyager/issues/197)
+- [ ] 🟡 DiffBadge → [#198](https://github.com/gander-tools/diff-voyager/issues/198)
+- [ ] 🟡 SeoDiffView → [#199](https://github.com/gander-tools/diff-voyager/issues/199)
+- [ ] 🔵 VisualDiffView → [#200](https://github.com/gander-tools/diff-voyager/issues/200)
+- [ ] 🟡 PerformanceDiffView → [#201](https://github.com/gander-tools/diff-voyager/issues/201)
+- [ ] 🟡 DiffActions → [#202](https://github.com/gander-tools/diff-voyager/issues/202)
 
-#### 5.4 UI Polish
+#### 5.4 Phase 5: Rules and Settings
 
-- [ ] Responsive design
-- [ ] Dark mode support
-- [ ] Loading states and skeletons
-- [ ] Error handling and notifications
-- [ ] Keyboard shortcuts
+**Parent Issue**: [#183 - feat(frontend): implement Rules and Settings views](https://github.com/gander-tools/diff-voyager/issues/183)
+
+**Views**:
+- [ ] 🔵 RulesListView → [#203](https://github.com/gander-tools/diff-voyager/issues/203)
+- [ ] 🔵 RuleCreateView → [#204](https://github.com/gander-tools/diff-voyager/issues/204)
+- [ ] 🔵 SettingsView → [#205](https://github.com/gander-tools/diff-voyager/issues/205)
+
+**Components**:
+- [ ] 🟡 RuleForm → [#206](https://github.com/gander-tools/diff-voyager/issues/206)
+- [ ] 🟡 RuleCard → [#207](https://github.com/gander-tools/diff-voyager/issues/207)
+- [ ] 🔵 RuleConditionBuilder → [#208](https://github.com/gander-tools/diff-voyager/issues/208)
+
+#### 5.5 Phase 6: Polish and Accessibility
+
+**Parent Issue**: [#184 - feat(frontend): Polish and Accessibility](https://github.com/gander-tools/diff-voyager/issues/184)
+
+- [ ] 🔵 Accessibility improvements → [#209](https://github.com/gander-tools/diff-voyager/issues/209)
+- [ ] 🔵 E2E tests with Playwright → [#210](https://github.com/gander-tools/diff-voyager/issues/210)
+- [ ] 🟡 Performance optimizations → [#211](https://github.com/gander-tools/diff-voyager/issues/211)
+- [ ] 🟡 Error handling and boundaries → [#212](https://github.com/gander-tools/diff-voyager/issues/212)
+- [ ] 🟡 Loading states and skeleton loaders → [#213](https://github.com/gander-tools/diff-voyager/issues/213)
 
 **Acceptance Criteria**:
 - All core views functional
 - Diff review workflow complete
 - Responsive and accessible UI
+- WCAG 2.1 AA compliance
+- E2E tests for critical flows
 
 See [Frontend Implementation Plan](../features/frontend-plan.md) for detailed specs.
 
