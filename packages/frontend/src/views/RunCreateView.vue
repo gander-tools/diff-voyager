@@ -16,6 +16,7 @@ const projectId = computed(() => route.params.projectId as string);
 const project = computed(() => projectsStore.currentProject);
 const isCreating = ref(false);
 const isLoading = ref(true);
+const submitError = ref<string | undefined>(undefined);
 
 // Load project data on mount
 onMounted(async () => {
@@ -30,6 +31,7 @@ onMounted(async () => {
 
 const handleSubmit = async (formData: CreateRunInput) => {
   isCreating.value = true;
+  submitError.value = undefined;
 
   try {
     const response = await runsStore.createNewRun(projectId.value, formData);
@@ -42,6 +44,8 @@ const handleSubmit = async (formData: CreateRunInput) => {
     }
   } catch (error) {
     console.error('Failed to create run:', error);
+    submitError.value =
+      error instanceof Error ? error.message : 'Failed to create run. Please try again.';
   } finally {
     isCreating.value = false;
   }
@@ -74,14 +78,17 @@ const handleBack = () => {
     </NPageHeader>
 
     <NCard class="form-card">
-      <NSpin :show="isLoading || isCreating" :description="isCreating ? 'Creating run...' : 'Loading...'">
-        <RunForm
-          v-if="!isLoading && project"
-          :project-url="project.baseUrl"
-          @submit="handleSubmit"
-          @cancel="handleCancel"
-        />
+      <NSpin v-if="isLoading" description="Loading project...">
+        <div style="min-height: 400px"></div>
       </NSpin>
+      <RunForm
+        v-else-if="project"
+        :project-url="project.baseUrl"
+        :loading="isCreating"
+        :submit-error="submitError"
+        @submit="handleSubmit"
+        @cancel="handleCancel"
+      />
     </NCard>
   </div>
 </template>

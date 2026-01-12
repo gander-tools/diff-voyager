@@ -371,7 +371,7 @@ packages/frontend/
 │       ├── ProjectCreateView.vue    # ✅ Phase 2
 │       ├── ProjectDetailView.vue    # ✅ Phase 2
 │       ├── RunCreateView.vue        # ⏳ Phase 3
-│       ├── RunDetailView.vue        # ⏳ Phase 3
+│       ├── RunDetailView.vue        # ✅ Phase 3
 │       ├── PageDetailView.vue       # ⏳ Phase 4
 │       ├── RulesListView.vue        # ⏳ Phase 5
 │       ├── RuleCreateView.vue       # ⏳ Phase 5
@@ -522,9 +522,9 @@ All requests use shared TypeScript types from `@gander-tools/diff-voyager-shared
 - ✅ RunCard component → [#188](https://github.com/gander-tools/diff-voyager/issues/188)
 - ✅ RunForm component → [#189](https://github.com/gander-tools/diff-voyager/issues/189)
 - ✅ RunStatusBadge component → [#190](https://github.com/gander-tools/diff-voyager/issues/190)
-- ⏳ Run detail view with page list → [#187](https://github.com/gander-tools/diff-voyager/issues/187)
-- ⏳ RunProgress component → [#191](https://github.com/gander-tools/diff-voyager/issues/191)
-- ⏳ RunStatistics component → [#192](https://github.com/gander-tools/diff-voyager/issues/192)
+- ✅ Run detail view with page list → [#187](https://github.com/gander-tools/diff-voyager/issues/187)
+- ✅ RunProgress component → [#191](https://github.com/gander-tools/diff-voyager/issues/191)
+- ✅ RunStatistics component → [#192](https://github.com/gander-tools/diff-voyager/issues/192)
 
 ### Diff Visualization
 
@@ -669,6 +669,52 @@ All requests use shared TypeScript types from `@gander-tools/diff-voyager-shared
 
 ---
 
+## RunDetailView Implementation
+
+**Status**: ✅ Implemented → [#187](https://github.com/gander-tools/diff-voyager/issues/187)
+
+**Features**:
+- **Run Information Display**:
+  - Run ID (short 8-char version)
+  - Status badge with color coding
+  - Created timestamp
+  - Run configuration (viewport, screenshots, HAR files)
+
+- **Statistics Dashboard**:
+  - Total pages count
+  - Completed pages count with success color
+  - Error pages count with error color
+  - Progress bar for in-progress runs
+
+- **Pages List Table**:
+  - Paginated data table (20 items per page)
+  - Columns: URL (clickable), Status (colored), HTTP Status
+  - Click row to navigate to page detail
+  - Empty state when no pages
+
+- **Real-time Updates**:
+  - Automatic polling for in-progress runs (3s interval)
+  - Poll stops when run completes or errors
+  - Clean cleanup on component unmount
+
+- **Actions**:
+  - Retry failed pages button (only visible when errors exist)
+  - Navigate back to runs list
+  - Navigate back to project
+
+**Testing**:
+- 16 comprehensive tests covering all features
+- MSW for API mocking
+- Real-time polling tests with proper cleanup
+- Error handling and loading states
+
+**Files**:
+- View: `packages/frontend/src/views/RunDetailView.vue` (472 lines)
+- Tests: `packages/frontend/tests/unit/views/RunDetailView.test.ts` (420 lines, 16 tests)
+- API: Reuses existing `runs.ts` service (`getRun`, `listRunPages`, `retryRun`)
+
+---
+
 ## Next Steps (Phase 3)
 
 **Parent Issue**: [#179 - feat(frontend): implement Run Management views](https://github.com/gander-tools/diff-voyager/issues/179)
@@ -677,8 +723,7 @@ All requests use shared TypeScript types from `@gander-tools/diff-voyager-shared
 
 1. **Run List View** → [#185](https://github.com/gander-tools/diff-voyager/issues/185) - Display runs for a project with filtering
 2. **Run Create View** → [#186](https://github.com/gander-tools/diff-voyager/issues/186) - Form to create comparison runs
-3. **Run Detail View** → [#187](https://github.com/gander-tools/diff-voyager/issues/187) - Show run status, statistics, and page list
-4. **Run Components** → [#188](https://github.com/gander-tools/diff-voyager/issues/188)-[#192](https://github.com/gander-tools/diff-voyager/issues/192):
+3. **Run Components** → [#188](https://github.com/gander-tools/diff-voyager/issues/188)-[#192](https://github.com/gander-tools/diff-voyager/issues/192):
    - RunCard, RunForm, RunStatusBadge, RunProgress, RunStatistics
 
 **Expected Outcomes**:

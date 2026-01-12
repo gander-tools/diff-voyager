@@ -277,9 +277,9 @@ See [Drizzle Migration Guide](../guides/drizzle-migration.md) for details.
 - ✅ RunCard component → [#188](https://github.com/gander-tools/diff-voyager/issues/188) (14 tests)
 - ✅ RunForm component → [#189](https://github.com/gander-tools/diff-voyager/issues/189) (included in RunCreateView)
 - ✅ RunStatusBadge component → [#190](https://github.com/gander-tools/diff-voyager/issues/190) (8 tests)
-- ⏳ RunDetailView → [#187](https://github.com/gander-tools/diff-voyager/issues/187)
-- ⏳ RunProgress component → [#191](https://github.com/gander-tools/diff-voyager/issues/191)
-- ⏳ RunStatistics component → [#192](https://github.com/gander-tools/diff-voyager/issues/192)
+- ✅ RunDetailView → [#187](https://github.com/gander-tools/diff-voyager/issues/187)
+- ✅ RunProgress component → [#191](https://github.com/gander-tools/diff-voyager/issues/191)
+- ✅ RunStatistics component → [#192](https://github.com/gander-tools/diff-voyager/issues/192)
 
 **Pending (Phase 4)** → [#180](https://github.com/gander-tools/diff-voyager/issues/180):
 - ⏳ PageDetailView → [#193](https://github.com/gander-tools/diff-voyager/issues/193)
