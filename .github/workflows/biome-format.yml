@@ -1,0 +1,81 @@
+name: Biome Auto-Format
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+      - 'claude/**'
+
+# Cancel in-progress runs for the same PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  format:
+    name: Auto-format with Biome
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version: '22'
+
+      - name: Run Biome format
+        id: biome
+        run: |
+          npx -y @biomejs/biome check --write
+          echo "format_exit_code=$?" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Configure git
+        if: steps.biome.outputs.format_exit_code == '0'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit formatted changes
+        if: steps.biome.outputs.format_exit_code == '0'
+        id: commit
+        run: |
+          git add -A
+          if git diff --staged --quiet; then
+            echo "No formatting changes needed"
+            echo "changes=false" >> $GITHUB_OUTPUT
+          else
+            git commit -m "style: auto-format code with Biome [skip ci]"
+            git push origin ${{ github.head_ref }}
+            echo "changes=true" >> $GITHUB_OUTPUT
+            echo "✅ Code formatted and committed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Check for formatting errors
+        if: steps.biome.outputs.format_exit_code != '0'
+        run: |
+          echo "## ❌ Biome Formatting Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Biome reported errors that require manual intervention." >> $GITHUB_STEP_SUMMARY
+          echo "Please run \`npx @biomejs/biome check --write\` locally and fix any errors." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "For errors requiring unsafe fixes, run \`npx @biomejs/biome check --write --unsafe\`" >> $GITHUB_STEP_SUMMARY
+          exit 1
+
+      - name: Summary
+        if: steps.biome.outputs.format_exit_code == '0' && steps.commit.outputs.changes == 'false'
+        run: |
+          echo "## ✅ Code Already Properly Formatted" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "No formatting changes were needed." >> $GITHUB_STEP_SUMMARY
