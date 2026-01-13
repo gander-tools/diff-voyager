@@ -3,7 +3,11 @@ import { toTypedSchema } from '@vee-validate/zod';
 import { NAlert, NButton, NForm, NFormItem, NInput, NSelect, NSpace, NSwitch } from 'naive-ui';
 import { useForm } from 'vee-validate';
 import { computed, watch } from 'vue';
-import { type CreateRuleInput, createRuleSchema } from '../utils/validators';
+import {
+  type CreateRuleInput,
+  createRuleSchema,
+  type RuleConditionBuilderInput,
+} from '../utils/validators';
 import RuleConditionBuilder from './RuleConditionBuilder.vue';
 
 interface Props {
@@ -52,7 +56,15 @@ const [name] = defineField('name');
 const [description] = defineField('description');
 const [scope] = defineField('scope');
 const [active] = defineField('active');
-const [conditions] = defineField('conditions');
+const [conditionsField] = defineField('conditions');
+
+// Computed value to properly type conditions for RuleConditionBuilder
+const conditions = computed({
+  get: () => conditionsField.value as RuleConditionBuilderInput,
+  set: (value) => {
+    conditionsField.value = value;
+  },
+});
 
 // Scope options
 const scopeOptions = computed(() => {
