@@ -52,7 +52,7 @@ describe('RulesListView', () => {
     const wrapper = mount(RulesListView);
     const button = wrapper.find('[data-test="new-rule-btn"]');
     expect(button.exists()).toBe(true);
-    expect(button.text()).toContain('New Rule');
+    expect(button.text()).toContain('Create Rule');
   });
 
   it('should navigate to new rule on button click', async () => {
@@ -67,7 +67,7 @@ describe('RulesListView', () => {
     const wrapper = mount(RulesListView);
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.text()).toContain('No rules yet');
+    expect(wrapper.text()).toContain('Create your first mute rule');
   });
 
   it('should display scope filter with all options', () => {
