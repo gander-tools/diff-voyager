@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.17](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.16...diff-voyager-frontend-v0.1.17) (2026-01-13)
+
+
+### Bug Fixes
+
+* **frontend:** resolve unused variable linting issue in E2E tests ([a58b2a1](https://github.com/gander-tools/diff-voyager/commit/a58b2a1b23ad030323fa07efd6e690d7621cf182))
+
 ## [0.1.16](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.15...diff-voyager-frontend-v0.1.16) (2026-01-13)
 
 
