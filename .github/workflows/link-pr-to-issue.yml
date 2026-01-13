@@ -1,0 +1,106 @@
+name: Link PR to Issue
+
+on:
+  pull_request:
+    types: [opened, edited]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  link-pr-to-issue:
+    name: Auto-link PR to Issue
+    runs-on: ubuntu-latest
+
+    # Only run for MEMBER authors
+    if: github.event.pull_request.author_association == 'MEMBER'
+
+    steps:
+      - name: Link PR to Issue
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const branchName = context.payload.pull_request.head.ref;
+            const prTitle = context.payload.pull_request.title;
+
+            console.log(`Processing PR #${prNumber}`);
+            console.log(`Branch: ${branchName}`);
+            console.log(`Title: ${prTitle}`);
+
+            // Extract issue number from branch name (priority 1)
+            // Pattern: claude/implement-issue-202-5NCEh -> 202
+            // Also matches: feature/issue-123, fix/issue-456-description, etc.
+            const branchPattern = /(?:implement-)?issue[_-](\d+)/i;
+            const branchMatch = branchName.match(branchPattern);
+
+            // Extract issue number from PR title (priority 2)
+            // Pattern: (#202) or #202
+            const titlePattern = /\(#(\d+)\)|#(\d+)/;
+            const titleMatch = prTitle.match(titlePattern);
+
+            let issueNumber = null;
+
+            if (branchMatch) {
+              issueNumber = parseInt(branchMatch[1], 10);
+              console.log(`✓ Found issue number from branch: ${issueNumber}`);
+            } else if (titleMatch) {
+              issueNumber = parseInt(titleMatch[1] || titleMatch[2], 10);
+              console.log(`✓ Found issue number from title: ${issueNumber}`);
+            } else {
+              console.log('⚠ No issue number found in branch name or PR title');
+              return;
+            }
+
+            // Verify the issue exists
+            try {
+              const issue = await github.rest.issues.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber
+              });
+
+              console.log(`✓ Found issue #${issueNumber}: ${issue.data.title}`);
+            } catch (error) {
+              console.error(`✗ Issue #${issueNumber} does not exist`);
+              return;
+            }
+
+            // Create development link between PR and issue
+            // This makes the PR appear in the "Development" section of the issue
+            try {
+              // Check if link already exists
+              const timeline = await github.rest.issues.listEventsForTimeline({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                per_page: 100
+              });
+
+              const alreadyLinked = timeline.data.some(event =>
+                event.event === 'cross-referenced' &&
+                event.source?.issue?.number === prNumber
+              );
+
+              if (alreadyLinked) {
+                console.log(`✓ PR #${prNumber} is already linked to issue #${issueNumber}`);
+                return;
+              }
+
+              // Add a comment to the issue referencing the PR
+              // This creates the development link
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: `🔗 Linked to PR #${prNumber}`
+              });
+
+              console.log(`✓ Successfully linked PR #${prNumber} to issue #${issueNumber}`);
+
+            } catch (error) {
+              console.error(`✗ Failed to link PR to issue: ${error.message}`);
+              throw error;
+            }
