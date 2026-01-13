@@ -50,7 +50,7 @@ describe('ProjectCreateView', () => {
 
   it('should render ProjectForm component', () => {
     const wrapper = mount(ProjectCreateView);
-    expect(wrapper.text()).toContain('Create New Project');
+    expect(wrapper.text()).toContain('Create Project');
   });
 
   it('should handle successful project creation', async () => {
