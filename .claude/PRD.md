@@ -201,7 +201,7 @@ Entities (target: defined as shared TypeScript types, shared between backend and
 ### 6.2. Frontend
 
 - Vue.js 3 + TypeScript.
-- Built with bun.
+- Built with Vite.
 - Separate frontend project (separate repo or directory), communicating with backend via local API.
 - Basic views:
   - Project list.
