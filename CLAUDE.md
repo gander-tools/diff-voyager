@@ -66,44 +66,7 @@ diff-voyager/
 
 ## Core Domain Models
 
-### Project
-- Configuration for crawling (base URL, scope rules)
-- Run profiles (which artifacts to collect)
-- Ignore filters (CSS/XPath, headers)
-- Collection of Runs
-
-### Baseline
-- First full run of a project
-- Reference set of pages and artifacts
-- Immutable within project
-
-### Run
-- Comparison run against baseline
-- Status tracking (new, in_progress, interrupted, completed)
-- Statistics and diff results
-
-### Page
-- Normalized page identifier
-- URL normalization rules
-- Related entries in baseline and runs
-
-### PageSnapshot
-- Raw HTML/DOM with hash
-- HTTP headers and status
-- SEO data (title, meta, canonical, robots, H1)
-- Artifacts: screenshots, HAR files, diffs
-- Performance metadata
-
-### Diff
-- HTML/SEO comparison results
-- Visual comparison (pixel diff)
-- HAR/performance comparison
-- Business status: new, accepted, muted
-
-### Rule/MuteRule
-- Ignore/mute rules (CSS/XPath selectors)
-- Scope (global/per project)
-- Associated difference types
+See [Domain Model](docs/architecture/domain-model.md) for detailed information about Project, Baseline, Run, Page, PageSnapshot, Diff, and Rule/MuteRule entities.
 
 ## Security Guidelines
 
