@@ -226,43 +226,15 @@ curl http://localhost:3000/api/v1/projects/{projectId}
 ```
 
 ### Backend Development
+
 ```bash
 cd packages/backend
-
-# Run all tests
-npm test
-
-# Run specific test file
-npm test -- tests/unit/domain/url-normalizer.test.ts
-
-# Run tests in watch mode
-npm run test:watch
-
-# Run tests with coverage
-npm test -- --coverage
-
-# Build TypeScript
-npm run build
-
-# Start dev server with hot reload
-npm run dev
+npm test        # Run all tests
+npm run build   # Build TypeScript
+npm run dev     # Start dev server
 ```
 
-### Test Structure
-```
-packages/backend/tests/
-├── unit/                    # Unit tests (no external deps)
-│   ├── domain/             # URL normalizer, etc.
-│   └── storage/            # Repository tests
-├── integration/            # Integration tests (with DB, mock server)
-│   └── api/                # API endpoint tests
-├── fixtures/               # Test data
-│   └── html/               # HTML fixtures for SEO testing
-└── helpers/                # Test utilities
-    ├── mock-server.ts      # HTTP mock server
-    ├── test-db.ts          # In-memory SQLite
-    └── factories.ts        # Test data factories
-```
+For detailed test commands, test structure, and backend development patterns, see [Backend Development Guide](docs/guides/backend-dev.md).
 
 ### Frontend Development
 ```bash
