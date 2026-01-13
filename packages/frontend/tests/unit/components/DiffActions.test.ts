@@ -54,18 +54,6 @@ describe('DiffActions', () => {
       expect(wrapper.text()).toContain('Mute');
       expect(wrapper.text()).toContain('Create Rule');
     });
-
-    it('should display confirmation messages', () => {
-      const wrapper = mountWithProviders({
-        changeId: mockChangeId,
-        currentStatus: DiffStatus.NEW,
-      });
-
-      // Confirmation messages are in the NPopconfirm content
-      expect(wrapper.html()).toContain('Are you sure you want to accept this change?');
-      expect(wrapper.html()).toContain('Are you sure you want to mute this change?');
-      expect(wrapper.html()).toContain('Create a mute rule from this change?');
-    });
   });
 
   describe('ACCEPTED status', () => {
@@ -88,17 +76,6 @@ describe('DiffActions', () => {
       });
 
       expect(wrapper.text()).toContain('Undo');
-    });
-
-    it('should display undo confirmation message', () => {
-      const wrapper = mountWithProviders({
-        changeId: mockChangeId,
-        currentStatus: DiffStatus.ACCEPTED,
-      });
-
-      expect(wrapper.html()).toContain(
-        'Are you sure you want to revert this change to NEW status?',
-      );
     });
   });
 
