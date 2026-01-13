@@ -22,7 +22,7 @@ Diff Voyager is a monorepo with three packages:
 ```
 packages/
 ├── backend/   # Node.js crawler and API (Crawlee + Playwright)
-├── frontend/  # Vue 3 UI (Vite + Naive UI) - Phase 1 Complete
+├── frontend/  # Vue 3 UI (Vite + Naive UI) - Phase 4 Complete
 └── shared/    # Shared TypeScript types
 ```
 
@@ -38,12 +38,12 @@ See [Architecture Overview](docs/architecture/overview.md) for detailed design.
 - **Testing**: Vitest
 - **Diff Engine**: Pixelmatch
 
-**Frontend** (Phase 1 Complete):
+**Frontend** (Phase 4 Complete):
 - **Framework**: Vue 3, TypeScript
 - **UI Library**: Naive UI
 - **State**: Pinia
 - **Routing**: Vue Router
-- **i18n**: vue-i18n (EN + PL)
+- **Validation**: vee-validate + Zod
 - **Build**: Vite
 
 See [Technology Stack](docs/architecture/technology-stack.md) for detailed information.
@@ -51,7 +51,6 @@ See [Technology Stack](docs/architecture/technology-stack.md) for detailed infor
 ## Requirements
 
 - **Node.js**: v22 or v24
-- **Bun**: Latest (for frontend development)
 - **Operating System**: Linux, macOS, or Windows with WSL2
 
 ## Quick Start
@@ -74,12 +73,6 @@ npm run dev:frontend
 - **Frontend UI**: http://localhost:5173
 - **Backend API**: http://localhost:3000
 - **API Documentation**: http://localhost:3000/docs (Swagger UI)
-
-**Current Frontend Status** (Phase 1 Complete):
-- ✅ Responsive layout with theme switching (light/dark/auto)
-- ✅ Language switching (English/Polish)
-- ✅ Navigation menu with 11 routes
-- ⏳ Views showing placeholders (Phase 2: Project management coming next)
 
 **Try the API**:
 ```bash
@@ -104,20 +97,11 @@ See **[Getting Started Guide](docs/guides/getting-started.md)** for detailed ins
 - **[Technology Stack](docs/architecture/technology-stack.md)** - Technologies used across all packages
 
 ### Development Status
-- **[Implementation Status](docs/development/implementation-status.md)** - Current phase completion, capabilities, and major milestones
-- **[Roadmap](docs/development/roadmap.md)** - Planned features and next steps
+- **[Roadmap](docs/development/roadmap.md)** - Current status, completed features, and planned work
 
 ### API Reference
-- **[API Overview](docs/api/overview.md)** - API scenarios and design decisions
 - **[API Endpoints](docs/api/endpoints.md)** - Complete REST API specification
 - **[Types and Schemas](docs/api/types.md)** - TypeScript interfaces and request/response types
-
-### Features
-- **[Crawler](docs/features/README.md#crawler)** - Page capture, browser management, and site crawling
-- **[Comparators](docs/features/README.md#comparators)** - SEO, visual, header, and performance comparison
-- **[Task Queue](docs/features/README.md#task-queue)** - Asynchronous task processing
-- **[Frontend Plan](docs/features/frontend-plan.md)** - Vue 3 UI implementation plan
-- **[Frontend Status](docs/features/frontend-status.md)** - Current UI implementation status and what's visible
 
 ### Additional Resources
 - **[CLAUDE.md](CLAUDE.md)** - AI-assisted development guide

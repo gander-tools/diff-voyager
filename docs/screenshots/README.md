@@ -232,9 +232,9 @@ Screenshots are **version controlled** in git (included in commits).
 
 Screenshots are used in:
 
-1. **frontend-status.md** - Complete UI walkthrough with all 11 screenshots
-2. **implementation-status.md** - Phase progress visualization (Phase 1 & 2 complete)
-3. **README.md** (future) - Quick preview of the application
+1. **roadmap.md** - Current status and phase progress visualization
+2. **README.md** (future) - Quick preview of the application
+3. **CLAUDE.md** - Development guide with visual examples
 
 ---
 

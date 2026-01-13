@@ -310,7 +310,7 @@ The backend implementation is substantially complete with all core functionality
 **Database**: Successfully migrated from raw SQL to Drizzle ORM (January 2026)
 - All 6 repositories migrated (100% complete)
 - Benefits: Type safety, automatic prepared statements, JSON column support
-- See [docs/guides/drizzle-migration.md](../docs/guides/drizzle-migration.md)
+- See [Roadmap](../docs/development/roadmap.md) for migration details
 
 **Queue System**: Hybrid sync/async processing
 - Synchronous mode for quick scans
@@ -339,7 +339,7 @@ See [docs/development/roadmap.md](../docs/development/roadmap.md) for detailed r
 ### Reference
 
 For detailed information:
-- [Implementation Status](../docs/development/implementation-status.md) - Phase completion status, test coverage, and major milestones
-- [Roadmap](../docs/development/roadmap.md) - Next steps and planned features
+- [Roadmap](../docs/development/roadmap.md) - Current status, completed work, and planned features
 - [Architecture](../docs/architecture/overview.md) - System design and components
+- [API Endpoints](../docs/api/endpoints.md) - Complete API specification
 

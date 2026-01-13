@@ -12,7 +12,6 @@ Diff Voyager uses modern TypeScript-based tools optimized for local development 
 |-----------|---------|---------|---------|
 | **Node.js** | 22.x / 24.x | JavaScript runtime | All |
 | **TypeScript** | 5.7.x | Type-safe JavaScript | All |
-| **Bun** | Latest | Fast package manager and runtime | Frontend |
 
 **Why Node.js LTS versions?**
 - Stable APIs and long-term support
@@ -67,7 +66,7 @@ Diff Voyager uses modern TypeScript-based tools optimized for local development 
 **Migration from raw SQL:**
 - All repositories migrated to Drizzle (100% complete)
 - Improved type safety and security
-- See [Drizzle Migration Guide](../guides/drizzle-migration.md)
+- See [Roadmap](../development/roadmap.md) for migration details
 
 #### Browser Automation
 
@@ -372,7 +371,6 @@ npm install package@latest
 |----------|-------------|---------|
 | Node.js | 22.0.0 | Runtime |
 | npm | 10.0.0 | Package manager |
-| Bun | Latest | Frontend tooling |
 | Git | 2.x | Version control |
 
 ### Optional Software
