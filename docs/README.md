@@ -14,12 +14,9 @@ Welcome to the Diff Voyager documentation. This guide will help you navigate thr
 - **[Technology Stack](architecture/technology-stack.md)** - Technologies used across all packages
 
 ### Development Status
-- **[Implementation Status](development/implementation-status.md)** - Current phase completion, capabilities, and major milestones
-- **[Roadmap](development/roadmap.md)** - Planned features and next steps
-- **[Skipped Tests](development/skipped-tests.md)** - TODO/FIXME list of disabled tests with explanations
+- **[Roadmap](development/roadmap.md)** - Current status, completed work, known issues, and planned features
 
 ### API Reference
-- **[API Overview](api/overview.md)** - API design decisions and scenarios
 - **[API Endpoints](api/endpoints.md)** - Complete REST API specification
 - **[Types and Schemas](api/types.md)** - TypeScript interfaces and request/response types
 
@@ -27,11 +24,9 @@ Welcome to the Diff Voyager documentation. This guide will help you navigate thr
 - **[Crawler](features/crawler.md)** - Page capture, browser management, and site crawling
 - **[Comparators](features/comparators.md)** - SEO, visual, header, and performance comparison
 - **[Task Queue](features/task-queue.md)** - Asynchronous task processing and retry logic
-- **[Frontend Plan](features/frontend-plan.md)** - Vue 3 UI implementation plan
 
 ### Guides
 - **[Testing Strategy](guides/testing-strategy.md)** - TDD approach, test structure, and coverage
-- **[Drizzle Migration](guides/drizzle-migration.md)** - ORM migration status and patterns
 
 ## Documentation Structure
 
@@ -43,24 +38,21 @@ docs/
 │   ├── domain-model.md
 │   └── technology-stack.md
 ├── development/
-│   ├── implementation-status.md
 │   ├── roadmap.md
-│   ├── skipped-tests.md
 │   └── changelog.md
 ├── api/
-│   ├── overview.md
 │   ├── endpoints.md
 │   └── types.md
 ├── guides/
 │   ├── getting-started.md
 │   ├── development-workflow.md
-│   ├── testing-strategy.md
-│   └── drizzle-migration.md
-└── features/
-    ├── crawler.md
-    ├── comparators.md
-    ├── task-queue.md
-    └── frontend-plan.md
+│   └── testing-strategy.md
+├── features/
+│   ├── crawler.md
+│   ├── comparators.md
+│   └── task-queue.md
+└── screenshots/
+    └── README.md
 ```
 
 ## Key Resources

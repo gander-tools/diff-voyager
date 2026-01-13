@@ -287,4 +287,5 @@ async function getArtifact(pageId: string, filename: string) {
 
 - [Domain Model](domain-model.md) - Entity relationships and business logic
 - [Technology Stack](technology-stack.md) - Detailed technology choices
-- [API Overview](../api/overview.md) - API design and endpoints
+- [API Endpoints](../api/endpoints.md) - Complete API specification
+- [Roadmap](../development/roadmap.md) - Current status and planned work

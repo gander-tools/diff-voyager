@@ -17,11 +17,9 @@
 - [Technology Stack](docs/architecture/technology-stack.md)
 
 **Development Status**:
-- [Implementation Status](docs/development/implementation-status.md) - Current phase completion and major milestones
-- [Roadmap](docs/development/roadmap.md) - Planned features
+- [Roadmap](docs/development/roadmap.md) - Current status, completed work, and planned features
 
 **API Reference**:
-- [API Overview](docs/api/overview.md)
 - [Endpoints](docs/api/endpoints.md)
 - [Types](docs/api/types.md)
 
@@ -568,7 +566,7 @@ npm run screenshots
 
 **Important Notes**:
 - Screenshots are **version controlled** in git (included in commits)
-- Used in documentation: `frontend-status.md`, `implementation-status.md`
+- Used in documentation: `roadmap.md`, `CLAUDE.md`
 - Viewport: 1024x768 (configurable in script)
 - See `docs/screenshots/README.md` for complete index
 
@@ -953,7 +951,7 @@ All repositories have been successfully migrated to Drizzle ORM:
 
 **Total**: 25/25 migration tasks complete (100%)
 
-See [docs/guides/drizzle-migration.md](docs/guides/drizzle-migration.md) for detailed migration history and patterns.
+See [Roadmap](docs/development/roadmap.md) for detailed migration history and patterns.
 
 ### Benefits
 

@@ -365,9 +365,9 @@ Once both servers are running:
 
 **Note**: The frontend requires the backend to be running. Start the backend first.
 
-## Current UI Features (Phase 1)
+## Current UI Features (Phase 4 Complete)
 
-The frontend is currently in Phase 1 (Foundation & Infrastructure). Here's what you'll see:
+The frontend has completed Phase 4 with full diff review capabilities. Here's what you'll see:
 
 ### What's Working ✅
 
@@ -400,31 +400,23 @@ The frontend is currently in Phase 1 (Foundation & Infrastructure). Here's what 
 
 ### What's Not Yet Implemented ⏳
 
-**Views** (showing placeholders):
-- Dashboard statistics and recent projects
-- Project list, create, and detail views
-- Run create and detail views
-- Page detail with diff comparison
+**Phase 5 (In Progress)**:
 - Rules list and create views
-- Settings form
+- Settings management
+- Rule components (RuleForm, RuleCard, RuleConditionBuilder)
 
-**Functionality**:
-- No data fetching from backend yet
-- No forms for creating projects/runs
-- No diff visualization
-- No mute rules management
+**Phase 6 (Planned)**:
+- Accessibility improvements
+- E2E tests with Playwright
+- Performance optimizations
+- Error handling and boundaries
+- Loading states and skeleton loaders
 
-**Coming Next** (Phase 2):
-- Dashboard with project statistics
-- Project list with search and pagination
-- Project creation form
-- Project detail with runs list
-
-See [Frontend Status](../features/frontend-status.md) for detailed progress.
+See [Roadmap](../development/roadmap.md) for detailed progress and planned work.
 
 ## Next Reading
 
-- [Frontend Status](../features/frontend-status.md) - Current UI implementation status
+- [Roadmap](../development/roadmap.md) - Current status and planned work
 - [Development Workflow](development-workflow.md) - TDD approach and best practices
-- [API Overview](../api/overview.md) - Complete API reference
+- [API Endpoints](../api/endpoints.md) - Complete API reference
 - [Architecture](../architecture/overview.md) - System design and components
