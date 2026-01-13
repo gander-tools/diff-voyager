@@ -155,75 +155,17 @@ npx playwright install
 ```
 
 ### Running the API Server
+
 ```bash
-# Start backend server (default port 3000)
-npm run dev:backend
-
-# Or with custom port/data directory
-PORT=3001 DATA_DIR=./my-data npm run dev:backend
-
-# Configure log levels via environment variables
-LOG_LEVEL_CONSOLE=info LOG_LEVEL_FILE=debug npm run dev:backend
-
-# Or via CLI arguments (takes priority over env vars)
-node packages/backend/dist/index.js --log-level-console info --log-level-file debug
-
-# All available options
-node packages/backend/dist/index.js \
-  --port 3001 \
-  --data-dir ./my-data \
-  --log-level-console warn \
-  --log-level-file debug
+npm run dev:backend   # Start backend (port 3000)
+npm run dev:frontend  # Start frontend
 ```
 
-**Log Level Configuration:**
-- **Environment variables:** `LOG_LEVEL_CONSOLE`, `LOG_LEVEL_FILE` (or `LOG_LEVEL` for both)
-- **CLI flags:** `--log-level-console`, `--log-level-file` (or `--log-level` for both)
-- **Priority:** CLI flags > environment variables > defaults
-- **Valid levels:** `trace`, `debug`, `info`, `warn`, `error`, `fatal`
-- **Defaults:** Console=`debug` (dev) or `info` (prod), File=`debug`
+The server will be available at `http://localhost:3000`.
+- **Swagger UI**: `http://localhost:3000/docs`
+- **Endpoints**: See [@ts-rest Guide](docs/guides/ts-rest.md#available-endpoints)
 
-The server will be available at `http://localhost:3000` with endpoints:
-- `POST /api/v1/scans` - Create a scan (single page or crawl)
-- `GET /api/v1/projects/:id` - Get project details with pages
-- `GET /api/v1/artifacts/:pageId/*` - Get artifacts (screenshot, har, html)
-- `GET /health` - Health check
-
-**API Documentation:**
-- Swagger UI is available at `http://localhost:3000/docs`
-- Interactive API documentation with request/response examples
-- Try out API endpoints directly from the browser
-
-### Testing the API
-
-**Quick test with curl:**
-```bash
-# Async scan (returns immediately)
-curl -X POST http://localhost:3000/api/v1/scans \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com"}'
-
-# Sync scan (blocks until complete, returns full result)
-curl -X POST http://localhost:3000/api/v1/scans \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com", "sync": true}'
-
-# Get project details
-curl http://localhost:3000/api/v1/projects/{projectId}
-```
-
-**Scan options:**
-```json
-{
-  "url": "https://example.com",
-  "sync": true,
-  "name": "My Project",
-  "crawl": false,
-  "viewport": { "width": 1920, "height": 1080 },
-  "collectHar": false,
-  "waitAfterLoad": 1000
-}
-```
+For advanced server options (port, data dir, log levels) and API testing examples, see [Running Servers](docs/guides/running-servers.md).
 
 ### Backend Development
 
