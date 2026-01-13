@@ -791,7 +791,7 @@ test.describe('Diff Review E2E', () => {
     // Scroll down in SEO tab
     await page.evaluate(() => window.scrollTo(0, 500));
 
-    const scrollBefore = await page.evaluate(() => window.scrollY);
+    const _scrollBefore = await page.evaluate(() => window.scrollY);
 
     // Switch to another tab
     await page.locator('[role="tab"]', { hasText: 'Visual Diff' }).click();
