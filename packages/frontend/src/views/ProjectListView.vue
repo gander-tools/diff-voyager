@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { NButton, NEmpty, NGrid, NGridItem, NPagination, NSpin } from 'naive-ui';
 import { onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import ProjectCard from '../components/ProjectCard.vue';
 import { useProjectsStore } from '../stores/projects';
+
+const { t } = useI18n();
 
 const router = useRouter();
 const projectsStore = useProjectsStore();
@@ -48,22 +51,22 @@ const handleDeleteProject = async (projectId: string) => {
   <div class="project-list">
     <div class="header">
       <div>
-        <h1>Projects</h1>
-        <p class="subtitle">Manage your website comparison projects</p>
+        <h1>{{ t('projects.title') }}</h1>
+        <p class="subtitle">{{ t('projects.subtitle') }}</p>
       </div>
       <NButton type="primary" data-test="new-project-btn" @click="handleNewProject">
-        + New Project
+        + {{ t('projects.create') }}
       </NButton>
     </div>
 
     <NSpin :show="projectsStore.loading">
       <div v-if="projectsStore.loading" class="loading-container">
-        <p>Loading projects...</p>
+        <p>{{ t('projects.loadingProjects') }}</p>
       </div>
 
       <div v-else>
         <div v-if="projectsStore.projectList.length === 0" class="empty-state">
-          <NEmpty description="No projects yet. Create your first project to get started." />
+          <NEmpty :description="t('dashboard.noProjects')" />
         </div>
 
         <div v-else>

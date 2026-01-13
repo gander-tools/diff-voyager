@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { NButton, NCard, NSpace, NText, NTime } from 'naive-ui';
+import { useI18n } from 'vue-i18n';
 import ProjectStatusBadge from './ProjectStatusBadge.vue';
+
+const { t } = useI18n();
 
 interface Project {
   id: string;
@@ -51,7 +54,7 @@ const handleDelete = (event: Event, projectId: string) => {
       <NText v-if="project.description" depth="3">{{ project.description }}</NText>
       <NText depth="3" type="info">{{ project.baseUrl }}</NText>
       <NText depth="3" style="font-size: 12px">
-        Created: <NTime :time="project.createdAt" format="yyyy-MM-dd HH:mm" />
+        {{ t('projects.createdLabel') }} <NTime :time="project.createdAt" format="yyyy-MM-dd HH:mm" />
       </NText>
     </NSpace>
 
@@ -64,7 +67,7 @@ const handleDelete = (event: Event, projectId: string) => {
           data-test="delete-button"
           @click="(e) => handleDelete(e, project.id)"
         >
-          Delete
+          {{ t('common.delete') }}
         </NButton>
       </NSpace>
     </template>

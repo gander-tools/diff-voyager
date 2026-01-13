@@ -56,12 +56,12 @@ const themeOptions = [
   { label: t('settings.theme.auto'), value: 'auto' },
 ];
 
-const viewportPresets = [
-  { label: 'Desktop (1920x1080)', value: '1920x1080' },
-  { label: 'Laptop (1366x768)', value: '1366x768' },
-  { label: 'Tablet (768x1024)', value: '768x1024' },
-  { label: 'Mobile (375x667)', value: '375x667' },
-];
+const viewportPresets = computed(() => [
+  { label: t('projects.viewport.presets.desktop'), value: '1920x1080' },
+  { label: t('projects.viewport.presets.laptop'), value: '1366x768' },
+  { label: t('projects.viewport.presets.tablet'), value: '768x1024' },
+  { label: t('projects.viewport.presets.mobile'), value: '375x667' },
+]);
 
 const selectedViewportPreset = computed({
   get: () => `${defaultViewportWidth.value}x${defaultViewportHeight.value}`,
@@ -131,12 +131,12 @@ onMounted(() => {
             </NFormItem>
 
             <NFormItem
-              label="Data Directory"
+              :label="t('settings.dataDirectory')"
               :validation-status="errors.dataDirectory ? 'error' : undefined"
             >
               <NInput
                 v-model:value="dataDirectory"
-                placeholder="/path/to/data (optional)"
+                :placeholder="t('settings.dataDirectoryPlaceholder')"
                 data-test="data-directory-input"
               />
               <div v-if="errors.dataDirectory" class="error-message">
@@ -149,7 +149,7 @@ onMounted(() => {
         <!-- Default Scan Settings -->
         <NCard :title="t('settings.defaults')" class="settings-section">
           <NSpace vertical :size="24">
-            <NFormItem label="Viewport Preset">
+            <NFormItem :label="t('settings.viewportPreset')">
               <NSelect
                 v-model:value="selectedViewportPreset"
                 :options="viewportPresets"
@@ -159,7 +159,7 @@ onMounted(() => {
 
             <NSpace :size="16">
               <NFormItem
-                label="Width"
+                :label="t('settings.viewportWidth')"
                 :validation-status="errors['defaultViewport.width'] ? 'error' : undefined"
               >
                 <NInputNumber
@@ -175,7 +175,7 @@ onMounted(() => {
               </NFormItem>
 
               <NFormItem
-                label="Height"
+                :label="t('settings.viewportHeight')"
                 :validation-status="errors['defaultViewport.height'] ? 'error' : undefined"
               >
                 <NInputNumber
@@ -209,7 +209,7 @@ onMounted(() => {
                   <template #suffix>%</template>
                 </NInputNumber>
                 <div class="hint-text">
-                  Visual differences below this threshold will be ignored (0-100%)
+                  {{ t('settings.visualThresholdHint') }}
                 </div>
               </NSpace>
               <div v-if="errors.defaultVisualDiffThreshold" class="error-message">
@@ -218,7 +218,7 @@ onMounted(() => {
             </NFormItem>
 
             <NFormItem
-              label="Max Pages (for crawls)"
+              :label="t('settings.maxPagesForCrawls')"
               :validation-status="errors.defaultMaxPages ? 'error' : undefined"
             >
               <NInputNumber
@@ -233,7 +233,7 @@ onMounted(() => {
               </div>
             </NFormItem>
 
-            <NFormItem label="Collect HAR Files">
+            <NFormItem :label="t('projects.form.collectHarFiles')">
               <NSwitch
                 v-model:value="defaultCollectHar"
                 data-test="collect-har-switch"
@@ -241,7 +241,7 @@ onMounted(() => {
             </NFormItem>
 
             <NFormItem
-              label="Wait After Load (ms)"
+              :label="t('settings.waitAfterLoadMs')"
               :validation-status="errors.defaultWaitAfterLoad ? 'error' : undefined"
             >
               <NInputNumber
@@ -260,7 +260,7 @@ onMounted(() => {
         </NCard>
 
         <!-- Appearance Settings -->
-        <NCard title="Appearance" class="settings-section">
+        <NCard :title="t('settings.appearance')" class="settings-section">
           <NSpace vertical :size="24">
             <NFormItem
               :label="t('settings.theme.label')"
@@ -276,9 +276,9 @@ onMounted(() => {
               </div>
             </NFormItem>
 
-            <NFormItem label="Compact Mode">
+            <NFormItem :label="t('settings.compactMode')">
               <NSwitch v-model:value="compactMode" data-test="compact-mode-switch" />
-              <div class="hint-text">Use compact UI for smaller screens</div>
+              <div class="hint-text">{{ t('settings.compactModeHint') }}</div>
             </NFormItem>
           </NSpace>
         </NCard>
@@ -290,7 +290,7 @@ onMounted(() => {
               {{ t('common.save') }}
             </NButton>
             <NButton data-test="reset-button" @click="handleReset">
-              Reset to Defaults
+              {{ t('settings.resetToDefaults') }}
             </NButton>
           </NSpace>
         </NCard>

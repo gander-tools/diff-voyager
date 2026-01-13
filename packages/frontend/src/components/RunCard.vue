@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { NButton, NCard, NProgress, NSpace, NText, NTime } from 'naive-ui';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { RunDetailsResponse } from '@/services/api';
 import RunStatusBadge from './RunStatusBadge.vue';
+
+const { t } = useI18n();
 
 interface Props {
   run: RunDetailsResponse;
@@ -55,8 +58,8 @@ const completedDate = computed(() => {
       <!-- Progress bar for in-progress runs -->
       <div v-if="isInProgress">
         <NText depth="3" style="font-size: 12px; display: block; margin-bottom: 4px">
-          Progress: {{ run.statistics.completedPages + run.statistics.errorPages }} /
-          {{ run.statistics.totalPages }} pages
+          {{ t('runs.progressLabel') }}: {{ run.statistics.completedPages + run.statistics.errorPages }} /
+          {{ run.statistics.totalPages }} {{ t('runs.pagesLabel') }}
         </NText>
         <NProgress
           type="line"
@@ -68,23 +71,23 @@ const completedDate = computed(() => {
       <!-- Statistics for completed runs -->
       <NSpace v-else :size="16">
         <NText depth="3">
-          <strong>{{ run.statistics.totalPages }}</strong> pages
+          <strong>{{ run.statistics.totalPages }}</strong> {{ t('runs.pagesLabel') }}
         </NText>
         <NText v-if="run.statistics.diffsCount > 0" type="warning">
-          <strong>{{ run.statistics.diffsCount }}</strong> diffs
+          <strong>{{ run.statistics.diffsCount }}</strong> {{ t('runs.diffsLabel') }}
         </NText>
         <NText v-if="run.statistics.errorPages > 0" type="error">
-          <strong>{{ run.statistics.errorPages }}</strong> errors
+          <strong>{{ run.statistics.errorPages }}</strong> {{ t('runs.errorsLabel') }}
         </NText>
       </NSpace>
 
       <!-- Timestamps -->
       <NSpace vertical :size="4">
         <NText depth="3" style="font-size: 12px">
-          Created: <NTime :time="createdDate" format="yyyy-MM-dd HH:mm" />
+          {{ t('runs.createdLabel') }} <NTime :time="createdDate" format="yyyy-MM-dd HH:mm" />
         </NText>
         <NText v-if="completedDate" depth="3" style="font-size: 12px">
-          Completed: <NTime :time="completedDate" format="yyyy-MM-dd HH:mm" />
+          {{ t('runs.completedLabel') }} <NTime :time="completedDate" format="yyyy-MM-dd HH:mm" />
         </NText>
       </NSpace>
     </NSpace>
@@ -98,7 +101,7 @@ const completedDate = computed(() => {
           data-test="view-button"
           @click.stop="handleCardClick"
         >
-          View Details
+          {{ t('runs.viewDetails') }}
         </NButton>
       </NSpace>
     </template>

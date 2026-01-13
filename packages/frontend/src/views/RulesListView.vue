@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { NButton, NEmpty, NRadioButton, NRadioGroup, NSpace, NSpin } from 'naive-ui';
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import RuleCard from '../components/RuleCard.vue';
 import type { MuteRule } from '../stores/rules';
 import { useRulesStore } from '../stores/rules';
+
+const { t } = useI18n();
 
 const router = useRouter();
 const rulesStore = useRulesStore();
@@ -66,27 +69,27 @@ const handleToggleActive = async (id: string, active: boolean) => {
   <div class="rules-list">
     <div class="header">
       <div>
-        <h1>Mute Rules</h1>
-        <p class="subtitle">Manage rules for ignoring specific differences</p>
+        <h1>{{ t('rules.title') }}</h1>
+        <p class="subtitle">{{ t('rules.subtitle') }}</p>
       </div>
       <NButton type="primary" data-test="new-rule-btn" @click="handleNewRule">
-        + New Rule
+        + {{ t('rules.create') }}
       </NButton>
     </div>
 
     <!-- Scope Filter -->
     <div class="filters">
       <NSpace align="center">
-        <span class="filter-label">Filter by scope:</span>
+        <span class="filter-label">{{ t('rules.filterByScope') }}</span>
         <NRadioGroup v-model:value="scopeFilter" data-test="scope-filter">
           <NRadioButton value="all" data-test="filter-all">
-            All ({{ rulesStore.rulesCount }})
+            {{ t('rules.scopeAll') }} ({{ rulesStore.rulesCount }})
           </NRadioButton>
           <NRadioButton value="global" data-test="filter-global">
-            Global ({{ rulesStore.globalRules.length }})
+            {{ t('rules.scopeGlobal') }} ({{ rulesStore.globalRules.length }})
           </NRadioButton>
           <NRadioButton value="project" data-test="filter-project">
-            Project ({{ rulesStore.projectRules.length }})
+            {{ t('rules.scopeProject') }} ({{ rulesStore.projectRules.length }})
           </NRadioButton>
         </NRadioGroup>
       </NSpace>
@@ -94,22 +97,22 @@ const handleToggleActive = async (id: string, active: boolean) => {
 
     <NSpin :show="rulesStore.loading">
       <div v-if="rulesStore.loading" class="loading-container">
-        <p>Loading rules...</p>
+        <p>{{ t('rules.loadingRules') }}</p>
       </div>
 
       <div v-else>
         <div v-if="filteredRules.length === 0" class="empty-state">
           <NEmpty
             v-if="scopeFilter === 'all'"
-            description="No rules yet. Create your first rule to start muting differences."
+            :description="t('rules.createFirst')"
           />
           <NEmpty
             v-else-if="scopeFilter === 'global'"
-            description="No global rules. Global rules apply to all projects."
+            :description="t('rules.noGlobalRules')"
           />
           <NEmpty
             v-else
-            description="No project-specific rules. Project rules apply only to specific projects."
+            :description="t('rules.noProjectRules')"
           />
         </div>
 

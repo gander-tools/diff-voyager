@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { NButton, NCard, NPageHeader, NSpin } from 'naive-ui';
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import ProjectForm from '../components/ProjectForm.vue';
 import { useProjectsStore } from '../stores/projects';
 import type { CreateProjectInput } from '../utils/validators';
+
+const { t } = useI18n();
 
 const router = useRouter();
 const projectsStore = useProjectsStore();
@@ -37,14 +40,14 @@ const handleBack = () => {
 
 <template>
   <div class="project-create-view">
-    <NPageHeader title="Create New Project" @back="handleBack">
+    <NPageHeader :title="t('projects.create')" @back="handleBack">
       <template #extra>
-        <NButton data-test="back-button" @click="handleBack">Cancel</NButton>
+        <NButton data-test="back-button" @click="handleBack">{{ t('common.cancel') }}</NButton>
       </template>
     </NPageHeader>
 
     <NCard class="form-card">
-      <NSpin :show="isCreating" description="Creating project...">
+      <NSpin :show="isCreating" :description="t('projects.form.creating')">
         <ProjectForm @submit="handleSubmit" />
       </NSpin>
     </NCard>
