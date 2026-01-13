@@ -322,6 +322,166 @@ gh pr create --title "feat(api): add diff filtering endpoints" \
 # Push branch and follow GitHub's "Create Pull Request" button
 ```
 
+## Issue Management
+
+### Issue Structure for Features
+
+Feature development is organized using structured issue hierarchies with explicit dependency tracking. This ensures clear execution order and enables parallel work where dependencies allow.
+
+### Four-Level Issue Hierarchy
+
+Every feature phase follows a 4-level structure:
+
+```
+┌─────────────────────────────────────────────────┐
+│ Parent Issue (Epic)                             │
+│ - Tracks all sub-issues                         │
+│ - Grouped tasklist by levels                    │
+│ - Overall acceptance criteria                   │
+└─────────────────────────────────────────────────┘
+                     │
+    ┌────────────────┼────────────────┐
+    │                │                │
+    ↓                ↓                ↓
+┌─────────┐    ┌──────────┐    ┌──────────┐
+│ Level 1 │    │ Level 2  │    │ Level 3  │    ┌──────────┐
+│ Atomic  │ →  │Composite │ →  │Integration│ → │ Level 4  │
+│Component│    │  Views   │    │          │    │  E2E     │
+└─────────┘    └──────────┘    └──────────┘    └──────────┘
+```
+
+#### Level 1: Atomic Components
+
+**Characteristics:**
+- No dependencies on other issues
+- Building blocks for views
+- Can be implemented in parallel
+- Typically small components (buttons, badges, cards, forms)
+
+**Example Issues:**
+- `feat(frontend): implement RunCard component`
+- `feat(frontend): implement RunStatusBadge component`
+
+**Label:** `size/small` or `size/medium`
+
+#### Level 2: Composite Views
+
+**Characteristics:**
+- Depend on Level 1 components
+- Combine multiple components into views
+- Can be implemented in parallel once dependencies ready
+- Must document dependencies
+
+**Example Issues:**
+- `feat(frontend): implement RunListView` → Depends on RunCard
+- `feat(frontend): implement RunDetailView` → Depends on RunProgress, RunStatistics, RunStatusBadge
+
+**Label:** `size/medium` or `size/large`
+
+**Required in body:**
+```markdown
+## Dependencies
+Depends on: #188 (RunCard component)
+```
+
+#### Level 3: Integration
+
+**Characteristics:**
+- Single issue per feature
+- Connects all components and views
+- Routing, store, navigation, API wiring
+- Depends on ALL Level 1 + Level 2 issues
+
+**Example Issue:**
+- `feat(frontend): integrate Run Management into app routing and navigation`
+
+**Label:** `size/medium`
+
+#### Level 4: Testing
+
+**Characteristics:**
+- E2E tests for complete feature flow
+- Depends on integration being complete
+- Blocks parent issue from closing
+- Single issue per feature
+
+**Example Issue:**
+- `test(frontend): add E2E tests for Run Management flow`
+
+**Label:** `size/medium`
+
+### Dependency Tracking
+
+**In Issue Body:**
+```markdown
+## Dependencies
+Depends on: #185 (RunListView), #186 (RunCreateView), #187 (RunDetailView)
+Blocks: #179 (parent issue)
+```
+
+**In Issue Comment:**
+```
+**Dependencies:** Depends on #188 (RunCard component)
+```
+
+### Execution Order
+
+**Rules:**
+1. Cannot start Level N until dependencies from Level N-1 are CLOSED
+2. Within a level, parallel work is allowed
+3. Parent stays OPEN until all sub-issues (including E2E) are CLOSED
+
+**Example Timeline:**
+```
+Week 1: Level 1 - All 5 components (parallel)
+Week 2: Level 2 - All 3 views (parallel, once components done)
+Week 3: Level 3 - Integration (after all views complete)
+Week 4: Level 4 - E2E tests (after integration complete)
+        → Parent issue can be closed
+```
+
+### Creating Issues for New Feature
+
+Use this checklist when starting a new feature phase:
+
+1. **Create parent issue**
+   - Title: `feat(scope): implement [FeatureName] (Phase N)`
+   - Body: Tasklist grouped by 4 levels
+   - Milestone: Appropriate phase
+   - Labels: `enhancement`, `scope`, `size/large`
+
+2. **Create Level 1 issues** (atomic components)
+   - One issue per component
+   - No dependencies
+   - Labels: `enhancement`, `scope`, `size/small` or `size/medium`
+
+3. **Create Level 2 issues** (composite views)
+   - One issue per view
+   - Document dependencies in body and comment
+   - Labels: `enhancement`, `scope`, `size/medium` or `size/large`
+
+4. **Create Level 3 issue** (integration)
+   - Single issue
+   - Depends on all Level 1 + Level 2
+   - Blocks parent
+   - Labels: `enhancement`, `scope`, `size/medium`
+
+5. **Create Level 4 issue** (E2E testing)
+   - Single issue
+   - Depends on Level 3
+   - Blocks parent
+   - Labels: `enhancement`, `scope`, `size/medium`
+
+6. **Link everything**
+   - Add dependency comments to issues
+   - Update parent body with links to all sub-issues
+   - Verify dependency chain
+
+### See Also
+
+- [CLAUDE.md: Issue Management](../../CLAUDE.md#issue-management-and-dependency-tracking) - Full guidelines
+- [Getting Started](getting-started.md) - Initial setup
+
 ## Code Review Guidelines
 
 ### As a Reviewer
