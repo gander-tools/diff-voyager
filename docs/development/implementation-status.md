@@ -282,10 +282,12 @@ See [Drizzle Migration Guide](../guides/drizzle-migration.md) for details.
 - ✅ RunStatistics component → [#192](https://github.com/gander-tools/diff-voyager/issues/192) (7 tests)
 - ✅ 115 new tests (277 total frontend tests passing)
 
-**Pending (Phase 4)** → [#180](https://github.com/gander-tools/diff-voyager/issues/180):
-- ⏳ PageDetailView → [#193](https://github.com/gander-tools/diff-voyager/issues/193)
-- ⏳ Page components (PageList, PageStatusBadge, PageFilters) → [#194](https://github.com/gander-tools/diff-voyager/issues/194)-[#196](https://github.com/gander-tools/diff-voyager/issues/196)
-- ⏳ Diff components (DiffSummary, DiffBadge, SeoDiffView, VisualDiffView, PerformanceDiffView, DiffActions) → [#197](https://github.com/gander-tools/diff-voyager/issues/197)-[#202](https://github.com/gander-tools/diff-voyager/issues/202)
+**✅ Phase 4 Complete (2026-01-13)** → [#180](https://github.com/gander-tools/diff-voyager/issues/180):
+- ✅ PageDetailView → [#193](https://github.com/gander-tools/diff-voyager/issues/193)
+- ✅ Page components (PageList, PageStatusBadge, PageFilters) → [#194](https://github.com/gander-tools/diff-voyager/issues/194)-[#196](https://github.com/gander-tools/diff-voyager/issues/196)
+- ✅ Diff components (DiffSummary, DiffBadge, SeoDiffView, VisualDiffView, PerformanceDiffView, DiffActions) → [#197](https://github.com/gander-tools/diff-voyager/issues/197)-[#202](https://github.com/gander-tools/diff-voyager/issues/202)
+- ✅ E2E tests (26 comprehensive tests) → [#238](https://github.com/gander-tools/diff-voyager/issues/238)
+- ✅ Integration: Routing, stores (pagesStore, diffsStore), navigation, API services
 
 **Pending (Phase 5)** → [#183](https://github.com/gander-tools/diff-voyager/issues/183):
 - ⏳ RulesListView, RuleCreateView, SettingsView → [#203](https://github.com/gander-tools/diff-voyager/issues/203)-[#205](https://github.com/gander-tools/diff-voyager/issues/205)
