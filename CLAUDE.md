@@ -1100,10 +1100,23 @@ Development is tracked through phase-specific milestones:
 
 Every major feature (Phase) should have:
 
-1. **Parent Issue** - Epic tracking all sub-issues
+1. **Parent Issue** - Epic that **implements the integrated feature** using sub-issue components
+   - **Creates/implements** the complete feature by integrating sub-issue components
    - Contains tasklist with links to all sub-issues
    - Groups sub-issues by implementation level
    - Tracks overall acceptance criteria
+   - Description explicitly states "by integrating components from sub-issues..."
+
+**Parent Issue Description Format:**
+
+Parent issue descriptions must clearly state they **implement/create** the integrated feature:
+- ✅ **Good:** "Implement complete Run Management UI **by integrating components from sub-issues (#185-#192, #235, #236) into a complete hierarchical workflow** for creating and monitoring comparison runs."
+- ❌ **Bad:** "Implement complete Run Management UI for creating and monitoring comparison runs." (doesn't mention integration work)
+
+The description should make it clear the parent issue:
+1. **Creates/implements** something (the integrated feature)
+2. **Uses components** from sub-issues
+3. **Integrates** them into a complete workflow
 
 2. **Sub-Issues** - Organized in 4 levels based on dependencies
 
@@ -1239,7 +1252,7 @@ Issue      | Level | Depends On
 
 1. **Cannot start Level N until all dependencies from Level N-1 are CLOSED**
 2. **Within a level, issues can be worked on in parallel** (if dependencies met)
-3. **Parent issue stays OPEN until ALL sub-issues (including E2E) are CLOSED**
+3. **Parent issue implements integration and stays OPEN until ALL sub-issues (including E2E) are CLOSED** - Parent issue represents the work of integrating all sub-issue components into complete feature
 4. **Always add dependency comments to issues** for GitHub tracking
 
 ### Creating Issues for New Feature
