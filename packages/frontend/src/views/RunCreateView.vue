@@ -36,7 +36,7 @@ const handleSubmit = async (formData: CreateRunInput) => {
   try {
     const response = await runsStore.createNewRun(projectId.value, formData);
 
-    if (response && response.runId) {
+    if (response?.runId) {
       await router.push({
         name: 'run-detail',
         params: { runId: response.runId },

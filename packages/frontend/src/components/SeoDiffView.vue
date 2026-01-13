@@ -60,7 +60,7 @@ const formatValue = (value: string | null): string => {
   }
   // Truncate long values
   if (value.length > 100) {
-    return value.substring(0, 100) + '...';
+    return `${value.substring(0, 100)}...`;
   }
   return value;
 };
