@@ -3,8 +3,8 @@
  * Configures mocks and global utilities for all tests
  */
 
-import en from '../src/i18n/locales/en.json';
 import { vi } from 'vitest';
+import en from '../src/i18n/locales/en.json';
 
 // Helper function to get translation by key path
 function getTranslation(key: string): string {
