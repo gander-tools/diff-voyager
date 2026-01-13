@@ -1,17 +1,16 @@
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
+import type { CreateRuleInput, RuleConditionBuilderInput } from '../utils/validators';
 
 export type MuteRule = {
   id: string;
   name: string;
   scope: 'global' | 'project';
-  diffType: string;
-  selector: string;
   description?: string;
+  active: boolean;
+  conditions: RuleConditionBuilderInput;
   createdAt: string;
 };
-
-export type CreateRuleInput = Omit<MuteRule, 'id' | 'createdAt'>;
 
 /**
  * Rules Store
