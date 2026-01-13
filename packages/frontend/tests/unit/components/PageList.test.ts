@@ -229,10 +229,12 @@ describe('PageList', () => {
   it('should handle pages without visual diff', () => {
     const pageWithoutVisualDiff: PageResponse = {
       ...mockPageWithDiff,
-      diff: {
-        ...mockPageWithDiff.diff!,
-        visualDiff: undefined,
-      },
+      diff: mockPageWithDiff.diff
+        ? {
+            ...mockPageWithDiff.diff,
+            visualDiff: undefined,
+          }
+        : null,
     };
 
     const wrapper = mount(PageList, {
