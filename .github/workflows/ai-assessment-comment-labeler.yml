@@ -2,17 +2,23 @@ name: AI Issue Assessment
 
 on:
   issues:
-    types: [opened, edited]
+    types: [labeled]  # Trigger when label is added
 
 permissions:
   contents: read
   issues: write
   pull-requests: write
+  models: read  # REQUIRED for GitHub Models API
 
 jobs:
   ai-assessment:
+    # Only run when the 'needs-assessment' label is added
+    if: github.event.label.name == 'needs-assessment'
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: AI Assessment and Labeling
         uses: github/ai-assessment-comment-labeler@main
         with:
