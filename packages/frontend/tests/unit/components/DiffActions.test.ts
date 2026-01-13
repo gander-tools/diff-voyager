@@ -5,19 +5,37 @@
 
 import { DiffStatus } from '@gander-tools/diff-voyager-shared';
 import { mount } from '@vue/test-utils';
+import { NNotificationProvider } from 'naive-ui';
 import { describe, expect, it } from 'vitest';
+import { h } from 'vue';
 import DiffActions from '../../../src/components/diff/DiffActions.vue';
 
 describe('DiffActions', () => {
   const mockChangeId = 'change-123';
 
+  /**
+   * Helper to mount component with required Naive UI providers
+   */
+  const mountWithProviders = (props: {
+    changeId: string;
+    currentStatus: DiffStatus;
+    disabled?: boolean;
+  }) => {
+    return mount({
+      setup() {
+        return () =>
+          h(NNotificationProvider, null, {
+            default: () => h(DiffActions, props),
+          });
+      },
+    });
+  };
+
   describe('NEW status', () => {
     it('should render accept, mute, and create rule buttons', () => {
-      const wrapper = mount(DiffActions, {
-        props: {
-          changeId: mockChangeId,
-          currentStatus: DiffStatus.NEW,
-        },
+      const wrapper = mountWithProviders({
+        changeId: mockChangeId,
+        currentStatus: DiffStatus.NEW,
       });
 
       expect(wrapper.find('[data-test="accept-button"]').exists()).toBe(true);
@@ -27,11 +45,9 @@ describe('DiffActions', () => {
     });
 
     it('should display button labels', () => {
-      const wrapper = mount(DiffActions, {
-        props: {
-          changeId: mockChangeId,
-          currentStatus: DiffStatus.NEW,
-        },
+      const wrapper = mountWithProviders({
+        changeId: mockChangeId,
+        currentStatus: DiffStatus.NEW,
       });
 
       expect(wrapper.text()).toContain('Accept');
@@ -42,11 +58,9 @@ describe('DiffActions', () => {
 
   describe('ACCEPTED status', () => {
     it('should render only undo button', () => {
-      const wrapper = mount(DiffActions, {
-        props: {
-          changeId: mockChangeId,
-          currentStatus: DiffStatus.ACCEPTED,
-        },
+      const wrapper = mountWithProviders({
+        changeId: mockChangeId,
+        currentStatus: DiffStatus.ACCEPTED,
       });
 
       expect(wrapper.find('[data-test="accept-button"]').exists()).toBe(false);
@@ -56,11 +70,9 @@ describe('DiffActions', () => {
     });
 
     it('should display undo button label', () => {
-      const wrapper = mount(DiffActions, {
-        props: {
-          changeId: mockChangeId,
-          currentStatus: DiffStatus.ACCEPTED,
-        },
+      const wrapper = mountWithProviders({
+        changeId: mockChangeId,
+        currentStatus: DiffStatus.ACCEPTED,
       });
 
       expect(wrapper.text()).toContain('Undo');
@@ -69,11 +81,9 @@ describe('DiffActions', () => {
 
   describe('MUTED status', () => {
     it('should render only undo button', () => {
-      const wrapper = mount(DiffActions, {
-        props: {
-          changeId: mockChangeId,
-          currentStatus: DiffStatus.MUTED,
-        },
+      const wrapper = mountWithProviders({
+        changeId: mockChangeId,
+        currentStatus: DiffStatus.MUTED,
       });
 
       expect(wrapper.find('[data-test="accept-button"]').exists()).toBe(false);
@@ -85,11 +95,9 @@ describe('DiffActions', () => {
 
   describe('Event emissions', () => {
     it('should emit accept event when accept is confirmed', async () => {
-      const wrapper = mount(DiffActions, {
-        props: {
-          changeId: mockChangeId,
-          currentStatus: DiffStatus.NEW,
-        },
+      const wrapper = mountWithProviders({
+        changeId: mockChangeId,
+        currentStatus: DiffStatus.NEW,
       });
 
       // Find the NPopconfirm component and trigger positive click
@@ -101,11 +109,9 @@ describe('DiffActions', () => {
     });
 
     it('should emit mute event when mute is confirmed', async () => {
-      const wrapper = mount(DiffActions, {
-        props: {
-          changeId: mockChangeId,
-          currentStatus: DiffStatus.NEW,
-        },
+      const wrapper = mountWithProviders({
+        changeId: mockChangeId,
+        currentStatus: DiffStatus.NEW,
       });
 
       // Find the second NPopconfirm (mute button)
@@ -117,11 +123,9 @@ describe('DiffActions', () => {
     });
 
     it('should emit createMuteRule event when create rule is confirmed', async () => {
-      const wrapper = mount(DiffActions, {
-        props: {
-          changeId: mockChangeId,
-          currentStatus: DiffStatus.NEW,
-        },
+      const wrapper = mountWithProviders({
+        changeId: mockChangeId,
+        currentStatus: DiffStatus.NEW,
       });
 
       // Find the third NPopconfirm (create rule button)
@@ -133,11 +137,9 @@ describe('DiffActions', () => {
     });
 
     it('should emit undo event when undo is confirmed', async () => {
-      const wrapper = mount(DiffActions, {
-        props: {
-          changeId: mockChangeId,
-          currentStatus: DiffStatus.ACCEPTED,
-        },
+      const wrapper = mountWithProviders({
+        changeId: mockChangeId,
+        currentStatus: DiffStatus.ACCEPTED,
       });
 
       // Find the NPopconfirm for undo button
@@ -151,12 +153,10 @@ describe('DiffActions', () => {
 
   describe('Disabled state', () => {
     it('should disable all buttons when disabled prop is true', () => {
-      const wrapper = mount(DiffActions, {
-        props: {
-          changeId: mockChangeId,
-          currentStatus: DiffStatus.NEW,
-          disabled: true,
-        },
+      const wrapper = mountWithProviders({
+        changeId: mockChangeId,
+        currentStatus: DiffStatus.NEW,
+        disabled: true,
       });
 
       const acceptButton = wrapper.find('[data-test="accept-button"]');
@@ -169,12 +169,10 @@ describe('DiffActions', () => {
     });
 
     it('should not disable buttons when disabled prop is false', () => {
-      const wrapper = mount(DiffActions, {
-        props: {
-          changeId: mockChangeId,
-          currentStatus: DiffStatus.NEW,
-          disabled: false,
-        },
+      const wrapper = mountWithProviders({
+        changeId: mockChangeId,
+        currentStatus: DiffStatus.NEW,
+        disabled: false,
       });
 
       const acceptButton = wrapper.find('[data-test="accept-button"]');
@@ -189,11 +187,9 @@ describe('DiffActions', () => {
 
   describe('Data attributes', () => {
     it('should have data-test attribute on container', () => {
-      const wrapper = mount(DiffActions, {
-        props: {
-          changeId: mockChangeId,
-          currentStatus: DiffStatus.NEW,
-        },
+      const wrapper = mountWithProviders({
+        changeId: mockChangeId,
+        currentStatus: DiffStatus.NEW,
       });
 
       const container = wrapper.find('[data-test="diff-actions"]');
@@ -203,11 +199,9 @@ describe('DiffActions', () => {
 
   describe('Button types', () => {
     it('should render accept button with success type', () => {
-      const wrapper = mount(DiffActions, {
-        props: {
-          changeId: mockChangeId,
-          currentStatus: DiffStatus.NEW,
-        },
+      const wrapper = mountWithProviders({
+        changeId: mockChangeId,
+        currentStatus: DiffStatus.NEW,
       });
 
       const acceptButton = wrapper.find('[data-test="accept-button"]');
@@ -215,11 +209,9 @@ describe('DiffActions', () => {
     });
 
     it('should render mute button with warning type', () => {
-      const wrapper = mount(DiffActions, {
-        props: {
-          changeId: mockChangeId,
-          currentStatus: DiffStatus.NEW,
-        },
+      const wrapper = mountWithProviders({
+        changeId: mockChangeId,
+        currentStatus: DiffStatus.NEW,
       });
 
       const muteButton = wrapper.find('[data-test="mute-button"]');
@@ -227,11 +219,9 @@ describe('DiffActions', () => {
     });
 
     it('should render create rule button with primary type', () => {
-      const wrapper = mount(DiffActions, {
-        props: {
-          changeId: mockChangeId,
-          currentStatus: DiffStatus.NEW,
-        },
+      const wrapper = mountWithProviders({
+        changeId: mockChangeId,
+        currentStatus: DiffStatus.NEW,
       });
 
       const createRuleButton = wrapper.find('[data-test="create-rule-button"]');
@@ -239,11 +229,9 @@ describe('DiffActions', () => {
     });
 
     it('should render undo button with default type', () => {
-      const wrapper = mount(DiffActions, {
-        props: {
-          changeId: mockChangeId,
-          currentStatus: DiffStatus.ACCEPTED,
-        },
+      const wrapper = mountWithProviders({
+        changeId: mockChangeId,
+        currentStatus: DiffStatus.ACCEPTED,
       });
 
       const undoButton = wrapper.find('[data-test="undo-button"]');
@@ -253,11 +241,9 @@ describe('DiffActions', () => {
 
   describe('Button sizes', () => {
     it('should render all buttons with small size', () => {
-      const wrapper = mount(DiffActions, {
-        props: {
-          changeId: mockChangeId,
-          currentStatus: DiffStatus.NEW,
-        },
+      const wrapper = mountWithProviders({
+        changeId: mockChangeId,
+        currentStatus: DiffStatus.NEW,
       });
 
       const acceptButton = wrapper.find('[data-test="accept-button"]');
