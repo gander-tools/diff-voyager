@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { NButton, NCard, NEmpty, NGrid, NGridItem, NSpin, NStatistic } from 'naive-ui';
 import { onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import ProjectCard from '../components/ProjectCard.vue';
 import { useProjectsStore } from '../stores/projects';
+
+const { t } = useI18n();
 
 const router = useRouter();
 const projectsStore = useProjectsStore();
@@ -42,38 +45,40 @@ const handleDeleteProject = async (projectId: string) => {
 <template>
   <div class="dashboard">
     <div class="dashboard-header">
-      <h1>Diff Voyager</h1>
-      <p class="subtitle">Website version comparison tool</p>
+      <h1>{{ t('dashboard.welcome') }}</h1>
+      <p class="subtitle">{{ t('dashboard.subtitle') }}</p>
     </div>
 
     <NSpin :show="projectsStore.loading">
       <div v-if="projectsStore.loading" class="loading-container">
-        <p>Loading...</p>
+        <p>{{ t('common.loading') }}</p>
       </div>
 
       <div v-else>
         <NGrid :cols="2" :x-gap="16" :y-gap="16" class="quick-actions-grid">
           <NGridItem>
-            <NCard title="Quick Actions">
+            <NCard :title="t('dashboard.quickActions')">
               <div class="actions">
                 <NButton type="primary" data-test="new-project-btn" @click="handleNewProject">
-                  New Project
+                  {{ t('dashboard.newProject') }}
                 </NButton>
-                <NButton data-test="view-all-btn" @click="handleViewAll"> View All Projects </NButton>
+                <NButton data-test="view-all-btn" @click="handleViewAll">
+                  {{ t('dashboard.viewAllProjects') }}
+                </NButton>
               </div>
             </NCard>
           </NGridItem>
 
           <NGridItem>
-            <NCard title="Statistics">
-              <NStatistic label="Total Projects" :value="projectsStore.pagination.total" />
+            <NCard :title="t('dashboard.statistics')">
+              <NStatistic :label="t('dashboard.totalProjects')" :value="projectsStore.pagination.total" />
             </NCard>
           </NGridItem>
         </NGrid>
 
-        <NCard title="Recent Projects" class="recent-projects">
+        <NCard :title="t('dashboard.recentProjects')" class="recent-projects">
           <div v-if="projectsStore.projectList.length === 0">
-            <NEmpty description="No projects yet. Create your first project to get started." />
+            <NEmpty :description="t('dashboard.noProjects')" />
           </div>
 
           <NGrid v-else :cols="1" :x-gap="12" :y-gap="12">

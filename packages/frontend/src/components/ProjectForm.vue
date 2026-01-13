@@ -15,7 +15,10 @@ import {
 } from 'naive-ui';
 import { useForm } from 'vee-validate';
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { type CreateProjectInput, createProjectSchema } from '../utils/validators';
+
+const { t } = useI18n();
 
 const emit = defineEmits<{
   submit: [value: CreateProjectInput];
@@ -52,12 +55,12 @@ const [collectHar] = defineField('collectHar');
 const [waitAfterLoad] = defineField('waitAfterLoad');
 const [visualDiffThreshold] = defineField('visualDiffThreshold');
 
-const viewportPresets = [
-  { label: 'Desktop (1920x1080)', value: '1920x1080' },
-  { label: 'Laptop (1366x768)', value: '1366x768' },
-  { label: 'Tablet (768x1024)', value: '768x1024' },
-  { label: 'Mobile (375x667)', value: '375x667' },
-];
+const viewportPresets = computed(() => [
+  { label: t('projects.viewport.presets.desktop'), value: '1920x1080' },
+  { label: t('projects.viewport.presets.laptop'), value: '1366x768' },
+  { label: t('projects.viewport.presets.tablet'), value: '768x1024' },
+  { label: t('projects.viewport.presets.mobile'), value: '375x667' },
+]);
 
 const selectedPreset = ref('1920x1080');
 
@@ -82,7 +85,7 @@ const handleNext = async () => {
   if (currentStep.value === 0) {
     const isValid = await validateStep1();
     if (!isValid) {
-      message.error('Please fix validation errors');
+      message.error(t('projects.form.validationErrors'));
       return;
     }
   }
@@ -105,14 +108,14 @@ const onSubmit = handleSubmit((formValues) => {
 const handleSubmitClick = async () => {
   if (currentStep.value !== 2) {
     currentStep.value = 0;
-    message.error('Please complete all steps');
+    message.error(t('projects.form.completeAllSteps'));
     return;
   }
 
   const isValid = await validateStep1();
   if (!isValid) {
     currentStep.value = 0;
-    message.error('Please fix validation errors');
+    message.error(t('projects.form.validationErrors'));
     return;
   }
 
@@ -125,21 +128,21 @@ const isLastStep = computed(() => currentStep.value === 2);
 <template>
   <div class="project-form">
     <NSteps :current="currentStep" class="steps">
-      <NStep title="Basic Info" />
-      <NStep title="Crawl Settings" />
-      <NStep title="Run Profile" />
+      <NStep :title="t('projects.form.stepBasicInfo')" />
+      <NStep :title="t('projects.form.stepCrawlSettings')" />
+      <NStep :title="t('projects.form.stepRunProfile')" />
     </NSteps>
 
     <NForm class="form-content">
       <!-- Step 1: Basic Info -->
       <div v-if="currentStep === 0" class="step-content">
         <NFormItem
-          label="Website URL"
+          :label="t('projects.form.websiteUrl')"
           :validation-status="errors.url ? 'error' : undefined"
         >
           <NInput
             v-model:value="url"
-            placeholder="https://example.com"
+            :placeholder="t('projects.form.websiteUrlPlaceholder')"
             data-test="url-input"
           />
           <div v-if="errors.url" class="error-message">
@@ -148,55 +151,55 @@ const isLastStep = computed(() => currentStep.value === 2);
         </NFormItem>
 
         <NFormItem
-          label="Project Name (optional)"
+          :label="t('projects.form.projectNameOptional')"
           :validation-status="errors.name ? 'error' : undefined"
         >
           <NInput
             v-model:value="name"
-            placeholder="Leave empty to use domain name"
+            :placeholder="t('projects.form.projectNameHint')"
             data-test="name-input"
           />
           <div v-if="errors.name" class="error-message">
             {{ errors.name }}
           </div>
           <div v-else class="help-text">
-            If left empty, the domain name from the URL will be used
+            {{ t('projects.form.projectNameDescription') }}
           </div>
         </NFormItem>
 
-        <NFormItem label="Description (optional)">
+        <NFormItem :label="t('projects.form.descriptionOptional')">
           <NInput
             v-model:value="description"
             type="textarea"
-            placeholder="Optional project description"
+            :placeholder="t('projects.form.descriptionHint')"
           />
         </NFormItem>
       </div>
 
       <!-- Step 2: Crawl Settings -->
       <div v-if="currentStep === 1" class="step-content">
-        <NFormItem label="Enable Crawling">
+        <NFormItem :label="t('projects.form.enableCrawling')">
           <NSwitch v-model:value="crawl" />
           <div class="help-text">
-            Automatically discover pages by following links
+            {{ t('projects.form.enableCrawlingHint') }}
           </div>
         </NFormItem>
 
-        <NFormItem v-if="crawl" label="Maximum Pages">
+        <NFormItem v-if="crawl" :label="t('projects.form.maxPagesLabel')">
           <NInputNumber
             v-model:value="maxPages"
             :min="1"
-            placeholder="Unlimited"
+            :placeholder="t('projects.form.maxPagesPlaceholder')"
           />
           <div class="help-text">
-            Limit the number of pages to crawl (leave empty for unlimited)
+            {{ t('projects.form.maxPagesHint') }}
           </div>
         </NFormItem>
       </div>
 
       <!-- Step 3: Run Profile -->
       <div v-if="currentStep === 2" class="step-content">
-        <NFormItem label="Viewport Size">
+        <NFormItem :label="t('projects.form.viewportSize')">
           <NSelect
             :value="selectedPreset"
             :options="viewportPresets"
@@ -204,7 +207,7 @@ const isLastStep = computed(() => currentStep.value === 2);
           />
         </NFormItem>
 
-        <NFormItem label="Custom Viewport">
+        <NFormItem :label="t('projects.form.customViewport')">
           <div class="viewport-inputs">
             <NInputNumber v-model:value="viewportWidth" :min="320" :max="3840" />
             <span>×</span>
@@ -212,21 +215,21 @@ const isLastStep = computed(() => currentStep.value === 2);
           </div>
         </NFormItem>
 
-        <NFormItem label="Collect HAR Files">
+        <NFormItem :label="t('projects.form.collectHarFiles')">
           <NSwitch v-model:value="collectHar" />
-          <div class="help-text">Record network activity for performance analysis</div>
+          <div class="help-text">{{ t('projects.form.collectHarFilesHint') }}</div>
         </NFormItem>
 
-        <NFormItem label="Wait After Load (ms)">
+        <NFormItem :label="t('projects.form.waitAfterLoadLabel')">
           <NInputNumber
             v-model:value="waitAfterLoad"
             :min="0"
             :max="30000"
           />
-          <div class="help-text">Wait time for dynamic content to load</div>
+          <div class="help-text">{{ t('projects.form.waitAfterLoadHint') }}</div>
         </NFormItem>
 
-        <NFormItem label="Visual Diff Threshold">
+        <NFormItem :label="t('projects.form.visualDiffThreshold')">
           <NSlider
             v-model:value="visualDiffThreshold"
             :min="0"
@@ -234,7 +237,7 @@ const isLastStep = computed(() => currentStep.value === 2);
             :step="0.01"
           />
           <div class="help-text">
-            {{ ((visualDiffThreshold ?? 0) * 100).toFixed(0) }}% - Percentage of pixel difference to flag as changed
+            {{ ((visualDiffThreshold ?? 0) * 100).toFixed(0) }}{{ t('projects.form.visualDiffThresholdHint') }}
           </div>
         </NFormItem>
       </div>
@@ -242,7 +245,7 @@ const isLastStep = computed(() => currentStep.value === 2);
 
     <div class="form-actions">
       <NButton v-if="currentStep > 0" data-test="prev-step-btn" @click="handlePrev">
-        Previous
+        {{ t('common.previous') }}
       </NButton>
 
       <NButton
@@ -251,7 +254,7 @@ const isLastStep = computed(() => currentStep.value === 2);
         data-test="next-step-btn"
         @click="handleNext"
       >
-        Next
+        {{ t('common.next') }}
       </NButton>
 
       <NButton
@@ -260,7 +263,7 @@ const isLastStep = computed(() => currentStep.value === 2);
         data-test="submit-btn"
         @click="handleSubmitClick"
       >
-        Create Project
+        {{ t('projects.create') }}
       </NButton>
     </div>
   </div>

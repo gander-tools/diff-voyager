@@ -12,8 +12,11 @@ import {
   NSwitch,
 } from 'naive-ui';
 import { useForm } from 'vee-validate';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { type CreateRunInput, createRunSchema } from '../utils/validators';
+
+const { t } = useI18n();
 
 interface Props {
   projectUrl?: string;
@@ -46,12 +49,12 @@ const [viewportHeight] = defineField('viewport.height');
 const [collectHar] = defineField('collectHar');
 const [waitAfterLoad] = defineField('waitAfterLoad');
 
-const viewportPresets = [
-  { label: 'Desktop (1920x1080)', value: '1920x1080' },
-  { label: 'Laptop (1366x768)', value: '1366x768' },
-  { label: 'Tablet (768x1024)', value: '768x1024' },
-  { label: 'Mobile (375x667)', value: '375x667' },
-];
+const viewportPresets = computed(() => [
+  { label: t('projects.viewport.presets.desktop'), value: '1920x1080' },
+  { label: t('projects.viewport.presets.laptop'), value: '1366x768' },
+  { label: t('projects.viewport.presets.tablet'), value: '768x1024' },
+  { label: t('projects.viewport.presets.mobile'), value: '375x667' },
+]);
 
 const selectedPreset = ref('1920x1080');
 
@@ -84,17 +87,17 @@ const handleCancel = () => {
     />
 
     <!-- URL -->
-    <NFormItem label="URL" :validation-status="errors.url ? 'error' : undefined" :feedback="errors.url">
+    <NFormItem :label="t('runs.form.url')" :validation-status="errors.url ? 'error' : undefined" :feedback="errors.url">
       <NInput
         v-model:value="url"
-        placeholder="https://example.com"
+        :placeholder="t('runs.form.urlPlaceholder')"
         :disabled="loading"
         data-test="url-input"
       />
     </NFormItem>
 
     <!-- Viewport Settings -->
-    <NFormItem label="Viewport">
+    <NFormItem :label="t('runs.form.viewport')">
       <NSpace vertical style="width: 100%">
         <NSelect
           v-model:value="selectedPreset"
@@ -105,7 +108,7 @@ const handleCancel = () => {
         />
         <NSpace>
           <NFormItem
-            label="Width"
+            :label="t('runs.form.viewportWidth')"
             :validation-status="errors['viewport.width'] ? 'error' : undefined"
             :feedback="errors['viewport.width']"
           >
@@ -120,7 +123,7 @@ const handleCancel = () => {
             />
           </NFormItem>
           <NFormItem
-            label="Height"
+            :label="t('runs.form.viewportHeight')"
             :validation-status="errors['viewport.height'] ? 'error' : undefined"
             :feedback="errors['viewport.height']"
           >
@@ -139,14 +142,14 @@ const handleCancel = () => {
     </NFormItem>
 
     <!-- Advanced Options -->
-    <NFormItem label="Collect HAR Files">
+    <NFormItem :label="t('runs.form.collectHar')">
       <NSwitch v-model:value="collectHar" :disabled="loading" data-test="collect-har-switch">
-        <template #checked>Yes</template>
-        <template #unchecked>No</template>
+        <template #checked>{{ t('common.yes') }}</template>
+        <template #unchecked>{{ t('common.no') }}</template>
       </NSwitch>
     </NFormItem>
 
-    <NFormItem label="Wait After Load (ms)">
+    <NFormItem :label="t('runs.form.waitAfterLoad')">
       <NInputNumber
         v-model:value="waitAfterLoad"
         :min="0"
@@ -162,10 +165,10 @@ const handleCancel = () => {
     <NFormItem>
       <NSpace>
         <NButton type="primary" :loading="loading" :disabled="loading" @click="onSubmit" data-test="submit-button">
-          Create Run
+          {{ t('runs.create') }}
         </NButton>
         <NButton :disabled="loading" @click="handleCancel" data-test="cancel-button">
-          Cancel
+          {{ t('common.cancel') }}
         </NButton>
       </NSpace>
     </NFormItem>
