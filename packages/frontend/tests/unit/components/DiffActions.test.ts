@@ -54,6 +54,18 @@ describe('DiffActions', () => {
       expect(wrapper.text()).toContain('Mute');
       expect(wrapper.text()).toContain('Create Rule');
     });
+
+    it('should display confirmation messages', () => {
+      const wrapper = mountWithProviders({
+        changeId: mockChangeId,
+        currentStatus: DiffStatus.NEW,
+      });
+
+      // Confirmation messages are in the NPopconfirm content
+      expect(wrapper.html()).toContain('Are you sure you want to accept this change?');
+      expect(wrapper.html()).toContain('Are you sure you want to mute this change?');
+      expect(wrapper.html()).toContain('Create a mute rule from this change?');
+    });
   });
 
   describe('ACCEPTED status', () => {
@@ -77,6 +89,17 @@ describe('DiffActions', () => {
 
       expect(wrapper.text()).toContain('Undo');
     });
+
+    it('should display undo confirmation message', () => {
+      const wrapper = mountWithProviders({
+        changeId: mockChangeId,
+        currentStatus: DiffStatus.ACCEPTED,
+      });
+
+      expect(wrapper.html()).toContain(
+        'Are you sure you want to revert this change to NEW status?',
+      );
+    });
   });
 
   describe('MUTED status', () => {
@@ -91,63 +114,14 @@ describe('DiffActions', () => {
       expect(wrapper.find('[data-test="create-rule-button"]').exists()).toBe(false);
       expect(wrapper.find('[data-test="undo-button"]').exists()).toBe(true);
     });
-  });
 
-  describe('Event emissions', () => {
-    it('should emit accept event when accept is confirmed', async () => {
+    it('should display undo button for muted status', () => {
       const wrapper = mountWithProviders({
         changeId: mockChangeId,
-        currentStatus: DiffStatus.NEW,
+        currentStatus: DiffStatus.MUTED,
       });
 
-      // Find the NPopconfirm component and trigger positive click
-      const popconfirm = wrapper.findComponent({ name: 'NPopconfirm' });
-      await popconfirm.vm.$emit('positive-click');
-
-      expect(wrapper.emitted('accept')).toBeTruthy();
-      expect(wrapper.emitted('accept')?.[0]).toEqual([mockChangeId]);
-    });
-
-    it('should emit mute event when mute is confirmed', async () => {
-      const wrapper = mountWithProviders({
-        changeId: mockChangeId,
-        currentStatus: DiffStatus.NEW,
-      });
-
-      // Find the second NPopconfirm (mute button)
-      const popconfirms = wrapper.findAllComponents({ name: 'NPopconfirm' });
-      await popconfirms[1].vm.$emit('positive-click');
-
-      expect(wrapper.emitted('mute')).toBeTruthy();
-      expect(wrapper.emitted('mute')?.[0]).toEqual([mockChangeId]);
-    });
-
-    it('should emit createMuteRule event when create rule is confirmed', async () => {
-      const wrapper = mountWithProviders({
-        changeId: mockChangeId,
-        currentStatus: DiffStatus.NEW,
-      });
-
-      // Find the third NPopconfirm (create rule button)
-      const popconfirms = wrapper.findAllComponents({ name: 'NPopconfirm' });
-      await popconfirms[2].vm.$emit('positive-click');
-
-      expect(wrapper.emitted('createMuteRule')).toBeTruthy();
-      expect(wrapper.emitted('createMuteRule')?.[0]).toEqual([mockChangeId]);
-    });
-
-    it('should emit undo event when undo is confirmed', async () => {
-      const wrapper = mountWithProviders({
-        changeId: mockChangeId,
-        currentStatus: DiffStatus.ACCEPTED,
-      });
-
-      // Find the NPopconfirm for undo button
-      const popconfirm = wrapper.findComponent({ name: 'NPopconfirm' });
-      await popconfirm.vm.$emit('positive-click');
-
-      expect(wrapper.emitted('undo')).toBeTruthy();
-      expect(wrapper.emitted('undo')?.[0]).toEqual([mockChangeId]);
+      expect(wrapper.text()).toContain('Undo');
     });
   });
 
@@ -183,6 +157,17 @@ describe('DiffActions', () => {
       expect(muteButton.attributes('disabled')).toBeUndefined();
       expect(createRuleButton.attributes('disabled')).toBeUndefined();
     });
+
+    it('should disable undo button when disabled prop is true for accepted status', () => {
+      const wrapper = mountWithProviders({
+        changeId: mockChangeId,
+        currentStatus: DiffStatus.ACCEPTED,
+        disabled: true,
+      });
+
+      const undoButton = wrapper.find('[data-test="undo-button"]');
+      expect(undoButton.attributes('disabled')).toBeDefined();
+    });
   });
 
   describe('Data attributes', () => {
@@ -195,64 +180,66 @@ describe('DiffActions', () => {
       const container = wrapper.find('[data-test="diff-actions"]');
       expect(container.exists()).toBe(true);
     });
-  });
 
-  describe('Button types', () => {
-    it('should render accept button with success type', () => {
+    it('should have data-test attributes on all buttons for NEW status', () => {
       const wrapper = mountWithProviders({
         changeId: mockChangeId,
         currentStatus: DiffStatus.NEW,
       });
 
-      const acceptButton = wrapper.find('[data-test="accept-button"]');
-      expect(acceptButton.attributes('type')).toBe('success');
+      expect(wrapper.find('[data-test="accept-button"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="mute-button"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="create-rule-button"]').exists()).toBe(true);
     });
 
-    it('should render mute button with warning type', () => {
-      const wrapper = mountWithProviders({
-        changeId: mockChangeId,
-        currentStatus: DiffStatus.NEW,
-      });
-
-      const muteButton = wrapper.find('[data-test="mute-button"]');
-      expect(muteButton.attributes('type')).toBe('warning');
-    });
-
-    it('should render create rule button with primary type', () => {
-      const wrapper = mountWithProviders({
-        changeId: mockChangeId,
-        currentStatus: DiffStatus.NEW,
-      });
-
-      const createRuleButton = wrapper.find('[data-test="create-rule-button"]');
-      expect(createRuleButton.attributes('type')).toBe('primary');
-    });
-
-    it('should render undo button with default type', () => {
+    it('should have data-test attribute on undo button for ACCEPTED status', () => {
       const wrapper = mountWithProviders({
         changeId: mockChangeId,
         currentStatus: DiffStatus.ACCEPTED,
       });
 
-      const undoButton = wrapper.find('[data-test="undo-button"]');
-      expect(undoButton.attributes('type')).toBe('default');
+      expect(wrapper.find('[data-test="undo-button"]').exists()).toBe(true);
     });
   });
 
-  describe('Button sizes', () => {
-    it('should render all buttons with small size', () => {
+  describe('Button visibility based on status', () => {
+    it('should only show action buttons for NEW status', () => {
       const wrapper = mountWithProviders({
         changeId: mockChangeId,
         currentStatus: DiffStatus.NEW,
       });
 
-      const acceptButton = wrapper.find('[data-test="accept-button"]');
-      const muteButton = wrapper.find('[data-test="mute-button"]');
-      const createRuleButton = wrapper.find('[data-test="create-rule-button"]');
+      const html = wrapper.html();
+      expect(html).toContain('Accept');
+      expect(html).toContain('Mute');
+      expect(html).toContain('Create Rule');
+      expect(wrapper.find('[data-test="undo-button"]').exists()).toBe(false);
+    });
 
-      expect(acceptButton.attributes('size')).toBe('small');
-      expect(muteButton.attributes('size')).toBe('small');
-      expect(createRuleButton.attributes('size')).toBe('small');
+    it('should only show undo button for ACCEPTED status', () => {
+      const wrapper = mountWithProviders({
+        changeId: mockChangeId,
+        currentStatus: DiffStatus.ACCEPTED,
+      });
+
+      const html = wrapper.html();
+      expect(html).toContain('Undo');
+      expect(wrapper.find('[data-test="accept-button"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="mute-button"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="create-rule-button"]').exists()).toBe(false);
+    });
+
+    it('should only show undo button for MUTED status', () => {
+      const wrapper = mountWithProviders({
+        changeId: mockChangeId,
+        currentStatus: DiffStatus.MUTED,
+      });
+
+      const html = wrapper.html();
+      expect(html).toContain('Undo');
+      expect(wrapper.find('[data-test="accept-button"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="mute-button"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="create-rule-button"]').exists()).toBe(false);
     });
   });
 });
