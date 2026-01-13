@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.1.16](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.15...diff-voyager-frontend-v0.1.16) (2026-01-13)
+
+
+### Features
+
+* **frontend:** implement DiffActions component ([#202](https://github.com/gander-tools/diff-voyager/issues/202)) ([fb44987](https://github.com/gander-tools/diff-voyager/commit/fb44987f0891ce84e94888d8aa492c6ec72b110c))
+* **frontend:** implement DiffBadge component ([150d1df](https://github.com/gander-tools/diff-voyager/commit/150d1dfac0bc77663a2763b0a721f92c933985fe)), closes [#198](https://github.com/gander-tools/diff-voyager/issues/198)
+* **frontend:** implement DiffSummary component for issue [#197](https://github.com/gander-tools/diff-voyager/issues/197) ([03769af](https://github.com/gander-tools/diff-voyager/commit/03769afcd922ff0ad483720da0af02e630853173))
+* **frontend:** implement PageDetailView with four tabs and diff actions ([a710bc9](https://github.com/gander-tools/diff-voyager/commit/a710bc9f956b768ed260f66e40a9ccab0e9c9002)), closes [#193](https://github.com/gander-tools/diff-voyager/issues/193)
+* **frontend:** implement PageFilters component ([c92ab4d](https://github.com/gander-tools/diff-voyager/commit/c92ab4d7ebb2280219f336092392a154e4c0c495)), closes [#196](https://github.com/gander-tools/diff-voyager/issues/196)
+* **frontend:** implement PageList component ([6ad7238](https://github.com/gander-tools/diff-voyager/commit/6ad723833837a66d3fb3a06f2b0b91d8dea0a1a2)), closes [#194](https://github.com/gander-tools/diff-voyager/issues/194)
+* **frontend:** implement PageStatusBadge component ([501b0d3](https://github.com/gander-tools/diff-voyager/commit/501b0d3dcb5b471ede10dc1adb7432fdbae3cf83))
+* **frontend:** implement SeoDiffView component ([a8d9c56](https://github.com/gander-tools/diff-voyager/commit/a8d9c56ca45e4633fecf7df85c83740c3b075600)), closes [#199](https://github.com/gander-tools/diff-voyager/issues/199)
+
+
+### Bug Fixes
+
+* **frontend:** add NNotificationProvider wrapper to DiffActions tests ([c30adbc](https://github.com/gander-tools/diff-voyager/commit/c30adbc98f94b74839425cf6d6cf939d7c515846))
+* **frontend:** import DiffStatus as value not type in DiffActions ([3eb0fa9](https://github.com/gander-tools/diff-voyager/commit/3eb0fa92609fe4728f6d9fd2ddc0036f8490a503))
+* **frontend:** remove confirmation message tests from DiffActions ([e496f0d](https://github.com/gander-tools/diff-voyager/commit/e496f0d4e2f73c4741e52a7194434e86fc4f733e))
+* **frontend:** simplify DiffActions tests to focus on behavior ([e248ae3](https://github.com/gander-tools/diff-voyager/commit/e248ae3bf14c4d1fb747b00eb9468a56d3476deb))
+
 ## [0.1.15](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.14...diff-voyager-frontend-v0.1.15) (2026-01-12)
 
 
