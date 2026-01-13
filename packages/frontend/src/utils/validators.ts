@@ -61,3 +61,37 @@ export const createRunSchema = z.object({
  * Type inference from schema
  */
 export type CreateRunInput = z.infer<typeof createRunSchema>;
+
+/**
+ * Schema for a single rule condition
+ * Each condition filters diffs based on type and optional selectors/patterns
+ */
+export const ruleConditionSchema = z.object({
+  diffType: z.enum(['seo', 'visual', 'content', 'performance', 'http_status', 'headers'], {
+    errorMap: () => ({ message: 'Please select a diff type' }),
+  }),
+  cssSelector: z.string().trim().optional(),
+  xpathSelector: z.string().trim().optional(),
+  fieldPattern: z.string().trim().optional(),
+  headerName: z.string().trim().optional(),
+  valuePattern: z.string().trim().optional(),
+});
+
+/**
+ * Type inference from schema
+ */
+export type RuleConditionInput = z.infer<typeof ruleConditionSchema>;
+
+/**
+ * Schema for rule condition builder
+ * Supports multiple conditions with AND/OR logic
+ */
+export const ruleConditionBuilderSchema = z.object({
+  operator: z.enum(['AND', 'OR']).default('AND'),
+  conditions: z.array(ruleConditionSchema).min(1, 'At least one condition is required'),
+});
+
+/**
+ * Type inference from schema
+ */
+export type RuleConditionBuilderInput = z.infer<typeof ruleConditionBuilderSchema>;
