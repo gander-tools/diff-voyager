@@ -95,3 +95,22 @@ export const ruleConditionBuilderSchema = z.object({
  * Type inference from schema
  */
 export type RuleConditionBuilderInput = z.infer<typeof ruleConditionBuilderSchema>;
+
+/**
+ * Schema for creating a new mute rule
+ * Includes name, description, scope, and conditions
+ */
+export const createRuleSchema = z.object({
+  name: z.string().trim().min(1, 'Name is required').max(100, 'Maximum 100 characters'),
+  description: z.string().trim().max(500, 'Maximum 500 characters').optional(),
+  scope: z.enum(['global', 'project'], {
+    errorMap: () => ({ message: 'Please select a scope' }),
+  }),
+  active: z.boolean().default(true),
+  conditions: ruleConditionBuilderSchema,
+});
+
+/**
+ * Type inference from schema
+ */
+export type CreateRuleInput = z.infer<typeof createRuleSchema>;
