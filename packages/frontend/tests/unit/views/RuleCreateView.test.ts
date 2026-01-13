@@ -201,7 +201,9 @@ describe('RuleCreateView', () => {
     const rulesStore = useRulesStore();
     const error = new Error('Failed to create rule');
     vi.spyOn(rulesStore, 'createRule').mockRejectedValue(error);
-    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {
+      // Suppress console.error output in test
+    });
 
     const wrapper = mount(RuleCreateView);
     const ruleForm = wrapper.findComponent({ name: 'RuleForm' });

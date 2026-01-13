@@ -128,7 +128,7 @@ describe('SettingsView', () => {
 
   it('should integrate with ui store for theme management', () => {
     const uiStore = useUiStore();
-    const wrapper = mount(SettingsView);
+    mount(SettingsView);
 
     // Verify ui store exists and is accessible
     expect(uiStore).toBeDefined();
@@ -187,8 +187,9 @@ describe('SettingsView', () => {
     // Verify localStorage was updated
     const stored = localStorageMock.getItem('app-settings');
     expect(stored).toBeDefined();
+    if (!stored) throw new Error('Settings not found in localStorage');
 
-    const parsed = JSON.parse(stored!);
+    const parsed = JSON.parse(stored);
     expect(parsed.language).toBe('pl');
     expect(parsed.theme).toBe('dark');
   });
