@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { DiffStatus } from '@gander-tools/diff-voyager-shared';
+// biome-ignore lint/style/useImportType: DiffStatus is used as a value in template (DiffStatus.NEW, etc.)
+import { DiffStatus } from '@gander-tools/diff-voyager-shared';
 import { NButton, NPopconfirm, NSpace, useNotification } from 'naive-ui';
 import { ref } from 'vue';
 
