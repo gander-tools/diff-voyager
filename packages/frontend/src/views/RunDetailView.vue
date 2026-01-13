@@ -116,7 +116,7 @@ const handleRetry = async () => {
     await loadRunDetails();
     await loadPages();
   } catch (err) {
-    message.error('Failed to retry: ' + (err as Error).message);
+    message.error(`Failed to retry: ${(err as Error).message}`);
   } finally {
     retrying.value = false;
   }

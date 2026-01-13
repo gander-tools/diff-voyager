@@ -60,7 +60,7 @@ const getDiffBadges = (page: PageResponse) => {
   }
 
   // Check for visual diff
-  if (page.diff.visualDiff && page.diff.visualDiff.thresholdExceeded) {
+  if (page.diff.visualDiff?.thresholdExceeded) {
     badges.push({
       type: 'Visual',
       count: 1,

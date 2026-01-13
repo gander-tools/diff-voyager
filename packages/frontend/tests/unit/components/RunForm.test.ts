@@ -4,7 +4,7 @@
  */
 
 import { mount } from '@vue/test-utils';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import RunForm from '../../../src/components/RunForm.vue';
 
 describe('RunForm', () => {

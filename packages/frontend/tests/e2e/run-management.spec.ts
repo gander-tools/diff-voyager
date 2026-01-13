@@ -568,7 +568,7 @@ test.describe('Run Management E2E', () => {
     // Mock pages with very long URL
     const longUrlPage = {
       ...mockRunPages[0],
-      url: 'https://example.com/' + 'a'.repeat(200),
+      url: `https://example.com/${'a'.repeat(200)}`,
     };
 
     await page.route(`**/api/v1/runs/${TEST_RUN_ID}/pages*`, (route) => {
