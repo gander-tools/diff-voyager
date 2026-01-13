@@ -1,6 +1,7 @@
 name: Auto Create PR for Claude Branches
 
 on:
+  workflow_dispatch: 
   push:
     branches:
       - 'claude/**'
