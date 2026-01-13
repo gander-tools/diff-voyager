@@ -114,3 +114,35 @@ export const createRuleSchema = z.object({
  * Type inference from schema
  */
 export type CreateRuleInput = z.infer<typeof createRuleSchema>;
+
+/**
+ * Schema for application settings
+ * Manages default values for scans, appearance, and general configuration
+ */
+export const settingsSchema = z.object({
+  // General settings
+  language: z.enum(['en', 'pl']).default('en'),
+  dataDirectory: z.string().trim().optional(),
+
+  // Default scan settings
+  defaultViewport: z
+    .object({
+      width: z.number().int().min(320).max(3840),
+      height: z.number().int().min(240).max(2160),
+    })
+    .default({ width: 1920, height: 1080 }),
+
+  defaultVisualDiffThreshold: z.number().min(0).max(1).default(0.01),
+  defaultMaxPages: z.number().int().min(1).max(10000).default(100),
+  defaultCollectHar: z.boolean().default(false),
+  defaultWaitAfterLoad: z.number().int().min(0).max(30000).default(1000),
+
+  // Appearance settings
+  theme: z.enum(['light', 'dark', 'auto']).default('auto'),
+  compactMode: z.boolean().default(false),
+});
+
+/**
+ * Type inference from schema
+ */
+export type SettingsInput = z.infer<typeof settingsSchema>;
