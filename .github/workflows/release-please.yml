@@ -25,7 +25,7 @@ jobs:
       paths_released: ${{ steps.release.outputs.paths_released }}
     steps:
       - id: release
-        uses: googleapis/release-please-action@16a9c90856f42705d54a6fda1823352bdc62cf38
+        uses: googleapis/release-please-action@64d83e95d898ede84e4555719aba555c3244d469
         with:
           # Uses config-file and manifest-file for monorepo support
           config-file: release-please-config.json
