@@ -26,7 +26,21 @@ Welcome to the Diff Voyager documentation. This guide will help you navigate thr
 - **[Task Queue](features/task-queue.md)** - Asynchronous task processing and retry logic
 
 ### Guides
+
+**Development:**
 - **[Testing Strategy](guides/testing-strategy.md)** - TDD approach, test structure, and coverage
+- **[Backend Development](guides/backend-dev.md)** - Backend workflows, test commands, and patterns
+- **[Frontend Development](guides/frontend-dev.md)** - Vue 3 development, common issues, and screenshots
+- **[Running Servers](guides/running-servers.md)** - Server configuration and API testing
+
+**Technical Guides:**
+- **[Security Guidelines](guides/security.md)** - Security best practices and requirements
+- **[@ts-rest Guide](guides/ts-rest.md)** - Type-safe API contract patterns
+- **[Drizzle ORM Guide](guides/drizzle-orm.md)** - Database query patterns with Drizzle
+- **[i18n Guide](guides/i18n.md)** - Internationalization with Vue I18n
+
+**Project Management:**
+- **[Issue Management](guides/issue-management.md)** - Issue hierarchy and dependency tracking
 
 ## Documentation Structure
 
@@ -46,7 +60,15 @@ docs/
 ├── guides/
 │   ├── getting-started.md
 │   ├── development-workflow.md
-│   └── testing-strategy.md
+│   ├── testing-strategy.md
+│   ├── backend-dev.md
+│   ├── frontend-dev.md
+│   ├── running-servers.md
+│   ├── security.md
+│   ├── ts-rest.md
+│   ├── drizzle-orm.md
+│   ├── i18n.md
+│   └── issue-management.md
 ├── features/
 │   ├── crawler.md
 │   ├── comparators.md
