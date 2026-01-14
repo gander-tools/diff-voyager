@@ -41,6 +41,7 @@ Welcome to the Diff Voyager documentation. This guide will help you navigate thr
 
 **Project Management:**
 - **[Issue Management](guides/issue-management.md)** - Issue hierarchy and dependency tracking
+- **[Common Regression Points](guides/common-regressions.md)** - Known fragile areas and prevention strategies
 
 ## Documentation Structure
 
@@ -68,7 +69,8 @@ docs/
 │   ├── ts-rest.md
 │   ├── drizzle-orm.md
 │   ├── i18n.md
-│   └── issue-management.md
+│   ├── issue-management.md
+│   └── common-regressions.md
 ├── features/
 │   ├── crawler.md
 │   ├── comparators.md
