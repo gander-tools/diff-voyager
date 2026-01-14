@@ -100,18 +100,30 @@ Entities (target: defined as shared TypeScript types, shared between backend and
 
 ### 4.1. Main Solo Developer Flow – Baseline → Migration → Run → Fixes → Rerun
 
-- Ability to create a new project, provide base URL and basic settings.
-- Run full crawl to establish baseline.
+**Project Creation (Synchronous)**:
+- Ability to create a new project, provide base URL and basic settings through multi-step wizard.
+- Project is saved to database immediately upon creation.
+- User is navigated to project detail view to review configuration.
+
+**Baseline Scan Execution (Asynchronous)**:
+- User manually initiates baseline scan from project detail view by clicking "Start Scanning" button.
+- Scan runs asynchronously in background queue (non-blocking).
+- User can monitor scan progress and interrupt if needed.
 - Save all project pages (Page) and their snapshots (HTML, SEO, screenshot, HAR if enabled in profile).
+
+**Comparison Workflow**:
 - After code changes (outside the tool) – run comparison run.
 - For each run – compare against baseline at all pages.
 - Display list of pages with differences, highlighting critical ones.
 - Detailed page view with tabs: HTML/SEO diff, visual diff, HAR/performance.
 - Ability to fix code, run next comparison, until significant differences disappear or are accepted.
 
+**Important**: Project creation and scan execution are **separate operations**. This separation allows users to review project configuration before initiating expensive scanning operations and prevents blocking the UI during long-running crawls.
+
 ### 4.2. Projects and Configuration
 
 - Create, edit, delete projects.
+- **Delete operations require confirmation**: All destructive operations (project deletion, run deletion, etc.) must display confirmation dialogs before executing to prevent accidental data loss.
 - Configure base URL, scope rules (domain, subdomains, exclusions).
 - Define ignored element filters (CSS/XPath, headers, fields).
 - Configure run profiles (e.g., "visual+SEO", "full with HAR").
