@@ -23,6 +23,23 @@
 - [Endpoints](docs/api/endpoints.md)
 - [Types](docs/api/types.md)
 
+## 📋 Quick Navigation
+
+**Daily Development:**
+- [Development Workflow](#development-workflow) - TDD approach
+- [Git Workflow](#git-workflow) - Commit format, branches
+- [Initial Setup](#initial-setup) - Essential commands
+
+**Context-Specific Guides** (load on demand):
+- 🔐 **File system/API/auth** → [Security Guidelines](docs/guides/security.md)
+- 🌐 **Adding API endpoints** → [@ts-rest Guide](docs/guides/ts-rest.md)
+- 🗄️ **Database queries** → [Drizzle ORM Guide](docs/guides/drizzle-orm.md)
+- 🎨 **Frontend work** → [Frontend Development](docs/guides/frontend-dev.md)
+- 🌍 **UI strings/translation** → [i18n Guide](docs/guides/i18n.md)
+- 🏗️ **Planning features** → [Issue Management](docs/guides/issue-management.md)
+- 🖥️ **Running servers** → [Server Commands](docs/guides/running-servers.md)
+- 🧪 **Backend development** → [Backend Guide](docs/guides/backend-dev.md)
+
 ## Project Overview
 
 Diff Voyager is a local website version comparison tool designed for solo developers upgrading frameworks and dependencies. It verifies that code changes maintain visual correctness, content integrity, SEO compliance, and performance metrics.
