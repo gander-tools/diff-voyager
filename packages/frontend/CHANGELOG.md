@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.1.18](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.17...diff-voyager-frontend-v0.1.18) (2026-01-14)
+
+
+### Features
+
+* **frontend:** add comprehensive tests for RuleCreateView and SettingsView (issue [#242](https://github.com/gander-tools/diff-voyager/issues/242)) ([91d523b](https://github.com/gander-tools/diff-voyager/commit/91d523b36d15a5690e5516a0cfe682cf1fd26f57))
+* **frontend:** create rules API service ([9d69b44](https://github.com/gander-tools/diff-voyager/commit/9d69b444cc41bed457f9de1ef2ee997ad04162f5))
+* **frontend:** implement RuleCard and RuleScopeBadge components ([06f5fd2](https://github.com/gander-tools/diff-voyager/commit/06f5fd2f81faafbad2323c2bc76fd57e34231737)), closes [#207](https://github.com/gander-tools/diff-voyager/issues/207)
+* **frontend:** implement RuleConditionBuilder component ([#208](https://github.com/gander-tools/diff-voyager/issues/208)) ([4957f28](https://github.com/gander-tools/diff-voyager/commit/4957f28a5dbe07d073389127f6b8d7ba1a78f691))
+* **frontend:** implement RuleCreateView ([873e5cd](https://github.com/gander-tools/diff-voyager/commit/873e5cd4df8915a9ce3bb308fcee127721f321d4)), closes [#204](https://github.com/gander-tools/diff-voyager/issues/204)
+* **frontend:** implement RuleForm component ([#206](https://github.com/gander-tools/diff-voyager/issues/206)) ([e1d5c29](https://github.com/gander-tools/diff-voyager/commit/e1d5c29bba9c3222ee30c5e937e2f684cce115a3))
+* **frontend:** implement RulesListView component ([0c673a0](https://github.com/gander-tools/diff-voyager/commit/0c673a094a411f67f8614b9c74f7931b5df6e195)), closes [#203](https://github.com/gander-tools/diff-voyager/issues/203)
+* **frontend:** implement SettingsView component (issue [#205](https://github.com/gander-tools/diff-voyager/issues/205)) ([82fdae5](https://github.com/gander-tools/diff-voyager/commit/82fdae580e954c9f77af3b1be5bdd34f61361f41))
+* **frontend:** integrate rules API with store ([9f98d61](https://github.com/gander-tools/diff-voyager/commit/9f98d61d45a2d2ed55403019013577ab147c7abc))
+
+
+### Bug Fixes
+
+* **ci:** resolve Biome lint errors in Rules implementation ([270116b](https://github.com/gander-tools/diff-voyager/commit/270116b5b51950a0833de4946f19c3c4898ac720))
+* **i18n:** replace hardcoded strings with translation keys across frontend ([a155cbe](https://github.com/gander-tools/diff-voyager/commit/a155cbe799ffb1107f849b3c6eb059987d797062)), closes [#266](https://github.com/gander-tools/diff-voyager/issues/266)
+* **tests:** correct import order in setup.ts for Biome linter ([c55b0d5](https://github.com/gander-tools/diff-voyager/commit/c55b0d58509078e8a1ff65ac533e4db0a1d99653))
+* **tests:** remove non-null assertion in PageList.test.ts ([2ce116d](https://github.com/gander-tools/diff-voyager/commit/2ce116d11b2165f0f98a985088dbcd092c47010f))
+* **tests:** update test expectations for i18n translations ([d3c28f3](https://github.com/gander-tools/diff-voyager/commit/d3c28f36e7124ee931c4ac4343105e42d341bfd8))
+
 ## [0.1.17](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.16...diff-voyager-frontend-v0.1.17) (2026-01-13)
 
 
