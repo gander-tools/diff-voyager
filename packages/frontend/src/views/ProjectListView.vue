@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NButton, NEmpty, NGrid, NGridItem, NPagination, NSpin } from 'naive-ui';
+import { NButton, NEmpty, NGrid, NGridItem, NPagination, NSpin, useDialog } from 'naive-ui';
 import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
@@ -7,6 +7,7 @@ import ProjectCard from '../components/ProjectCard.vue';
 import { useProjectsStore } from '../stores/projects';
 
 const { t } = useI18n();
+const dialog = useDialog();
 
 const router = useRouter();
 const projectsStore = useProjectsStore();
@@ -36,14 +37,25 @@ const handleProjectClick = (projectId: string) => {
 };
 
 const handleDeleteProject = async (projectId: string) => {
-  try {
-    await projectsStore.deleteProject(projectId);
-    // Refresh the list
-    const offset = (page.value - 1) * pageSize;
-    await projectsStore.fetchProjects({ limit: pageSize, offset });
-  } catch (error) {
-    console.error('Failed to delete project:', error);
-  }
+  const project = projectsStore.projectList.find((p) => p.id === projectId);
+  if (!project) return;
+
+  dialog.warning({
+    title: 'Confirm Delete',
+    content: `Are you sure you want to delete project "${project.name}"?`,
+    positiveText: 'Delete',
+    negativeText: 'Cancel',
+    onPositiveClick: async () => {
+      try {
+        await projectsStore.deleteProject(projectId);
+        // Refresh the list
+        const offset = (page.value - 1) * pageSize;
+        await projectsStore.fetchProjects({ limit: pageSize, offset });
+      } catch (error) {
+        console.error('Failed to delete project:', error);
+      }
+    },
+  });
 };
 </script>
 
