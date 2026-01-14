@@ -176,8 +176,137 @@ npm run screenshots
 - Check Playwright installation: `npx playwright install`
 - Backend must be buildable: `npm run build:backend`
 
+## Common UI Component Patterns
+
+### Naive UI Stepper Component
+
+**Issue Reference**: [#304](https://github.com/gander-tools/diff-voyager/issues/304)
+
+Naive UI's `NSteps` component expects **1-based indexing** for the `:current` prop, while component state typically uses 0-based indexing.
+
+**❌ Incorrect** (causes wrong step highlighting):
+```vue
+<NSteps :current="currentStep">  <!-- currentStep = 0, 1, 2 -->
+  <NStep title="Step 1" />
+  <NStep title="Step 2" />
+  <NStep title="Step 3" />
+</NSteps>
+```
+
+**✅ Correct** (convert to 1-based):
+```vue
+<NSteps :current="currentStep + 1">  <!-- Converts 0,1,2 → 1,2,3 -->
+  <NStep title="Step 1" />
+  <NStep title="Step 2" />
+  <NStep title="Step 3" />
+</NSteps>
+```
+
+**Key Points**:
+- Internal state: Use 0-based indexing (`currentStep = 0, 1, 2`)
+- NSteps binding: Convert to 1-based (`currentStep + 1`)
+- Always verify visual feedback during development
+
+### Naive UI Breadcrumb Component
+
+**Issue Reference**: [#314](https://github.com/gander-tools/diff-voyager/issues/314)
+
+Breadcrumbs require explicit separator configuration to display properly formatted navigation paths.
+
+**❌ Incorrect** (shows concatenated text):
+```vue
+<NBreadcrumb>
+  <NBreadcrumbItem>Dashboard</NBreadcrumbItem>
+  <NBreadcrumbItem>Projects</NBreadcrumbItem>
+  <NBreadcrumbItem>{{ projectName }}</NBreadcrumbItem>
+</NBreadcrumb>
+```
+
+**✅ Correct** (with separators):
+```vue
+<NBreadcrumb separator=">">
+  <NBreadcrumbItem>Dashboard</NBreadcrumbItem>
+  <NBreadcrumbItem>Projects</NBreadcrumbItem>
+  <NBreadcrumbItem>{{ projectName }}</NBreadcrumbItem>
+</NBreadcrumb>
+```
+
+**Alternative** (custom separator):
+```vue
+<NBreadcrumb>
+  <template #separator>
+    <span class="breadcrumb-separator">›</span>
+  </template>
+  <NBreadcrumbItem>Dashboard</NBreadcrumbItem>
+  <!-- ... -->
+</NBreadcrumb>
+
+<style scoped>
+.breadcrumb-separator {
+  margin: 0 8px;
+  color: #999;
+}
+</style>
+```
+
+### Delete Confirmation Dialogs
+
+**Issue Reference**: [#315](https://github.com/gander-tools/diff-voyager/issues/315)
+
+**All destructive operations must show confirmation dialogs** to prevent accidental data loss.
+
+**✅ Required pattern** for delete operations:
+```vue
+<script setup lang="ts">
+import { useDialog } from 'naive-ui';
+import { useI18n } from 'vue-i18n';
+
+const dialog = useDialog();
+const { t } = useI18n();
+
+const handleDelete = (projectId: string) => {
+  dialog.warning({
+    title: t('projects.deleteConfirm.title'),
+    content: t('projects.deleteConfirm.message'),
+    positiveText: t('common.delete'),
+    negativeText: t('common.cancel'),
+    onPositiveClick: async () => {
+      try {
+        await projectsStore.deleteProject(projectId);
+        message.success(t('projects.deleteSuccess'));
+      } catch (error) {
+        message.error(t('projects.deleteError'));
+      }
+    },
+  });
+};
+</script>
+```
+
+**Required i18n keys**:
+```json
+{
+  "projects": {
+    "deleteConfirm": {
+      "title": "Delete Project",
+      "message": "Are you sure you want to delete this project? This action cannot be undone."
+    },
+    "deleteSuccess": "Project deleted successfully",
+    "deleteError": "Failed to delete project"
+  }
+}
+```
+
+**Operations requiring confirmation**:
+- Project deletion
+- Run deletion
+- Baseline deletion
+- Bulk delete operations
+- Any irreversible data changes
+
 ## Related Documentation
 
 - [i18n Guide](i18n.md) - Internationalization with Vue I18n
 - [Getting Started](getting-started.md) - Initial setup
 - [Testing Strategy](testing-strategy.md) - Frontend testing approach
+- [Common Regression Points](common-regressions.md) - Known fragile areas to watch
