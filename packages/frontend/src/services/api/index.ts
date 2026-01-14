@@ -31,14 +31,6 @@ export {
   getPageDiff,
 } from './pages';
 export type {
-  CreateRuleInput,
-  Rule,
-} from './rules';
-// Rules API
-export {
-  rulesApi,
-} from './rules';
-export type {
   GetProjectQuery,
   ListProjectsQuery,
 } from './projects';
@@ -48,6 +40,12 @@ export {
   getProject,
   listProjects,
 } from './projects';
+export type {
+  CreateRuleInput,
+  Rule,
+} from './rules';
+// Rules API
+export { rulesApi } from './rules';
 export type {
   CreateRunRequest,
   CreateRunResponse,

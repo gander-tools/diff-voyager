@@ -3,7 +3,7 @@
  * Type-safe API client for rule management
  */
 
-import { apiContract } from '@gander-tools/diff-voyager-shared';
+import type { apiContract } from '@gander-tools/diff-voyager-shared';
 import type { ClientInferResponseBody } from '@ts-rest/core';
 import { tsRestClient } from './client';
 

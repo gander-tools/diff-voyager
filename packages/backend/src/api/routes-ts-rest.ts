@@ -1340,9 +1340,9 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
           projectId: body.projectId,
           name: body.name,
           description: body.description,
-          scope: body.scope as any, // Validated by Zod, string matches enum value
+          scope: body.scope as RuleScope,
           active: body.active,
-          conditions: body.conditions as any, // Validated by Zod, string matches enum value
+          conditions: body.conditions as RuleCondition[],
         });
 
         return {
@@ -1384,7 +1384,7 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
           name: body.name,
           description: body.description,
           active: body.active,
-          conditions: body.conditions as any, // Validated by Zod, string matches enum value
+          conditions: body.conditions as RuleCondition[] | undefined,
         });
 
         return {
