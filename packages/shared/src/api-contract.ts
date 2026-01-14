@@ -293,6 +293,59 @@ export const retryRunQuerySchema = z.object({
 });
 
 // ============================================================================
+// RULES SCHEMAS
+// ============================================================================
+
+export const ruleIdParamSchema = z.object({
+  ruleId: uuidSchema,
+});
+
+export const ruleConditionSchema = z.object({
+  diffType: z.enum(['seo', 'visual', 'content', 'performance', 'http_status', 'headers']),
+  cssSelector: z.string().optional(),
+  xpathSelector: z.string().optional(),
+  fieldPattern: z.string().optional(),
+  headerName: z.string().optional(),
+  valuePattern: z.string().optional(),
+});
+
+export const createRuleBodySchema = z.object({
+  projectId: uuidSchema.optional(),
+  name: z.string().trim().min(1).max(100),
+  description: z.string().max(500).optional(),
+  scope: z.enum(['global', 'project']),
+  active: z.boolean().default(true),
+  conditions: z.array(ruleConditionSchema).min(1),
+});
+
+export const updateRuleBodySchema = z.object({
+  name: z.string().trim().min(1).max(100).optional(),
+  description: z.string().max(500).optional(),
+  active: z.boolean().optional(),
+  conditions: z.array(ruleConditionSchema).min(1).optional(),
+});
+
+export const ruleResponseSchema = z.object({
+  id: uuidSchema,
+  projectId: uuidSchema.optional(),
+  name: z.string(),
+  description: z.string().optional(),
+  scope: z.enum(['global', 'project']),
+  active: z.boolean(),
+  conditions: z.array(ruleConditionSchema),
+  createdAt: timestampSchema,
+  updatedAt: timestampSchema,
+});
+
+export const listRulesQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
+  projectId: uuidSchema.optional(),
+  scope: z.enum(['global', 'project']).optional(),
+  active: z.coerce.boolean().optional(),
+});
+
+// ============================================================================
 // API CONTRACT - Single source of truth for all API routes
 // ============================================================================
 
@@ -575,6 +628,73 @@ export const apiContract = c.router({
       contentType: 'text/html; charset=utf-8',
     } as const,
   },
+
+  // ========== RULES ==========
+
+  listRules: {
+    method: 'GET',
+    path: '/rules',
+    responses: {
+      200: z.object({
+        rules: z.array(ruleResponseSchema),
+        pagination: paginationSchema,
+      }),
+    },
+    query: listRulesQuerySchema,
+    summary: 'List mute rules with optional filtering',
+    metadata: { tags: ['rules'] } as const,
+  },
+
+  getRule: {
+    method: 'GET',
+    path: '/rules/:ruleId',
+    responses: {
+      200: ruleResponseSchema,
+      404: errorResponseSchema,
+    },
+    pathParams: ruleIdParamSchema,
+    summary: 'Get rule details by ID',
+    metadata: { tags: ['rules'] } as const,
+  },
+
+  createRule: {
+    method: 'POST',
+    path: '/rules',
+    responses: {
+      201: ruleResponseSchema,
+      400: errorResponseSchema,
+    },
+    body: createRuleBodySchema,
+    summary: 'Create a new mute rule',
+    metadata: { tags: ['rules'] } as const,
+  },
+
+  updateRule: {
+    method: 'PATCH',
+    path: '/rules/:ruleId',
+    responses: {
+      200: ruleResponseSchema,
+      404: errorResponseSchema,
+      400: errorResponseSchema,
+    },
+    pathParams: ruleIdParamSchema,
+    body: updateRuleBodySchema,
+    summary: 'Update an existing rule',
+    metadata: { tags: ['rules'] } as const,
+  },
+
+  deleteRule: {
+    method: 'DELETE',
+    path: '/rules/:ruleId',
+    responses: {
+      204: z.void(),
+      404: errorResponseSchema,
+    },
+    pathParams: ruleIdParamSchema,
+    body: z.void(),
+    summary: 'Delete a rule by ID',
+    metadata: { tags: ['rules'] } as const,
+  },
 });
 
 // Export type inference for use in backend and frontend
@@ -591,7 +711,16 @@ export const swaggerTags = [
   { name: 'pages', description: 'Page details and diffs' },
   { name: 'tasks', description: 'Task status and monitoring' },
   { name: 'artifacts', description: 'Access captured artifacts' },
+  { name: 'rules', description: 'Mute rule management' },
   { name: 'health', description: 'Health check' },
 ];
 
-export type SwaggerTag = 'scans' | 'projects' | 'runs' | 'pages' | 'tasks' | 'artifacts' | 'health';
+export type SwaggerTag =
+  | 'scans'
+  | 'projects'
+  | 'runs'
+  | 'pages'
+  | 'tasks'
+  | 'artifacts'
+  | 'rules'
+  | 'health';
