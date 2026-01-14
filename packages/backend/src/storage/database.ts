@@ -70,6 +70,16 @@ function runMigrations(db: DatabaseInstance): void {
     applyRulesTableMigration(db);
     db.prepare('INSERT INTO migrations (name) VALUES (?)').run('004-rules-table');
   }
+
+  // Check if database indexes migration was applied
+  const applied005 = db
+    .prepare('SELECT 1 FROM migrations WHERE name = ?')
+    .get('005-database-indexes');
+
+  if (!applied005) {
+    applyDatabaseIndexesMigration(db);
+    db.prepare('INSERT INTO migrations (name) VALUES (?)').run('005-database-indexes');
+  }
 }
 
 /**
@@ -218,6 +228,30 @@ function applyRulesTableMigration(db: DatabaseInstance): void {
     CREATE INDEX idx_rules_project_id ON rules(project_id);
     CREATE INDEX idx_rules_scope ON rules(scope);
     CREATE INDEX idx_rules_active ON rules(active);
+  `);
+}
+
+/**
+ * Apply database indexes migration
+ * Adds indexes for query optimization on frequently queried columns
+ *
+ * Rationale:
+ * - projects.base_url: Used for project lookups and validation
+ * - pages.normalized_url: Speeds up URL lookups across projects
+ * - runs(project_id, is_baseline): Optimizes baseline run queries (common in comparisons)
+ * - snapshots(page_id, run_id): Already exists via UNIQUE constraint (no action needed)
+ */
+function applyDatabaseIndexesMigration(db: DatabaseInstance): void {
+  db.exec(`
+    -- Index on projects.base_url for project lookups
+    CREATE INDEX IF NOT EXISTS idx_projects_base_url ON projects(base_url);
+
+    -- Index on pages.normalized_url for URL lookups
+    CREATE INDEX IF NOT EXISTS idx_pages_normalized_url ON pages(normalized_url);
+
+    -- Composite index on runs(project_id, is_baseline) for baseline queries
+    -- This supplements the existing idx_runs_project_id index
+    CREATE INDEX IF NOT EXISTS idx_runs_project_id_is_baseline ON runs(project_id, is_baseline);
   `);
 }
 
