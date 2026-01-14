@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { MuteRule } from '@gander-tools/diff-voyager-shared';
 import { NButton, NCard, NSpace, NSwitch, NText, NTime } from 'naive-ui';
 import { computed } from 'vue';
+import type { MuteRule } from '../stores/rules';
 import RuleScopeBadge from './RuleScopeBadge.vue';
 
 interface Props {
@@ -36,7 +36,7 @@ const handleToggleActive = (value: boolean) => {
 };
 
 const conditionsSummary = computed(() => {
-  const count = props.rule.conditions.length;
+  const count = props.rule.conditions.conditions.length;
   if (count === 0) return 'No conditions defined';
   if (count === 1) return '1 condition';
   return `${count} conditions`;

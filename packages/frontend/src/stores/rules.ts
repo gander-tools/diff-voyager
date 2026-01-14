@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
+import { rulesApi } from '../services/api';
 import type { CreateRuleInput, RuleConditionBuilderInput } from '../utils/validators';
 
 export type MuteRule = {
@@ -10,6 +11,7 @@ export type MuteRule = {
   active: boolean;
   conditions: RuleConditionBuilderInput;
   createdAt: string;
+  updatedAt?: string;
 };
 
 /**
@@ -33,10 +35,20 @@ export const useRulesStore = defineStore('rules', () => {
     error.value = null;
 
     try {
-      // TODO: Implement API call when backend endpoint is available
-      // rules.value = await api.listRules();
-      console.log('Fetch rules - API not implemented yet');
-      rules.value = []; // Placeholder
+      const response = await rulesApi.listRules();
+      rules.value = response.rules.map((r) => ({
+        id: r.id,
+        name: r.name,
+        scope: r.scope,
+        description: r.description,
+        active: r.active,
+        conditions: {
+          operator: 'AND' as const,
+          conditions: r.conditions,
+        },
+        createdAt: r.createdAt,
+        updatedAt: r.updatedAt,
+      }));
     } catch (err) {
       error.value = (err as Error).message;
       throw err;
@@ -45,21 +57,34 @@ export const useRulesStore = defineStore('rules', () => {
     }
   }
 
-  async function createRule(input: CreateRuleInput) {
+  async function createRule(input: CreateRuleInput & { projectId?: string }) {
     loading.value = true;
     error.value = null;
 
     try {
-      // TODO: Implement API call when backend endpoint is available
-      // const rule = await api.createRule(input);
-      console.log('Create rule:', input);
+      const createdRule = await rulesApi.createRule({
+        projectId: input.projectId,
+        name: input.name,
+        description: input.description,
+        scope: input.scope,
+        active: input.active,
+        conditions: input.conditions.conditions,
+      });
 
-      // Temporary: Add to local state
       const rule: MuteRule = {
-        ...input,
-        id: `rule-${Date.now()}`,
-        createdAt: new Date().toISOString(),
+        id: createdRule.id,
+        name: createdRule.name,
+        scope: createdRule.scope,
+        description: createdRule.description,
+        active: createdRule.active,
+        conditions: {
+          operator: 'AND' as const,
+          conditions: createdRule.conditions,
+        },
+        createdAt: createdRule.createdAt,
+        updatedAt: createdRule.updatedAt,
       };
+
       rules.value.push(rule);
       return rule;
     } catch (err) {
@@ -75,14 +100,28 @@ export const useRulesStore = defineStore('rules', () => {
     error.value = null;
 
     try {
-      // TODO: Implement API call when backend endpoint is available
-      // const rule = await api.updateRule(id, input);
-      console.log('Update rule:', id, input);
+      const updatedRule = await rulesApi.updateRule(id, {
+        name: input.name,
+        description: input.description,
+        active: input.active,
+        conditions: input.conditions?.conditions,
+      });
 
-      // Temporary: Update local state
       const index = rules.value.findIndex((r) => r.id === id);
       if (index !== -1) {
-        rules.value[index] = { ...rules.value[index], ...input } as MuteRule;
+        rules.value[index] = {
+          id: updatedRule.id,
+          name: updatedRule.name,
+          scope: updatedRule.scope,
+          description: updatedRule.description,
+          active: updatedRule.active,
+          conditions: {
+            operator: 'AND' as const,
+            conditions: updatedRule.conditions,
+          },
+          createdAt: updatedRule.createdAt,
+          updatedAt: updatedRule.updatedAt,
+        };
       }
     } catch (err) {
       error.value = (err as Error).message;
@@ -97,11 +136,7 @@ export const useRulesStore = defineStore('rules', () => {
     error.value = null;
 
     try {
-      // TODO: Implement API call when backend endpoint is available
-      // await api.deleteRule(id);
-      console.log('Delete rule:', id);
-
-      // Temporary: Remove from local state
+      await rulesApi.deleteRule(id);
       rules.value = rules.value.filter((r) => r.id !== id);
     } catch (err) {
       error.value = (err as Error).message;
