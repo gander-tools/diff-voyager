@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.20](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.19...diff-voyager-backend-v0.1.20) (2026-01-14)
+
+
+### Features
+
+* **backend:** add rules database schema and migration ([eafa1be](https://github.com/gander-tools/diff-voyager/commit/eafa1be4395749508384ffbe96e213328fc2922b))
+* **backend:** implement rules API route handlers ([bbbd830](https://github.com/gander-tools/diff-voyager/commit/bbbd830fd15885e7e26ea84376ddc8bbd8cbe365))
+
+
+### Bug Fixes
+
+* **backend:** add missing pino-pretty dependency for logger ([69e3013](https://github.com/gander-tools/diff-voyager/commit/69e3013a9b28dd3b88e78503ad562714e1677146))
+* **ci:** resolve Biome lint errors in Rules implementation ([270116b](https://github.com/gander-tools/diff-voyager/commit/270116b5b51950a0833de4946f19c3c4898ac720))
+
 ## [0.1.19](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.18...diff-voyager-backend-v0.1.19) (2026-01-11)
 
 

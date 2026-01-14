@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.10](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-shared-v0.1.9...diff-voyager-shared-v0.1.10) (2026-01-14)
+
+
+### Features
+
+* **shared:** add rules API contract endpoints and schemas ([f9c3275](https://github.com/gander-tools/diff-voyager/commit/f9c32756df11d32691145a165b9942d26045f147))
+
 ## [0.1.9](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-shared-v0.1.8...diff-voyager-shared-v0.1.9) (2026-01-11)
 
 
