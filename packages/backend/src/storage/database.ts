@@ -62,6 +62,14 @@ function runMigrations(db: DatabaseInstance): void {
     applySnapshotBaselineMigration(db);
     db.prepare('INSERT INTO migrations (name) VALUES (?)').run('003-snapshot-baseline');
   }
+
+  // Check if rules table migration was applied
+  const applied004 = db.prepare('SELECT 1 FROM migrations WHERE name = ?').get('004-rules-table');
+
+  if (!applied004) {
+    applyRulesTableMigration(db);
+    db.prepare('INSERT INTO migrations (name) VALUES (?)').run('004-rules-table');
+  }
 }
 
 /**
@@ -186,6 +194,30 @@ function applyTaskQueueSchema(db: DatabaseInstance): void {
 function applySnapshotBaselineMigration(db: DatabaseInstance): void {
   db.exec(`
     ALTER TABLE snapshots ADD COLUMN is_baseline INTEGER NOT NULL DEFAULT 0;
+  `);
+}
+
+/**
+ * Apply rules table migration
+ */
+function applyRulesTableMigration(db: DatabaseInstance): void {
+  db.exec(`
+    -- Rules table for mute rules
+    CREATE TABLE rules (
+      id TEXT PRIMARY KEY,
+      project_id TEXT REFERENCES projects(id) ON DELETE CASCADE,
+      name TEXT NOT NULL,
+      description TEXT,
+      scope TEXT NOT NULL,
+      active INTEGER NOT NULL DEFAULT 1,
+      conditions_json TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE INDEX idx_rules_project_id ON rules(project_id);
+    CREATE INDEX idx_rules_scope ON rules(scope);
+    CREATE INDEX idx_rules_active ON rules(active);
   `);
 }
 
