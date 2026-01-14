@@ -18,6 +18,7 @@
 
 **Development Status**:
 - [Roadmap](docs/development/roadmap.md) - Current status, completed work, and planned features
+- [GitHub Metadata](docs/development/github.md) - Labels, milestones, and issue conventions
 
 **API Reference**:
 - [Endpoints](docs/api/endpoints.md)
