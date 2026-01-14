@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.22](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.21...diff-voyager-backend-v0.1.22) (2026-01-14)
+
+
+### Bug Fixes
+
+* **backend:** prevent UNIQUE constraint violation on duplicate snapshot creation ([b4a3720](https://github.com/gander-tools/diff-voyager/commit/b4a372036a95c13543accbec4181288250db3c22))
+
+
+### Performance Improvements
+
+* **backend:** add database indexes for query optimization ([27f3d42](https://github.com/gander-tools/diff-voyager/commit/27f3d4227fa644b4bfe65ba8da259080a6d2a9d5))
+
 ## [0.1.21](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.20...diff-voyager-backend-v0.1.21) (2026-01-14)
 
 
