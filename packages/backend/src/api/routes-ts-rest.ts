@@ -16,6 +16,7 @@ import type { DatabaseInstance } from '../storage/database.js';
 import type { DrizzleDb } from '../storage/drizzle/db.js';
 import { PageRepositoryDrizzle } from '../storage/repositories/page-repository.drizzle.js';
 import { ProjectRepositoryDrizzle } from '../storage/repositories/project-repository.drizzle.js';
+import { RuleRepositoryDrizzle } from '../storage/repositories/rule-repository.drizzle.js';
 import { RunRepositoryDrizzle } from '../storage/repositories/run-repository.drizzle.js';
 import { SnapshotRepositoryDrizzle } from '../storage/repositories/snapshot-repository.drizzle.js';
 import { getSecureFile } from './utils/secure-file.js';
@@ -1224,6 +1225,207 @@ export function createTsRestRoutes(config: TsRestRoutesConfig) {
             },
           };
         }
+      },
+    },
+
+    // ========== RULES ==========
+
+    listRules: {
+      handler: async ({ query }) => {
+        const ruleRepo = new RuleRepositoryDrizzle(drizzleDb);
+
+        const { rules: ruleEntities, total } = await ruleRepo.findAll({
+          limit: query.limit || 50,
+          offset: query.offset || 0,
+          projectId: query.projectId,
+          scope: query.scope,
+          active: query.active,
+        });
+
+        const rules = ruleEntities.map((rule) => ({
+          id: rule.id,
+          projectId: rule.projectId,
+          name: rule.name,
+          description: rule.description,
+          scope: rule.scope,
+          active: rule.active,
+          conditions: rule.conditions,
+          createdAt: rule.createdAt.toISOString(),
+          updatedAt: rule.updatedAt.toISOString(),
+        }));
+
+        const limit = query.limit || 50;
+        const offset = query.offset || 0;
+
+        return {
+          status: 200 as const,
+          body: {
+            rules,
+            pagination: {
+              total,
+              limit,
+              offset,
+              hasMore: offset + rules.length < total,
+            },
+          },
+        };
+      },
+    },
+
+    getRule: {
+      handler: async ({ params }) => {
+        const ruleRepo = new RuleRepositoryDrizzle(drizzleDb);
+        const rule = await ruleRepo.findById(params.ruleId);
+
+        if (!rule) {
+          return {
+            status: 404 as const,
+            body: {
+              error: {
+                code: 'NOT_FOUND',
+                message: `Rule ${params.ruleId} not found`,
+              },
+            },
+          };
+        }
+
+        return {
+          status: 200 as const,
+          body: {
+            id: rule.id,
+            projectId: rule.projectId,
+            name: rule.name,
+            description: rule.description,
+            scope: rule.scope,
+            active: rule.active,
+            conditions: rule.conditions,
+            createdAt: rule.createdAt.toISOString(),
+            updatedAt: rule.updatedAt.toISOString(),
+          },
+        };
+      },
+    },
+
+    createRule: {
+      handler: async ({ body }) => {
+        const ruleRepo = new RuleRepositoryDrizzle(drizzleDb);
+
+        // Validate: project-scoped rules require projectId
+        if (body.scope === 'project' && !body.projectId) {
+          return {
+            status: 400 as const,
+            body: {
+              error: {
+                code: 'VALIDATION_ERROR',
+                message: 'projectId is required for project-scoped rules',
+              },
+            },
+          };
+        }
+
+        // Validate: global rules cannot have projectId
+        if (body.scope === 'global' && body.projectId) {
+          return {
+            status: 400 as const,
+            body: {
+              error: {
+                code: 'VALIDATION_ERROR',
+                message: 'global rules cannot have a projectId',
+              },
+            },
+          };
+        }
+
+        const rule = await ruleRepo.create({
+          projectId: body.projectId,
+          name: body.name,
+          description: body.description,
+          scope: body.scope as any, // Validated by Zod, string matches enum value
+          active: body.active,
+          conditions: body.conditions as any, // Validated by Zod, string matches enum value
+        });
+
+        return {
+          status: 201 as const,
+          body: {
+            id: rule.id,
+            projectId: rule.projectId,
+            name: rule.name,
+            description: rule.description,
+            scope: rule.scope,
+            active: rule.active,
+            conditions: rule.conditions,
+            createdAt: rule.createdAt.toISOString(),
+            updatedAt: rule.updatedAt.toISOString(),
+          },
+        };
+      },
+    },
+
+    updateRule: {
+      handler: async ({ params, body }) => {
+        const ruleRepo = new RuleRepositoryDrizzle(drizzleDb);
+
+        // Check if rule exists
+        const existing = await ruleRepo.findById(params.ruleId);
+        if (!existing) {
+          return {
+            status: 404 as const,
+            body: {
+              error: {
+                code: 'NOT_FOUND',
+                message: `Rule ${params.ruleId} not found`,
+              },
+            },
+          };
+        }
+
+        const updated = await ruleRepo.update(params.ruleId, {
+          name: body.name,
+          description: body.description,
+          active: body.active,
+          conditions: body.conditions as any, // Validated by Zod, string matches enum value
+        });
+
+        return {
+          status: 200 as const,
+          body: {
+            id: updated.id,
+            projectId: updated.projectId,
+            name: updated.name,
+            description: updated.description,
+            scope: updated.scope,
+            active: updated.active,
+            conditions: updated.conditions,
+            createdAt: updated.createdAt.toISOString(),
+            updatedAt: updated.updatedAt.toISOString(),
+          },
+        };
+      },
+    },
+
+    deleteRule: {
+      handler: async ({ params }) => {
+        const ruleRepo = new RuleRepositoryDrizzle(drizzleDb);
+
+        const deleted = await ruleRepo.delete(params.ruleId);
+
+        if (!deleted) {
+          return {
+            status: 404 as const,
+            body: {
+              error: {
+                code: 'NOT_FOUND',
+                message: `Rule ${params.ruleId} not found`,
+              },
+            },
+          };
+        }
+
+        return {
+          status: 204 as const,
+          body: undefined,
+        };
       },
     },
   });
