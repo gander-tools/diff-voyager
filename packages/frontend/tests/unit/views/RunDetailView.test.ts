@@ -3,13 +3,13 @@
  * Tests run detail view with pages list, polling, and retry functionality
  */
 
-import { mount } from '@vue/test-utils';
 import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
 import { createPinia, setActivePinia } from 'pinia';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useRunsStore } from '../../../src/stores/runs';
 import RunDetailView from '../../../src/views/RunDetailView.vue';
+import { mountWithNaiveUI } from '../../utils/naive-ui-wrapper';
 
 const API_BASE_URL = 'http://localhost:3000/api/v1';
 const server = setupServer();
@@ -106,6 +106,16 @@ describe('RunDetailView', () => {
     mockRouter.push.mockClear();
     vi.clearAllTimers();
     vi.useRealTimers();
+
+    // Default handlers - can be overridden in tests
+    server.use(
+      http.get(`${API_BASE_URL}/runs/:runId`, () => {
+        return HttpResponse.json(mockRun);
+      }),
+      http.get(`${API_BASE_URL}/runs/:runId/pages`, () => {
+        return HttpResponse.json({ pages: [], pagination: { total: 0 } });
+      }),
+    );
   });
 
   it('should render run details', async () => {
@@ -118,7 +128,7 @@ describe('RunDetailView', () => {
       }),
     );
 
-    const wrapper = mount(RunDetailView);
+    const wrapper = mountWithNaiveUI(RunDetailView);
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     expect(wrapper.text()).toContain('Run #run-123');
@@ -134,7 +144,7 @@ describe('RunDetailView', () => {
       }),
     );
 
-    const wrapper = mount(RunDetailView);
+    const wrapper = mountWithNaiveUI(RunDetailView);
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     expect(wrapper.text()).toContain('10');
@@ -152,7 +162,7 @@ describe('RunDetailView', () => {
       }),
     );
 
-    const wrapper = mount(RunDetailView);
+    const wrapper = mountWithNaiveUI(RunDetailView);
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     expect(wrapper.text()).toContain('1920 × 1080');
@@ -170,7 +180,7 @@ describe('RunDetailView', () => {
       }),
     );
 
-    const wrapper = mount(RunDetailView);
+    const wrapper = mountWithNaiveUI(RunDetailView);
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     expect(wrapper.text()).toContain('https://example.com/');
@@ -188,7 +198,7 @@ describe('RunDetailView', () => {
       }),
     );
 
-    const wrapper = mount(RunDetailView);
+    const wrapper = mountWithNaiveUI(RunDetailView);
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     expect(wrapper.text()).toContain('Progress');
@@ -205,7 +215,7 @@ describe('RunDetailView', () => {
       }),
     );
 
-    const wrapper = mount(RunDetailView);
+    const wrapper = mountWithNaiveUI(RunDetailView);
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     const retryButton = wrapper.find('[data-test="retry-btn"]');
@@ -231,7 +241,7 @@ describe('RunDetailView', () => {
       }),
     );
 
-    const wrapper = mount(RunDetailView);
+    const wrapper = mountWithNaiveUI(RunDetailView);
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     const retryButton = wrapper.find('[data-test="retry-btn"]');
@@ -259,7 +269,7 @@ describe('RunDetailView', () => {
       }),
     );
 
-    const wrapper = mount(RunDetailView);
+    const wrapper = mountWithNaiveUI(RunDetailView);
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     const retryButton = wrapper.find('[data-test="retry-btn"]');
@@ -279,7 +289,7 @@ describe('RunDetailView', () => {
       }),
     );
 
-    const wrapper = mount(RunDetailView);
+    const wrapper = mountWithNaiveUI(RunDetailView);
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     const backButton = wrapper.find('[data-test="back-to-runs-btn"]');
@@ -301,7 +311,7 @@ describe('RunDetailView', () => {
       }),
     );
 
-    const wrapper = mount(RunDetailView);
+    const wrapper = mountWithNaiveUI(RunDetailView);
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     const backButton = wrapper.find('[data-test="back-to-project-btn"]');
@@ -325,7 +335,7 @@ describe('RunDetailView', () => {
       }),
     );
 
-    const wrapper = mount(RunDetailView);
+    const wrapper = mountWithNaiveUI(RunDetailView);
     expect(wrapper.text()).toContain('Loading run details');
   });
 
@@ -339,7 +349,7 @@ describe('RunDetailView', () => {
       }),
     );
 
-    const wrapper = mount(RunDetailView);
+    const wrapper = mountWithNaiveUI(RunDetailView);
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     expect(wrapper.text()).toContain('Retry');
@@ -355,7 +365,7 @@ describe('RunDetailView', () => {
       }),
     );
 
-    const wrapper = mount(RunDetailView);
+    const wrapper = mountWithNaiveUI(RunDetailView);
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     expect(wrapper.text()).toContain('No pages found');
@@ -371,7 +381,7 @@ describe('RunDetailView', () => {
       }),
     );
 
-    const wrapper = mount(RunDetailView);
+    const wrapper = mountWithNaiveUI(RunDetailView);
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     expect(wrapper.find('[data-test="run-status-badge"]').exists()).toBe(true);
@@ -387,7 +397,7 @@ describe('RunDetailView', () => {
       }),
     );
 
-    const wrapper = mount(RunDetailView);
+    const wrapper = mountWithNaiveUI(RunDetailView);
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     const store = useRunsStore();
@@ -406,7 +416,7 @@ describe('RunDetailView', () => {
       }),
     );
 
-    const wrapper = mount(RunDetailView);
+    const wrapper = mountWithNaiveUI(RunDetailView);
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     const store = useRunsStore();

@@ -3,32 +3,33 @@
  * Tests rule card component for displaying rule info
  */
 
-import type { MuteRule } from '@gander-tools/diff-voyager-shared';
-import { DiffType, RuleScope } from '@gander-tools/diff-voyager-shared';
 import { mount } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
 import RuleCard from '../../../src/components/RuleCard.vue';
+import type { MuteRule } from '../../../src/stores/rules';
 
 describe('RuleCard', () => {
   const mockRule: MuteRule = {
     id: 'rule-123',
-    projectId: 'proj-456',
     name: 'Ignore dynamic timestamps',
     description: 'Ignore changes in timestamp fields',
-    scope: RuleScope.PROJECT,
+    scope: 'project',
     active: true,
-    createdAt: new Date('2024-01-01T00:00:00Z'),
-    updatedAt: new Date('2024-01-02T00:00:00Z'),
-    conditions: [
-      {
-        diffType: DiffType.SEO,
-        cssSelector: '.timestamp',
-      },
-      {
-        diffType: DiffType.CONTENT,
-        fieldPattern: 'date',
-      },
-    ],
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-02T00:00:00Z',
+    conditions: {
+      operator: 'AND' as const,
+      conditions: [
+        {
+          diffType: 'seo' as const,
+          cssSelector: '.timestamp',
+        },
+        {
+          diffType: 'content' as const,
+          fieldPattern: 'date',
+        },
+      ],
+    },
   };
 
   it('should render rule name', () => {
@@ -74,9 +75,12 @@ describe('RuleCard', () => {
   });
 
   it('should render "1 condition" for single condition', () => {
-    const ruleWithOneCondition = {
+    const ruleWithOneCondition: MuteRule = {
       ...mockRule,
-      conditions: [mockRule.conditions[0]],
+      conditions: {
+        operator: 'AND' as const,
+        conditions: [mockRule.conditions.conditions[0]],
+      },
     };
 
     const wrapper = mount(RuleCard, {
@@ -87,9 +91,12 @@ describe('RuleCard', () => {
   });
 
   it('should render "No conditions defined" for empty conditions', () => {
-    const ruleWithNoConditions = {
+    const ruleWithNoConditions: MuteRule = {
       ...mockRule,
-      conditions: [],
+      conditions: {
+        operator: 'AND' as const,
+        conditions: [],
+      },
     };
 
     const wrapper = mount(RuleCard, {
@@ -200,10 +207,9 @@ describe('RuleCard', () => {
   });
 
   it('should handle global scope rule', () => {
-    const globalRule = {
+    const globalRule: MuteRule = {
       ...mockRule,
-      scope: RuleScope.GLOBAL,
-      projectId: undefined,
+      scope: 'global' as const,
     };
 
     const wrapper = mount(RuleCard, {
