@@ -4,10 +4,19 @@
  */
 
 import { mount } from '@vue/test-utils';
+import { HttpResponse, http } from 'msw';
+import { setupServer } from 'msw/node';
 import { createPinia, setActivePinia } from 'pinia';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useRulesStore } from '../../../src/stores/rules';
 import RulesListView from '../../../src/views/RulesListView.vue';
+
+const API_BASE_URL = 'http://localhost:3000/api/v1';
+const server = setupServer();
+
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
 
 const mockRouter = {
   push: vi.fn(),
@@ -21,6 +30,13 @@ describe('RulesListView', () => {
   beforeEach(() => {
     setActivePinia(createPinia());
     mockRouter.push.mockClear();
+
+    // Mock empty rules response by default
+    server.use(
+      http.get(`${API_BASE_URL}/rules`, () => {
+        return HttpResponse.json({ rules: [], pagination: { total: 0 } });
+      }),
+    );
   });
 
   afterEach(() => {
@@ -38,13 +54,13 @@ describe('RulesListView', () => {
   });
 
   it('should fetch rules on mount', async () => {
-    const wrapper = mount(RulesListView);
+    mount(RulesListView);
     const store = useRulesStore();
 
     // Wait for onMounted to complete
-    await wrapper.vm.$nextTick();
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
-    // Since fetchRules doesn't make actual API calls yet, just verify it was called
+    // Verify API was called and loading is complete
     expect(store.loading).toBe(false);
   });
 
@@ -65,7 +81,9 @@ describe('RulesListView', () => {
 
   it('should show empty state when no rules', async () => {
     const wrapper = mount(RulesListView);
-    await wrapper.vm.$nextTick();
+
+    // Wait for onMounted to complete
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     expect(wrapper.text()).toContain('Create your first mute rule');
   });
@@ -88,8 +106,6 @@ describe('RulesListView', () => {
       id: 'rule-1',
       name: 'Test Rule',
       scope: 'global' as const,
-      diffType: 'html',
-      selector: '.test',
       description: 'A test rule',
       createdAt: '2024-01-01T00:00:00Z',
       active: true,
@@ -101,12 +117,17 @@ describe('RulesListView', () => {
       ],
     };
 
-    const wrapper = mount(RulesListView);
-    const store = useRulesStore();
+    // Mock API response with the rule
+    server.use(
+      http.get(`${API_BASE_URL}/rules`, () => {
+        return HttpResponse.json({ rules: [mockRule], pagination: { total: 1 } });
+      }),
+    );
 
-    // Manually add a rule to the store
-    store.rules.push(mockRule);
-    await wrapper.vm.$nextTick();
+    const wrapper = mount(RulesListView);
+
+    // Wait for onMounted to complete
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     expect(wrapper.text()).toContain('Test Rule');
   });
@@ -116,8 +137,6 @@ describe('RulesListView', () => {
       id: 'rule-1',
       name: 'Global Rule',
       scope: 'global' as const,
-      diffType: 'html',
-      selector: '.test',
       createdAt: '2024-01-01T00:00:00Z',
       active: true,
       conditions: [],
@@ -127,19 +146,22 @@ describe('RulesListView', () => {
       id: 'rule-2',
       name: 'Project Rule',
       scope: 'project' as const,
-      diffType: 'html',
-      selector: '.test',
       createdAt: '2024-01-01T00:00:00Z',
       active: true,
       conditions: [],
     };
 
-    const wrapper = mount(RulesListView);
-    const store = useRulesStore();
+    // Mock API response with both rules
+    server.use(
+      http.get(`${API_BASE_URL}/rules`, () => {
+        return HttpResponse.json({ rules: [globalRule, projectRule], pagination: { total: 2 } });
+      }),
+    );
 
-    // Add rules to store
-    store.rules.push(globalRule, projectRule);
-    await wrapper.vm.$nextTick();
+    const wrapper = mount(RulesListView);
+
+    // Wait for onMounted to complete
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // Both rules should be visible by default (all filter)
     expect(wrapper.text()).toContain('Global Rule');
@@ -159,8 +181,6 @@ describe('RulesListView', () => {
       id: 'rule-1',
       name: 'Global Rule',
       scope: 'global' as const,
-      diffType: 'html',
-      selector: '.test',
       createdAt: '2024-01-01T00:00:00Z',
       active: true,
       conditions: [],
@@ -170,19 +190,22 @@ describe('RulesListView', () => {
       id: 'rule-2',
       name: 'Project Rule',
       scope: 'project' as const,
-      diffType: 'html',
-      selector: '.test',
       createdAt: '2024-01-01T00:00:00Z',
       active: true,
       conditions: [],
     };
 
-    const wrapper = mount(RulesListView);
-    const store = useRulesStore();
+    // Mock API response with both rules
+    server.use(
+      http.get(`${API_BASE_URL}/rules`, () => {
+        return HttpResponse.json({ rules: [globalRule, projectRule], pagination: { total: 2 } });
+      }),
+    );
 
-    // Add rules to store
-    store.rules.push(globalRule, projectRule);
-    await wrapper.vm.$nextTick();
+    const wrapper = mount(RulesListView);
+
+    // Wait for onMounted to complete
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // Switch to project filter
     const projectFilterButton = wrapper.find('[data-test="filter-project"]');
@@ -198,8 +221,6 @@ describe('RulesListView', () => {
       id: 'rule-1',
       name: 'Global Rule',
       scope: 'global' as const,
-      diffType: 'html',
-      selector: '.test',
       createdAt: '2024-01-01T00:00:00Z',
       active: true,
       conditions: [],
@@ -209,19 +230,22 @@ describe('RulesListView', () => {
       id: 'rule-2',
       name: 'Project Rule',
       scope: 'project' as const,
-      diffType: 'html',
-      selector: '.test',
       createdAt: '2024-01-01T00:00:00Z',
       active: true,
       conditions: [],
     };
 
-    const wrapper = mount(RulesListView);
-    const store = useRulesStore();
+    // Mock API response with both rules
+    server.use(
+      http.get(`${API_BASE_URL}/rules`, () => {
+        return HttpResponse.json({ rules: [globalRule, projectRule], pagination: { total: 2 } });
+      }),
+    );
 
-    // Add rules to store
-    store.rules.push(globalRule, projectRule);
-    await wrapper.vm.$nextTick();
+    const wrapper = mount(RulesListView);
+
+    // Wait for onMounted to complete
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // Check counts in filter buttons
     const allFilter = wrapper.find('[data-test="filter-all"]');
@@ -238,19 +262,22 @@ describe('RulesListView', () => {
       id: 'rule-1',
       name: 'Project Rule',
       scope: 'project' as const,
-      diffType: 'html',
-      selector: '.test',
       createdAt: '2024-01-01T00:00:00Z',
       active: true,
       conditions: [],
     };
 
-    const wrapper = mount(RulesListView);
-    const store = useRulesStore();
+    // Mock API response with only project rule
+    server.use(
+      http.get(`${API_BASE_URL}/rules`, () => {
+        return HttpResponse.json({ rules: [projectRule], pagination: { total: 1 } });
+      }),
+    );
 
-    // Add only project rule
-    store.rules.push(projectRule);
-    await wrapper.vm.$nextTick();
+    const wrapper = mount(RulesListView);
+
+    // Wait for onMounted to complete
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // Switch to global filter - find the input element directly
     const radioInputs = wrapper.findAll('input[type="radio"]');
@@ -269,19 +296,22 @@ describe('RulesListView', () => {
       id: 'rule-1',
       name: 'Global Rule',
       scope: 'global' as const,
-      diffType: 'html',
-      selector: '.test',
       createdAt: '2024-01-01T00:00:00Z',
       active: true,
       conditions: [],
     };
 
-    const wrapper = mount(RulesListView);
-    const store = useRulesStore();
+    // Mock API response with only global rule
+    server.use(
+      http.get(`${API_BASE_URL}/rules`, () => {
+        return HttpResponse.json({ rules: [globalRule], pagination: { total: 1 } });
+      }),
+    );
 
-    // Add only global rule
-    store.rules.push(globalRule);
-    await wrapper.vm.$nextTick();
+    const wrapper = mount(RulesListView);
+
+    // Wait for onMounted to complete
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // Switch to project filter - find the input element directly
     const radioInputs = wrapper.findAll('input[type="radio"]');
