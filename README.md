@@ -178,6 +178,27 @@ npm run format                  # Check formatting
 npm run format:fix              # Format code
 ```
 
+### Database Migrations
+
+Diff Voyager uses **Drizzle ORM** with SQLite for type-safe database operations.
+
+**Schema Location**: `packages/backend/src/storage/drizzle/schema/`
+
+**Generate a migration** (after modifying schema files):
+```bash
+cd packages/backend
+npx drizzle-kit generate
+```
+
+This creates SQL migration files in `src/storage/drizzle/migrations/`.
+
+**Apply migrations** (run automatically on backend startup):
+Migrations are applied automatically when the backend starts. The database schema is kept in sync with your code.
+
+**Migration Configuration**: See `packages/backend/drizzle.config.ts` for Drizzle configuration.
+
+**Learn More**: See [Drizzle ORM Guide](docs/guides/drizzle-orm.md) for schema patterns and query examples.
+
 ## How It Works
 
 1. **Create baseline** - Crawl your site before changes
