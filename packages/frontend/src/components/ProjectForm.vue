@@ -127,7 +127,7 @@ const isLastStep = computed(() => currentStep.value === 2);
 
 <template>
   <div class="project-form">
-    <NSteps :current="currentStep" class="steps">
+    <NSteps :current="currentStep + 1" class="steps">
       <NStep :title="t('projects.form.stepBasicInfo')" />
       <NStep :title="t('projects.form.stepCrawlSettings')" />
       <NStep :title="t('projects.form.stepRunProfile')" />
