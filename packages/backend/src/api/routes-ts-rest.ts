@@ -5,7 +5,12 @@
  * from packages/shared. This is the backend implementation of the contract.
  */
 
-import { apiContract, PageStatus } from '@gander-tools/diff-voyager-shared';
+import {
+  apiContract,
+  PageStatus,
+  type RuleCondition,
+  type RuleScope,
+} from '@gander-tools/diff-voyager-shared';
 import { initServer } from '@ts-rest/fastify';
 import type { FastifyReply } from 'fastify';
 import type { Logger } from 'pino';
