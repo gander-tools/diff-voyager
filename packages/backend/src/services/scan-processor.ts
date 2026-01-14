@@ -74,11 +74,23 @@ export class ScanProcessor {
           originalUrl: url,
         });
 
-        // Create snapshot
-        const snapshot = await snapshotRepo.create({
-          pageId: page.id,
-          runId: input.runId,
-        });
+        // Check if snapshot already exists for this page and run
+        let snapshot = await snapshotRepo.findByPageAndRun(page.id, input.runId);
+
+        // Only create snapshot if it doesn't exist
+        if (!snapshot) {
+          snapshot = await snapshotRepo.create({
+            pageId: page.id,
+            runId: input.runId,
+          });
+        } else {
+          // Skip processing if snapshot already exists
+          this.logger?.info(
+            { pageId: page.id, runId: input.runId, url: normalizedUrl },
+            'Snapshot already exists, skipping duplicate URL',
+          );
+          continue;
+        }
 
         // Capture page
         const captureResult = await this.capturer.capture({

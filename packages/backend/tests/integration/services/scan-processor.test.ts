@@ -354,6 +354,87 @@ describe('ScanProcessor', () => {
     });
   });
 
+  describe('processScan - duplicate URL handling', () => {
+    it('should handle duplicate normalized URLs gracefully', async () => {
+      const project = await projectRepo.create({
+        name: 'Test Duplicate URL Handling',
+        baseUrl: `${baseUrl}/simple`,
+        config: {
+          crawl: false,
+          viewport: { width: 1920, height: 1080 },
+          visualDiffThreshold: 0.1,
+          maxPages: 100,
+        },
+      });
+
+      const run = await runRepo.create({
+        projectId: project.id,
+        isBaseline: true,
+        config: {
+          viewport: { width: 1920, height: 1080 },
+          captureScreenshots: true,
+          captureHar: false,
+        },
+      });
+
+      const processor = new ScanProcessor({
+        db,
+        artifactsDir,
+        projectRepo,
+        runRepo,
+        pageRepo,
+        snapshotRepo,
+      });
+
+      // First scan
+      await processor.processScan({
+        projectId: project.id,
+        runId: run.id,
+        url: `${baseUrl}/simple`,
+        crawl: false,
+        viewport: { width: 1920, height: 1080 },
+        waitAfterLoad: 100,
+        collectHar: false,
+      });
+
+      // Create a second run for the same project
+      const run2 = await runRepo.create({
+        projectId: project.id,
+        isBaseline: false,
+        config: {
+          viewport: { width: 1920, height: 1080 },
+          captureScreenshots: true,
+          captureHar: false,
+        },
+      });
+
+      // Second scan with same URL should work without UNIQUE constraint violation
+      const result = await processor.processScan({
+        projectId: project.id,
+        runId: run2.id,
+        url: `${baseUrl}/simple`,
+        crawl: false,
+        viewport: { width: 1920, height: 1080 },
+        waitAfterLoad: 100,
+        collectHar: false,
+      });
+
+      // Should complete successfully
+      expect(result.status).toBe(RunStatus.COMPLETED);
+      expect(result.pages).toHaveLength(1);
+      expect(result.pages[0].status).toBe(PageStatus.COMPLETED);
+
+      // Verify both snapshots exist
+      const page = result.pages[0];
+      const snapshot1 = await snapshotRepo.findByPageAndRun(page.id, run.id);
+      const snapshot2 = await snapshotRepo.findByPageAndRun(page.id, run2.id);
+
+      expect(snapshot1).toBeDefined();
+      expect(snapshot2).toBeDefined();
+      expect(snapshot1?.id).not.toBe(snapshot2?.id);
+    });
+  });
+
   describe('processScan - crawl mode', () => {
     it('should discover and process multiple pages', async () => {
       const project = await projectRepo.create({
