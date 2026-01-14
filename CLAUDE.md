@@ -40,6 +40,7 @@
 - 🏗️ **Planning features** → [Issue Management](docs/guides/issue-management.md)
 - 🖥️ **Running servers** → [Server Commands](docs/guides/running-servers.md)
 - 🧪 **Backend development** → [Backend Guide](docs/guides/backend-dev.md)
+- ⚠️ **Preventing regressions** → [Common Regression Points](docs/guides/common-regressions.md)
 
 ## Project Overview
 
