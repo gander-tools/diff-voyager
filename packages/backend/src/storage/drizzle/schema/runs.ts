@@ -24,6 +24,10 @@ export const runs = sqliteTable(
   },
   (table) => ({
     projectIdIdx: index('idx_runs_project_id').on(table.projectId),
+    projectIdIsBaselineIdx: index('idx_runs_project_id_is_baseline').on(
+      table.projectId,
+      table.isBaseline,
+    ),
   }),
 );
 

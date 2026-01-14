@@ -20,6 +20,7 @@ export const pages = sqliteTable(
   },
   (table) => ({
     projectIdIdx: index('idx_pages_project_id').on(table.projectId),
+    normalizedUrlIdx: index('idx_pages_normalized_url').on(table.normalizedUrl),
     projectUrlUnique: unique().on(table.projectId, table.normalizedUrl),
   }),
 );
