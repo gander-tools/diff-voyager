@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.21](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.20...diff-voyager-backend-v0.1.21) (2026-01-14)
+
+
+### Bug Fixes
+
+* **backend:** add missing RuleScope and RuleCondition imports ([6e65a5e](https://github.com/gander-tools/diff-voyager/commit/6e65a5e4b8cbb8afd6456725866ab0acd90ef6f7))
+* **backend:** configure CORS to allow frontend requests ([bc28a10](https://github.com/gander-tools/diff-voyager/commit/bc28a1023d918835f46e29589e11ecadba150a34))
+
 ## [0.1.20](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.19...diff-voyager-backend-v0.1.20) (2026-01-14)
 
 

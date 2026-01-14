@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.19](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.18...diff-voyager-frontend-v0.1.19) (2026-01-14)
+
+
+### Bug Fixes
+
+* **frontend:** correct project wizard stepper highlighting ([e1586db](https://github.com/gander-tools/diff-voyager/commit/e1586db66e0ecfdbfd0524f770ecf916cf825128))
+
 ## [0.1.18](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.17...diff-voyager-frontend-v0.1.18) (2026-01-14)
 
 
