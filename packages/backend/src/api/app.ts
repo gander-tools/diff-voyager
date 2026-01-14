@@ -114,9 +114,21 @@ export async function createApp(config: AppConfig): Promise<FastifyInstance> {
  */
 async function registerPlugins(app: FastifyInstance, config: AppConfig) {
   // Register CORS plugin
+  // In development, allow requests from the Vite dev server (localhost:5173)
+  // In production, configure allowed origins via environment variable
+  const isDevelopment = process.env.NODE_ENV !== 'production';
+  const allowedOrigins = isDevelopment
+    ? ['http://localhost:5173', 'http://127.0.0.1:5173']
+    : (process.env.ALLOWED_ORIGINS || '').split(',').filter(Boolean);
+
   await app.register(cors, {
-    origin: true, // Allow all origins in development
+    origin: isDevelopment ? allowedOrigins : allowedOrigins.length > 0 ? allowedOrigins : false,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['Content-Type'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
   });
 
   // Register rate limiting plugin
