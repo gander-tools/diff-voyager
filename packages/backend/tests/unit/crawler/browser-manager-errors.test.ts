@@ -327,16 +327,28 @@ describe('BrowserManager Error Scenarios', () => {
       const context = await browser.newContext();
       const page = await context.newPage();
 
-      await page.goto('https://example.com');
-
       const blockedRequests: string[] = [];
       page.on('requestfailed', (request) => {
         blockedRequests.push(request.url());
       });
 
+      await page.setContent(
+        `
+        <html>
+          <head>
+            <meta http-equiv="Content-Security-Policy" content="script-src 'self'">
+          </head>
+          <body>
+            <h1>Test Page</h1>
+          </body>
+        </html>
+      `,
+        { waitUntil: 'domcontentloaded' },
+      );
+
       await page.evaluate(() => {
         const script = document.createElement('script');
-        script.src = 'http://insecure.example.com/script.js';
+        script.src = 'https://external-domain.example/script.js';
         document.body.appendChild(script);
       });
 
