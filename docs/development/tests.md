@@ -468,6 +468,286 @@ This document provides a comprehensive overview of all tests in the Diff Voyager
 
     when one URL is a subdomain of another, returns false (treats subdomains as different)
 
+##### Internationalized Domain Names (IDN)
+
+- should handle punycode encoded domains
+
+    when normalizing URL with punycode domain (xn--n3h.com), returns normalized path /page
+
+- should handle unicode domains
+
+    when normalizing URL with unicode domain (münchen.de), returns string starting with /
+
+- should handle emoji domains
+
+    when normalizing URL with emoji in domain (i❤.ws), returns valid string
+
+- should handle mixed ASCII and unicode in path
+
+    when URL path contains unicode characters like café, returns string containing "caf"
+
+- should handle Japanese characters in path
+
+    when URL path contains Japanese characters, returns string starting with /
+
+- should handle Chinese characters in path
+
+    when URL path contains Chinese characters, returns string starting with /
+
+##### IPv6 URLs
+
+- should handle IPv6 loopback address
+
+    when normalizing http://[::1]/page, returns /page
+
+- should handle full IPv6 address
+
+    when normalizing URL with full IPv6 address [2001:0db8:85a3:0000:0000:8a2e:0370:7334], returns /page
+
+- should handle compressed IPv6 address
+
+    when normalizing URL with compressed IPv6 [2001:db8::1], returns /page
+
+- should handle IPv6 with port
+
+    when normalizing http://[::1]:8080/page, returns /page
+
+- should extract origin from IPv6 URL
+
+    when getting origin from IPv6 URL with port, origin contains [::1] and port 8080
+
+##### Special Characters in URLs
+
+- should handle percent-encoded characters
+
+    when URL contains %20 for spaces, returns string containing "path"
+
+- should handle multiple consecutive slashes
+
+    when URL contains ///page///path, returns valid string
+
+- should handle backslashes in path
+
+    when URL path contains backslashes, returns valid string
+
+- should handle semicolons in path
+
+    when URL contains session ID with semicolon, returns valid string
+
+- should handle pipe characters
+
+    when URL contains pipe character, returns valid string
+
+- should handle curly braces in path
+
+    when URL contains {id} template syntax, normalized path matches pattern with braces or percent-encoding
+
+##### Very Long URLs
+
+- should handle URL with 2000 character path
+
+    when path is 2000+ characters long, returns string longer than 1000 characters
+
+- should handle URL with 100 query parameters
+
+    when URL has 100 query parameters, returns valid string
+
+- should handle URL with very long query parameter value
+
+    when single query parameter value is 5000 characters, returns valid string
+
+- should handle deeply nested path
+
+    when path has 50 nested levels, result has 40+ path segments
+
+##### Unicode and Emoji in URLs
+
+- should handle emoji in path
+
+    when URL path contains 👍 emoji, returns valid string
+
+- should handle multiple emojis
+
+    when URL path contains multiple emojis 🔥💯✨, returns valid string
+
+- should handle zero-width characters
+
+    when URL contains zero-width characters, returns valid string
+
+- should handle right-to-left characters
+
+    when URL contains Arabic RTL characters, returns valid string
+
+##### Percent-Encoded Edge Cases
+
+- should handle double percent-encoding
+
+    when URL contains %2520 (double-encoded space), returns valid string
+
+- should handle uppercase vs lowercase percent-encoding
+
+    when URL contains %2f vs %2F, both return valid strings
+
+- should handle invalid percent-encoding
+
+    when URL contains invalid %ZZ encoding, returns valid string
+
+- should handle incomplete percent-encoding
+
+    when URL contains incomplete %2 encoding, returns valid string
+
+##### Port Numbers
+
+- should handle non-standard HTTP port
+
+    when getting origin from http://example.com:8080, returns http://example.com:8080
+
+- should omit default HTTP port 80
+
+    when getting origin from http://example.com:80, may return with or without :80
+
+- should omit default HTTPS port 443
+
+    when getting origin from https://example.com:443, may return with or without :443
+
+- should handle very high port numbers
+
+    when port is 65535, origin contains port number
+
+- should handle port 0
+
+    when port is 0, returns valid origin string
+
+##### Subdomain Variations
+
+- should differentiate www and non-www
+
+    when comparing example.com and www.example.com, isSameDomain returns false
+
+- should handle multiple subdomains
+
+    when comparing api.example.com and api.v2.example.com, isSameDomain returns false
+
+- should handle deeply nested subdomains
+
+    when comparing a.b.c.d.e.example.com with itself, isSameDomain returns true
+
+##### Query Parameter Edge Cases
+
+- should handle empty query parameter values
+
+    when query params have empty values (param1=&param2=), result contains param names
+
+- should handle query parameters without values
+
+    when query has flags without values (?flag1&flag2), returns valid string
+
+- should handle duplicate query parameters
+
+    when query has multiple values for same parameter (?id=1&id=2&id=3), result contains "id"
+
+- should handle query parameters with special characters
+
+    when query contains + and , characters, returns valid string
+
+- should handle query string with only ampersands
+
+    when query is just ?&&&, returns valid string
+
+##### Fragment Handling
+
+- should remove simple fragment
+
+    when URL has #section fragment, normalized result does not contain #
+
+- should remove fragment with slashes
+
+    when URL has #/virtual/route fragment, result does not contain #
+
+- should remove fragment with query-like syntax
+
+    when URL has #?param=value fragment, result does not contain #
+
+- should remove fragment with special characters
+
+    when URL has #section!@$% fragment, result does not contain #
+
+##### Case Sensitivity
+
+- should lowercase simple paths
+
+    when URL path is /PAGE, returns /page
+
+- should lowercase mixed-case paths
+
+    when URL is /MyPage/SubPath, result is all lowercase
+
+- should handle uppercase query parameters
+
+    when query has uppercase ?PARAM=VALUE, returns valid string
+
+##### Data URLs and Special Schemes
+
+- should handle blob URLs
+
+    when normalizing blob: URL, does not throw error
+
+- should handle data URLs
+
+    when normalizing data: URL, does not throw error
+
+- should handle mailto URLs
+
+    when normalizing mailto: URL, does not throw error
+
+- should handle tel URLs
+
+    when normalizing tel: URL, does not throw error
+
+##### Whitespace and Control Characters
+
+- should handle leading whitespace
+
+    when URL has leading spaces, does not throw error
+
+- should handle trailing whitespace
+
+    when URL has trailing spaces, does not throw error
+
+- should handle tabs in URL
+
+    when URL contains tab character, does not throw error
+
+- should handle newlines in URL
+
+    when URL contains newline character, does not throw error
+
+- should handle carriage returns
+
+    when URL contains carriage return, does not throw error
+
+##### Boundary Conditions
+
+- should handle empty path
+
+    when URL is just https://example.com, returns /
+
+- should handle URL with only protocol and domain
+
+    when URL is https://example.com/, returns /
+
+- should handle single character path
+
+    when URL is https://example.com/a, returns /a
+
+- should handle path with only dot
+
+    when URL contains /./page, returns valid string
+
+- should handle path with double dots
+
+    when URL contains /path/../page, returns valid string
+
 #### Visual Comparator
 
 ##### compare
@@ -529,6 +809,174 @@ This document provides a comprehensive overview of all tests in the Diff Voyager
 - should include percentage in description
 
     when creating description, it includes the diff percentage and pixel count
+
+##### Corrupted Images
+
+- should handle truncated PNG data
+
+    when baseline is truncated PNG, compare returns error
+
+- should handle invalid PNG header
+
+    when PNG has invalid header bytes, compare returns error
+
+- should handle empty buffer
+
+    when buffer is empty, compare returns error
+
+- should handle null bytes
+
+    when buffer contains only null bytes, compare returns error
+
+- should handle corrupted image data section
+
+    when PNG data section is corrupted, compare returns error
+
+##### Zero and Minimal Size Images
+
+- should handle 1x1 pixel images
+
+    when comparing 1x1 pixel images (white vs black), diffPixels is 1 and diffPercentage is 100
+
+- should handle 1x1 identical pixels
+
+    when comparing identical 1x1 images, diffPixels is 0 and diffPercentage is 0
+
+- should handle 1-pixel wide images
+
+    when comparing 1x100 pixel images, diffPixels is 0 for identical images
+
+- should handle 1-pixel tall images
+
+    when comparing 100x1 pixel images, diffPixels is 0 for identical images
+
+##### Large Images
+
+- should handle HD resolution images (1920x1080)
+
+    when comparing HD resolution images, diffPixels is 0 for identical images with correct width and height
+
+- should handle tall images (100x2000)
+
+    when comparing tall images, diffPixels is 0 for identical images
+
+- should handle wide images (2000x100)
+
+    when comparing wide images, diffPixels is 0 for identical images
+
+##### Transparency and Alpha Channel
+
+- should compare fully transparent images
+
+    when comparing images with alpha 0, diffPixels is 0 for identical transparency
+
+- should detect differences in alpha channel only
+
+    when RGB is identical but alpha differs (255 vs 128), diffPixels is greater than 0
+
+- should handle gradient transparency
+
+    when comparing gradient alpha vs flat alpha, diffPixels is greater than 0
+
+- should compare images with partial transparency
+
+    when both images have alpha 200, diffPixels is 0
+
+- should handle checkerboard transparency pattern
+
+    when both images have same checkerboard alpha pattern, diffPixels is 0
+
+##### Aspect Ratio Mismatches
+
+- should detect portrait vs landscape mismatch
+
+    when comparing 100x200 portrait with 200x100 landscape, returns error containing "size"
+
+- should detect square vs rectangle mismatch
+
+    when comparing 100x100 square with 100x150 rectangle, returns error
+
+- should detect extreme aspect ratio mismatch
+
+    when comparing 1000x10 wide with 10x1000 tall, returns error
+
+##### Color Depth and Variations
+
+- should compare pure black and pure white
+
+    when comparing black (0,0,0) with white (255,255,255), diffPixels is 10000 and diffPercentage is 100
+
+- should detect subtle grayscale differences
+
+    when comparing gray (127,127,127) with gray (128,128,128), diffPixels is numeric
+
+- should handle images with single color channel active
+
+    when comparing pure red with pure green, diffPixels is greater than 0
+
+- should compare monochrome images
+
+    when comparing black with white, diffPercentage is 100
+
+##### Diff Image Generation Edge Cases
+
+- should generate diff image for 1x1 images
+
+    when generateDiffImage is true for 1x1 images, diffImage is defined with 1x1 dimensions
+
+- should generate diff image for large images
+
+    when generateDiffImage is true for 800x600 images, diffImage is defined with 800x600 dimensions
+
+- should not generate diff image when images are identical
+
+    when generateDiffImage is false and images identical, diffImage is undefined
+
+##### Threshold Boundary Conditions
+
+- should handle threshold of 0%
+
+    when threshold is 0 and any pixel differs, thresholdExceeded is true
+
+- should handle threshold of 100%
+
+    when threshold is 100 and all pixels differ, thresholdExceeded is false
+
+- should handle very small threshold (0.001%)
+
+    when threshold is 0.001 and images identical, thresholdExceeded is false
+
+- should handle threshold exactly at diff percentage
+
+    when threshold equals actual diff percentage, thresholdExceeded is false
+
+##### Pixel Format Edge Cases
+
+- should handle images with odd dimensions
+
+    when comparing 101x99 images, diffPixels is 0 with correct width and height
+
+- should handle images with prime number dimensions
+
+    when comparing 97x89 images, diffPixels is 0
+
+- should handle images with power-of-2 dimensions
+
+    when comparing 512x512 black with white, diffPixels is 262144
+
+##### Real-World Scenarios
+
+- should handle antialiasing differences
+
+    when comparing sharp (0,0,0) with blurred (1,1,1), diffPixels is numeric
+
+- should handle subpixel rendering differences
+
+    when comparing (100,100,100) with (101,100,100), diffPercentage is numeric
+
+- should handle JPEG-like compression artifacts
+
+    when comparing clean (128,128,128) with noisy (129,127,128), diffPixels is numeric
 
 ### crawler
 
@@ -611,6 +1059,150 @@ This document provides a comprehensive overview of all tests in the Diff Voyager
 - should prevent new browsers during close
 
     when a browser creation is attempted during the close process, throws an error indicating the manager is closing
+
+##### Browser Launch Failures
+
+- should handle browser launch with custom timeout
+
+    when BrowserManager is configured with custom 30000ms launch timeout, successfully launches browser within timeout
+
+- should handle multiple concurrent launch attempts
+
+    when 10 concurrent getBrowser() calls are made, all resolve to same browser instance with only 1 unique browser created
+
+##### Browser Crash Scenarios
+
+- should detect when browser is closed
+
+    when browser is running and then closed, isConnected() changes from true to false
+
+- should handle multiple crash recovery attempts
+
+    when browser is launched, closed, and relaunched 3 times, each cycle completes successfully
+
+- should cleanup resources after browser close
+
+    when browser is closed, isActive() returns false indicating proper cleanup
+
+##### Memory Management
+
+- should handle creation of many browser contexts
+
+    when 10 browser contexts are created concurrently, all contexts are created successfully and close without errors
+
+- should handle creation of many pages
+
+    when 20 pages are created in single context, all pages are created successfully
+
+- should cleanup pages after context close
+
+    when context with 2 pages is closed, both pages have isClosed() as true
+
+- should handle rapid browser creation and destruction
+
+    when browser is created and destroyed 5 times rapidly, all cycles complete without memory leaks
+
+##### Network Failure Scenarios
+
+- should handle offline network mode
+
+    when context is set to offline mode, page navigation throws error and navigation succeeds after going back online
+
+- should handle DNS resolution failure
+
+    when navigating to non-existent domain, page.goto() rejects with error
+
+- should handle connection timeout
+
+    when page navigation times out after 1ms, page.goto() rejects with timeout error
+
+- should handle slow network conditions
+
+    when network responses are delayed by 100ms and timeout is 50ms, page.goto() rejects with timeout error
+
+##### CSP Violations
+
+- should handle pages with strict CSP
+
+    when page has Content-Security-Policy with default-src 'none', page content loads successfully
+
+- should detect CSP violations in console
+
+    when page has CSP blocking scripts, console messages can be captured for monitoring
+
+- should handle CSP blocking external resources
+
+    when page has CSP blocking external images, failed resource requests are tracked
+
+##### Resource Loading Errors
+
+- should handle 404 errors for resources
+
+    when page references non-existent resources, failed requests are tracked and page loads
+
+- should handle mixed content blocking
+
+    when page tries to load external scripts blocked by CSP, blocked requests are tracked
+
+- should handle CORS errors
+
+    when page makes cross-origin fetch request, CORS error is handled gracefully
+
+##### JavaScript Runtime Errors
+
+- should handle uncaught JavaScript exceptions
+
+    when page throws JavaScript error, pageerror event captures the error
+
+- should handle evaluate timeout
+
+    when page.evaluate() runs longer than timeout, rejects with timeout error
+
+- should handle promise rejections
+
+    when page.evaluate() returns rejected promise, rejects with error
+
+##### Browser State Management
+
+- should handle browser disconnection gracefully
+
+    when browser is manually closed, isConnected() becomes false and isActive() becomes false
+
+- should prevent operations on closed browser
+
+    when attempting newContext() on closed browser, throws error
+
+- should handle rapid open/close cycles
+
+    when browser is opened and closed 10 times rapidly, all cycles complete successfully
+
+##### Concurrent Browser Operations
+
+- should handle concurrent page navigations
+
+    when 3 pages navigate to content concurrently, all pages load content successfully
+
+- should handle concurrent context creation
+
+    when 3 contexts are created concurrently, all contexts are created successfully
+
+- should isolate errors between concurrent operations
+
+    when one page navigation fails while another succeeds, successful page loads correctly
+
+##### Configuration Edge Cases
+
+- should handle invalid browser args
+
+    when BrowserManager is configured with invalid flags, browser still launches successfully
+
+- should handle extremely high timeout values
+
+    when defaultTimeout is set to Number.MAX_SAFE_INTEGER, browser launches successfully
+
+- should handle zero timeout
+
+    when defaultTimeout is set to 0, browser launches successfully
 
 #### Page Capturer
 
@@ -1744,6 +2336,346 @@ This document provides a comprehensive overview of all tests in the Diff Voyager
 
     when creating multiple pages concurrently using SQL and retrieving with Drizzle, all pages are present with matching IDs
 
+### security
+
+#### Advanced Path Traversal Security
+
+##### Classic Path Traversal Attacks
+
+- should block double dot traversal (../)
+
+    when attempting path traversal using ../ sequences, returns 400 or 404 status and does not expose system files
+
+- should block URL-encoded double dots (%2e%2e%2f)
+
+    when attempting path traversal with URL-encoded dots, returns 400 status
+
+- should block double URL-encoded dots (%252e)
+
+    when attempting path traversal with double URL encoding, returns 400 or 404 status
+
+- should block Unicode encoding of dots (U+002E)
+
+    when attempting path traversal with Unicode-encoded dots, returns 400 or 404 status
+
+- should block backslash path separators (Windows)
+
+    when attempting path traversal using Windows-style backslash separators, returns 400 or 404 status
+
+##### Absolute Path Attacks
+
+- should block absolute Unix paths
+
+    when attempting to access absolute Unix paths like /etc/passwd, returns 400 or 404 status
+
+- should block absolute Windows paths (C:\)
+
+    when attempting to access Windows system paths, returns 400 or 404 status
+
+- should block UNC paths (\\server\share)
+
+    when attempting to access UNC network paths, returns 400 or 404 status
+
+- should block file:// protocol
+
+    when attempting to use file:// protocol in paths, returns 400 or 404 status
+
+##### Null Byte Injection
+
+- should block null bytes in path
+
+    when path contains null bytes attempting traversal, returns 400 status
+
+- should block null bytes in filename
+
+    when filename contains null bytes, returns 400 or 404 status
+
+- should block multiple null bytes
+
+    when path contains multiple null bytes, returns 400 status
+
+##### Symlink Attack Prevention
+
+- should reject symlinks pointing outside artifacts directory
+
+    when symlink points to sensitive files outside artifacts directory, returns 400 status and does not expose file contents
+
+- should reject symlinked directories
+
+    when directory symlink points outside artifacts, returns 400 or 404 status
+
+- should reject chained symlinks
+
+    when multiple symlinks chain to sensitive locations, returns 400 or 404 status
+
+##### Directory Listing Prevention
+
+- should not allow directory listing via artifacts endpoint
+
+    when attempting directory listing, returns 400, 404, or 405 status
+
+- should not expose directory contents in error messages
+
+    when requesting non-existent file, error message does not reveal other file names in directory
+
+- should not allow parent directory access
+
+    when attempting parent directory access, returns 400 or 404 status
+
+##### Filesystem Operation Verification
+
+- should verify that traversal attempts do not access filesystem
+
+    when path traversal is attempted, all filesystem access attempts remain within artifacts directory
+
+- should verify that valid requests only access artifacts directory
+
+    when valid request is made, resolved file path starts with artifacts directory path
+
+##### Special Character Handling
+
+- should block paths with spaces
+
+    when path contains spaces, returns 400 or 404 status
+
+- should block paths with semicolons
+
+    when path contains semicolons, returns 400 or 404 status
+
+- should block paths with pipe characters
+
+    when path contains pipe characters, returns 400 or 404 status
+
+- should block paths with ampersands
+
+    when path contains ampersands, returns 400 or 404 status
+
+- should block paths with dollar signs
+
+    when path contains dollar signs, returns 400 or 404 status
+
+##### Case Sensitivity Attacks
+
+- should handle case variations in path traversal attempts
+
+    when path traversal uses uppercase variations like ETC/PASSWD, returns 400 or 404 status
+
+- should handle mixed case in encoded characters
+
+    when percent-encoded characters use mixed case, returns 400 status
+
+##### Long Path Attacks
+
+- should reject extremely long paths
+
+    when path contains 1000+ repeated segments, returns 400, 404, or 414 status
+
+- should reject paths with extremely long segments
+
+    when single path segment is 10000+ characters, returns 400, 404, or 414 status
+
+##### Empty and Whitespace Paths
+
+- should reject empty pageId
+
+    when pageId is empty, returns 400 or 404 status
+
+- should reject whitespace-only pageId
+
+    when pageId contains only whitespace, returns 400 or 404 status
+
+- should reject tab characters in pageId
+
+    when pageId contains tab characters, returns 400 or 404 status
+
+- should reject newline characters in pageId
+
+    when pageId contains newline characters, returns 400 or 404 status
+
+##### Race Condition Prevention
+
+- should prevent TOCTOU attacks via concurrent requests
+
+    when multiple concurrent path traversal requests are made, all return 400 or 404 status
+
+- should handle rapid switching between valid and invalid paths
+
+    when alternating between valid and invalid paths rapidly, valid requests return 200 and invalid return 400/404
+
+### concurrency
+
+#### Queue Concurrency
+
+##### Concurrent Enqueue Operations
+
+- should handle concurrent task enqueueing
+
+    when 100 tasks are enqueued concurrently, all tasks receive unique IDs and all are stored in database
+
+- should maintain task order under concurrent enqueue
+
+    when tasks are enqueued sequentially, database order matches insertion order by created_at ASC
+
+- should handle concurrent enqueue with different priorities
+
+    when tasks are enqueued with high/normal/low priorities concurrently, all priorities are stored correctly with 10 tasks per priority level
+
+##### Concurrent Dequeue Operations
+
+- should prevent double-dequeue of same task
+
+    when single task is dequeued by 10 concurrent operations, only one operation receives the task
+
+- should handle concurrent dequeue from empty queue
+
+    when 20 concurrent dequeue operations run on empty queue, all return null
+
+- should distribute tasks across concurrent dequeues
+
+    when 10 tasks are available and 10 concurrent dequeues occur, all tasks are distributed with unique IDs
+
+##### Concurrent Status Updates
+
+- should handle concurrent task completions
+
+    when 20 tasks are completed concurrently, all tasks have completed status
+
+- should handle concurrent failures and retries
+
+    when tasks are concurrently completed and failed, all status updates are recorded correctly
+
+- should maintain status consistency under race conditions
+
+    when task receives concurrent complete/fail/retry operations, final status is one of pending/completed/failed
+
+##### Mixed Concurrent Operations
+
+- should handle concurrent enqueue, dequeue, and status updates
+
+    when mix of 20 enqueues, 10 dequeues, and 5 status updates occur concurrently, all operations complete successfully
+
+- should maintain queue integrity under heavy load
+
+    when 100 enqueues and 50 dequeues occur concurrently, pending + processing tasks equal 100
+
+##### Transaction Isolation
+
+- should isolate concurrent transactions
+
+    when two transactions each enqueue 10 tasks, both complete successfully with 20 total tasks
+
+- should rollback failed transactions
+
+    when transaction fails mid-execution, no partial data is committed to database
+
+##### Priority Queue Race Conditions
+
+- should respect priority under concurrent operations
+
+    when tasks with different priorities are enqueued concurrently, first dequeued task has high priority
+
+- should handle priority changes under concurrent updates
+
+    when task priority is updated concurrently to different values, final priority is one of high/normal/low
+
+##### Queue Statistics Under Concurrency
+
+- should maintain accurate counts under concurrent operations
+
+    when 50 tasks are enqueued concurrently, total count equals 50
+
+- should track status transitions correctly
+
+    when 10 tasks are completed out of 20, completed count is 10 and pending count is 10
+
+#### Storage Concurrency
+
+##### Concurrent Project Operations
+
+- should handle concurrent project creation
+
+    when 20 projects are created concurrently, all receive unique IDs and all are stored
+
+- should handle concurrent project updates
+
+    when project is updated 10 times concurrently, final name contains "Updated Project"
+
+- should handle concurrent project reads
+
+    when project is read 50 times concurrently, all reads return correct project with matching ID
+
+- should maintain consistency during concurrent create and read
+
+    when 10 concurrent creates and 10 concurrent reads occur, final database contains 10 projects
+
+##### Concurrent Run Operations
+
+- should handle concurrent run creation for same project
+
+    when 15 runs are created concurrently for same project, all receive unique IDs with 15 total runs
+
+- should handle concurrent run status updates
+
+    when run status is updated concurrently to different values, final status is one of processing/completed/failed
+
+- should isolate runs across concurrent transactions
+
+    when two transactions each create 5 runs, both complete with 10 total runs
+
+##### Concurrent Page Operations
+
+- should handle concurrent page creation
+
+    when 25 pages are created concurrently, all receive unique IDs and all are stored
+
+- should handle concurrent page updates
+
+    when page is updated 10 times concurrently with different status codes, final status is between 200-209
+
+- should maintain consistency across concurrent page operations
+
+    when 20 pages are created and 10 reads occur concurrently, final database contains 20 pages
+
+##### Cross-Entity Concurrent Operations
+
+- should handle concurrent operations across projects, runs, and pages
+
+    when 5 projects with runs are created concurrently, then pages are added, database contains 5 projects, 5 runs, and 25 pages
+
+- should maintain referential integrity under concurrent operations
+
+    when 10 runs with 3 pages each are created concurrently, all pages correctly reference their parent runs
+
+##### Cascade Delete Under Concurrency
+
+- should handle concurrent deletes with cascade
+
+    when 5 projects are created and 3 are deleted concurrently, 2 projects remain
+
+- should maintain consistency when deleting parent during child creation
+
+    when project is deleted while pages are being created, project deletion succeeds
+
+##### Deadlock Prevention
+
+- should prevent deadlocks on concurrent updates
+
+    when two projects are updated concurrently 10 times each, all updates complete successfully
+
+- should handle circular dependency updates
+
+    when runs are updated and their parent project is updated concurrently, all updates complete
+
+##### Data Consistency Under Load
+
+- should maintain data consistency under heavy concurrent load
+
+    when 50 projects with runs are created concurrently, all projects have at least one run
+
+- should handle mixed read/write operations correctly
+
+    when project is read and updated 25 times concurrently, final project has updated name
+
 ### api
 
 #### Multiple Runs Integration
@@ -2233,6 +3165,116 @@ This document provides a comprehensive overview of all tests in the Diff Voyager
 - should cascade delete all related data (pages, snapshots)
 
     when deleting a project with pages and snapshots, returns 204 status, and subsequent GET requests for pages return 404 confirming cascade deletion
+
+#### API Security
+
+##### SQL Injection Prevention
+
+- should sanitize SQL injection in project ID parameter
+
+    when requesting project with SQL injection in ID parameter using DROP TABLE, returns 400 status
+
+- should sanitize SQL injection in search query
+
+    when using SQL injection attempt in search query parameter, returns 200 or 400 status without exposing database
+
+- should prevent SQL injection in limit parameter
+
+    when limit parameter contains SQL injection attempt, returns 200 or 400 status without database compromise
+
+- should prevent SQL injection in offset parameter
+
+    when offset parameter contains SQL injection attempt with OR clause, returns 200 or 400 status
+
+##### XSS Prevention
+
+- should validate URL schemes to prevent javascript: URLs
+
+    when submitting scan with javascript: URL scheme, returns 400 status with bodyErrors field
+
+##### Malformed JSON Handling
+
+- should reject malformed JSON
+
+    when POSTing malformed JSON with invalid syntax, returns 400 status
+
+- should reject JSON with invalid UTF-8
+
+    when POSTing invalid UTF-8 bytes, returns 400 status
+
+- should reject JSON with null bytes
+
+    when POSTing JSON containing null bytes in string values, returns 400 status
+
+- should handle deeply nested JSON gracefully
+
+    when POSTing JSON with 1000+ levels of nesting, returns 400 or 413 status
+
+##### CORS Validation
+
+- should include CORS headers in preflight request
+
+    when sending OPTIONS preflight with origin header, returns 200 or 204 status with access-control-allow-origin header
+
+- should include CORS headers in actual request
+
+    when sending GET with origin header, returns 200 status with access-control-allow-origin header
+
+- should handle CORS for POST requests
+
+    when POSTing with origin header, returns 200 or 202 status with access-control-allow-origin header
+
+##### Error Information Disclosure
+
+- should not leak database path in error messages
+
+    when requesting invalid UUID causing error, error response does not contain "sqlite" or ".db" strings
+
+- should not leak system paths in error messages
+
+    when requesting non-existent artifact, error response does not contain /home/, /tmp/, or C:\ paths
+
+- should not leak stack traces in production mode
+
+    when request causes error, response does not contain "at " or file:line references
+
+##### Input Validation
+
+- should validate UUID format strictly
+
+    when requesting with invalid UUIDs (not-a-uuid, wrong length, etc.), returns 400 status
+
+- should validate integer parameters
+
+    when requesting with non-numeric limit parameter, returns 400 status
+
+- should enforce minimum and maximum for pagination
+
+    when limit is too large (10000) or negative (-1), returns 200 or 400 status with appropriate handling
+
+##### Request Header Validation
+
+- should reject requests with invalid Content-Type
+
+    when POSTing with text/plain Content-Type, returns 400 or 415 status
+
+- should handle missing Content-Type gracefully
+
+    when POSTing without Content-Type header, returns 200, 202, 400, or 415 status
+
+- should reject extremely long headers
+
+    when sending header with 100000+ character value, returns 200, 400, 413, or 431 status
+
+##### HTTP Method Validation
+
+- should reject unsupported HTTP methods
+
+    when using TRACE method, returns 404 or 405 status
+
+- should reject CONNECT method
+
+    when using CONNECT method, returns 404 or 405 status
 
 ### services
 
@@ -5059,4 +6101,88 @@ This document provides a comprehensive overview of all tests in the Diff Voyager
 - should reject maxPages below minimum
 
     verifies schema rejects maxPages 0 (below 1 minimum) as invalid
+
+### accessibility
+
+#### Keyboard Navigation
+
+##### Tab Navigation
+
+- should allow tab navigation through interactive elements in ProjectCard
+
+    when ProjectCard is rendered, all buttons and links have tabindex not equal to -1
+
+- should maintain logical tab order in forms
+
+    when ProjectForm is rendered, all input, textarea, select, and button elements maintain proper tab order
+
+- should have focusable elements in RunCard
+
+    when RunCard is rendered, contains at least one focusable element (a, button, input, etc.)
+
+##### Keyboard Shortcuts
+
+- should respond to Enter key on clickable elements
+
+    when Enter key is pressed on clickable element in ProjectCard, element responds to keydown event
+
+- should support Space key on buttons
+
+    when Space key is pressed on button in ProjectCard, button responds to keydown event
+
+##### Focus Management
+
+- should have visible focus indicators on ProjectCard
+
+    when ProjectCard is rendered, all focusable elements exist and can receive focus
+
+- should focus first input on ProjectForm mount
+
+    when ProjectForm is mounted, first input/textarea/select element exists in DOM
+
+##### ARIA Attributes
+
+- should have aria-label on icon-only buttons in ProjectCard
+
+    when ProjectCard contains buttons without text, each has aria-label or aria-labelledby attribute
+
+- should have proper status indicators in RunCard
+
+    when RunCard is rendered with status, status information is present in text content
+
+##### Screen Reader Support
+
+- should have descriptive labels for form inputs
+
+    when ProjectForm is rendered, each input has associated label via for/id, aria-label, or aria-labelledby
+
+- should have alt text or aria-label for icons
+
+    when ProjectCard contains images, each has alt attribute, aria-label, or role="presentation"
+
+##### Color and Contrast
+
+- should not rely solely on color for status in RunCard
+
+    when RunCard shows status, status is conveyed through text, icon, or aria-label in addition to color
+
+##### Form Validation Accessibility
+
+- should mark required fields appropriately
+
+    when ProjectForm has required inputs, each has aria-required="true" or required attribute
+
+- should provide error messages for invalid inputs
+
+    when ProjectForm input has aria-invalid="true", it has aria-describedby or aria-errormessage
+
+##### Interactive Element Accessibility
+
+- should have proper button roles in ProjectCard
+
+    when ProjectCard contains button elements, each has no role or role="button"
+
+- should have proper link roles in RunCard
+
+    when RunCard contains link elements, each has defined href attribute
 
