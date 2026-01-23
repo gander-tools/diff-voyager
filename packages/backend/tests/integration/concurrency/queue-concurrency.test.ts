@@ -525,7 +525,9 @@ describe('Queue Concurrency', () => {
         taskQueue.enqueue({ type: 'capture-page', payload }),
       );
 
-      const updatePromises = taskIds.slice(0, 10).map((id) => Promise.resolve(taskQueue.complete(id)));
+      const updatePromises = taskIds
+        .slice(0, 10)
+        .map((id) => Promise.resolve(taskQueue.complete(id)));
 
       await Promise.all(updatePromises);
 

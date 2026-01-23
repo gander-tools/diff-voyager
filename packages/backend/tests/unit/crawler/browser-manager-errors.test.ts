@@ -45,7 +45,6 @@ describe('BrowserManager Error Scenarios', () => {
         expect(browser.isConnected()).toBe(true);
       });
     });
-
   });
 
   describe('Browser Crash Scenarios', () => {

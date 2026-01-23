@@ -170,7 +170,6 @@ describe('API Security', () => {
     });
   });
 
-
   describe('CORS Validation', () => {
     it('should include CORS headers in preflight request', async () => {
       const response = await app.inject({
@@ -216,7 +215,6 @@ describe('API Security', () => {
       expect(response.headers).toHaveProperty('access-control-allow-origin');
     });
   });
-
 
   describe('Error Information Disclosure', () => {
     it('should not leak database path in error messages', async () => {
@@ -305,7 +303,6 @@ describe('API Security', () => {
 
       expect(negative.statusCode).toBe(400);
     });
-
   });
 
   describe('Request Header Validation', () => {
