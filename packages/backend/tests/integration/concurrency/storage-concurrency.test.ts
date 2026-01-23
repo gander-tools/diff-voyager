@@ -8,9 +8,9 @@ import { join } from 'node:path';
 import type Database from 'better-sqlite3';
 import * as tmp from 'tmp';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { PageRepositoryDrizzle } from '../../../src/repositories/page-repository.js';
-import { ProjectRepositoryDrizzle } from '../../../src/repositories/project-repository.js';
-import { RunRepositoryDrizzle } from '../../../src/repositories/run-repository.js';
+import { PageRepositoryDrizzle } from '../../../src/storage/repositories/page-repository.drizzle.js';
+import { ProjectRepositoryDrizzle } from '../../../src/storage/repositories/project-repository.drizzle.js';
+import { RunRepositoryDrizzle } from '../../../src/storage/repositories/run-repository.drizzle.js';
 import { closeDatabase, createDatabase } from '../../../src/storage/database.js';
 import { createDrizzleDb } from '../../../src/storage/drizzle/db.js';
 

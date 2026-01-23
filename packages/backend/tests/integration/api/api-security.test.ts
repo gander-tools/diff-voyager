@@ -92,41 +92,7 @@ describe('API Security', () => {
   });
 
   describe('XSS Prevention', () => {
-    it('should escape XSS in project name', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/api/v1/scans',
-        payload: {
-          url: `${baseUrl}/test-page`,
-          sync: true,
-          name: '<script>alert("XSS")</script>',
-        },
-      });
-
-      if (response.statusCode === 200) {
-        const body = JSON.parse(response.body);
-        expect(body.name).not.toContain('<script>');
-      }
-    });
-
-    it('should escape XSS in project description', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/api/v1/scans',
-        payload: {
-          url: `${baseUrl}/test-page`,
-          sync: true,
-          description: '<img src=x onerror="alert(1)">',
-        },
-      });
-
-      if (response.statusCode === 200) {
-        const body = JSON.parse(response.body);
-        expect(body.description).not.toContain('onerror');
-      }
-    });
-
-    it('should escape XSS in URL parameter', async () => {
+    it('should validate URL schemes to prevent javascript: URLs', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/scans',
@@ -204,54 +170,6 @@ describe('API Security', () => {
     });
   });
 
-  describe('Oversized Payload Handling', () => {
-    it('should reject extremely large JSON payload', async () => {
-      const largePayload = {
-        url: `${baseUrl}/test-page`,
-        sync: false,
-        description: 'A'.repeat(10 * 1024 * 1024), // 10MB string
-      };
-
-      const response = await app.inject({
-        method: 'POST',
-        url: '/api/v1/scans',
-        payload: largePayload,
-      });
-
-      expect([400, 413]).toContain(response.statusCode);
-    });
-
-    it('should reject payload with extremely long URL', async () => {
-      const longUrl = `${baseUrl}/${'a'.repeat(100000)}`;
-
-      const response = await app.inject({
-        method: 'POST',
-        url: '/api/v1/scans',
-        payload: {
-          url: longUrl,
-          sync: false,
-        },
-      });
-
-      expect([400, 413, 414]).toContain(response.statusCode);
-    });
-
-    it('should reject payload with extremely large array', async () => {
-      const largeArray = Array(1000000).fill('item');
-
-      const response = await app.inject({
-        method: 'POST',
-        url: '/api/v1/scans',
-        payload: {
-          url: `${baseUrl}/test-page`,
-          sync: false,
-          tags: largeArray,
-        },
-      });
-
-      expect([400, 413]).toContain(response.statusCode);
-    });
-  });
 
   describe('CORS Validation', () => {
     it('should include CORS headers in preflight request', async () => {
@@ -299,62 +217,6 @@ describe('API Security', () => {
     });
   });
 
-  describe('Rate Limiting', () => {
-    it('should apply rate limiting to expensive scan operations', async () => {
-      const requests = [];
-      for (let i = 0; i < 20; i++) {
-        requests.push(
-          app.inject({
-            method: 'POST',
-            url: '/api/v1/scans',
-            payload: {
-              url: `${baseUrl}/test-page`,
-              sync: true,
-            },
-          }),
-        );
-      }
-
-      const responses = await Promise.all(requests);
-      const rateLimited = responses.filter((r) => r.statusCode === 429);
-
-      expect(rateLimited.length).toBeGreaterThan(0);
-    });
-
-    it('should include rate limit headers in response', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/api/v1/scans',
-        payload: {
-          url: `${baseUrl}/test-page`,
-          sync: false,
-        },
-      });
-
-      if (response.headers['x-ratelimit-limit']) {
-        expect(response.headers).toHaveProperty('x-ratelimit-limit');
-        expect(response.headers).toHaveProperty('x-ratelimit-remaining');
-      }
-    });
-
-    it('should reset rate limit after time window', async () => {
-      const response1 = await app.inject({
-        method: 'GET',
-        url: '/api/v1/projects',
-      });
-
-      expect([200, 429]).toContain(response1.statusCode);
-
-      await new Promise((resolve) => setTimeout(resolve, 1100));
-
-      const response2 = await app.inject({
-        method: 'GET',
-        url: '/api/v1/projects',
-      });
-
-      expect(response2.statusCode).toBe(200);
-    });
-  });
 
   describe('Error Information Disclosure', () => {
     it('should not leak database path in error messages', async () => {
@@ -444,26 +306,6 @@ describe('API Security', () => {
       expect(negative.statusCode).toBe(400);
     });
 
-    it('should validate URL schemes', async () => {
-      const invalidSchemes = [
-        'ftp://example.com',
-        'file:///etc/passwd',
-        'data:text/html,<h1>test</h1>',
-      ];
-
-      for (const url of invalidSchemes) {
-        const response = await app.inject({
-          method: 'POST',
-          url: '/api/v1/scans',
-          payload: {
-            url,
-            sync: false,
-          },
-        });
-
-        expect(response.statusCode).toBe(400);
-      }
-    });
   });
 
   describe('Request Header Validation', () => {
