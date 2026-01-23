@@ -50,7 +50,9 @@ describe('UrlNormalizer Edge Cases', () => {
     });
 
     it('should handle full IPv6 address', () => {
-      const result = UrlNormalizer.normalize('http://[2001:0db8:85a3:0000:0000:8a2e:0370:7334]/page');
+      const result = UrlNormalizer.normalize(
+        'http://[2001:0db8:85a3:0000:0000:8a2e:0370:7334]/page',
+      );
       expect(result).toBe('/page');
     });
 
@@ -205,7 +207,10 @@ describe('UrlNormalizer Edge Cases', () => {
 
   describe('Subdomain Variations', () => {
     it('should differentiate www and non-www', () => {
-      const withWww = UrlNormalizer.isSameDomain('https://example.com', 'https://www.example.com/page');
+      const withWww = UrlNormalizer.isSameDomain(
+        'https://example.com',
+        'https://www.example.com/page',
+      );
       expect(withWww).toBe(false);
     });
 

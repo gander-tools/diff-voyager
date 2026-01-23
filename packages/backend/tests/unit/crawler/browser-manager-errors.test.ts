@@ -191,9 +191,7 @@ describe('BrowserManager Error Scenarios', () => {
       const context = await browser.newContext();
       const page = await context.newPage();
 
-      await expect(
-        page.goto('https://example.com', { timeout: 1 }),
-      ).rejects.toThrow();
+      await expect(page.goto('https://example.com', { timeout: 1 })).rejects.toThrow();
 
       await context.close();
     });
@@ -207,9 +205,7 @@ describe('BrowserManager Error Scenarios', () => {
         setTimeout(() => route.continue(), 100);
       });
 
-      await expect(
-        page.goto('https://example.com', { timeout: 50 }),
-      ).rejects.toThrow();
+      await expect(page.goto('https://example.com', { timeout: 50 })).rejects.toThrow();
 
       await context.close();
     });

@@ -9,9 +9,9 @@ import { join } from 'node:path';
 import type Database from 'better-sqlite3';
 import * as tmp from 'tmp';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { PageRepositoryDrizzle } from '../../../src/repositories/page-repository.js';
 import { ProjectRepositoryDrizzle } from '../../../src/repositories/project-repository.js';
 import { RunRepositoryDrizzle } from '../../../src/repositories/run-repository.js';
-import { PageRepositoryDrizzle } from '../../../src/repositories/page-repository.js';
 import { closeDatabase, createDatabase } from '../../../src/storage/database.js';
 import { createDrizzleDb } from '../../../src/storage/drizzle/db.js';
 
@@ -25,7 +25,10 @@ describe('Storage Concurrency', () => {
   let pageRepo: PageRepositoryDrizzle;
 
   beforeEach(() => {
-    testDir = tmp.dirSync({ unsafeCleanup: true, prefix: 'diff-voyager-storage-concurrency-' }).name;
+    testDir = tmp.dirSync({
+      unsafeCleanup: true,
+      prefix: 'diff-voyager-storage-concurrency-',
+    }).name;
     mkdirSync(testDir, { recursive: true });
     dbPath = join(testDir, 'test.db');
     db = createDatabase({ dbPath, artifactsDir: join(testDir, 'artifacts') });
@@ -459,9 +462,9 @@ describe('Storage Concurrency', () => {
         });
       }
 
-      const deletePromises = projects.slice(0, 3).map((project) =>
-        Promise.resolve(projectRepo.deleteById(project.id)),
-      );
+      const deletePromises = projects
+        .slice(0, 3)
+        .map((project) => Promise.resolve(projectRepo.deleteById(project.id)));
 
       await Promise.all(deletePromises);
 

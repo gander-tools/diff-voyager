@@ -79,9 +79,9 @@ describe('Queue Concurrency', () => {
         taskIds.push(id);
       }
 
-      const tasks = db
-        .prepare('SELECT id FROM tasks ORDER BY created_at ASC')
-        .all() as { id: string }[];
+      const tasks = db.prepare('SELECT id FROM tasks ORDER BY created_at ASC').all() as {
+        id: string;
+      }[];
 
       expect(tasks.length).toBe(50);
       expect(tasks.map((t) => t.id)).toEqual(taskIds);
@@ -127,7 +127,11 @@ describe('Queue Concurrency', () => {
         ),
       );
 
-      await Promise.all([...highPriorityPromises, ...normalPriorityPromises, ...lowPriorityPromises]);
+      await Promise.all([
+        ...highPriorityPromises,
+        ...normalPriorityPromises,
+        ...lowPriorityPromises,
+      ]);
 
       const tasks = db.prepare('SELECT priority FROM tasks').all() as { priority: string }[];
       expect(tasks.length).toBe(30);
@@ -330,9 +334,7 @@ describe('Queue Concurrency', () => {
       const operations = [];
 
       for (let i = 0; i < 100; i++) {
-        operations.push(
-          Promise.resolve(taskQueue.enqueue({ type: 'capture-page', payload })),
-        );
+        operations.push(Promise.resolve(taskQueue.enqueue({ type: 'capture-page', payload })));
       }
 
       for (let i = 0; i < 50; i++) {
@@ -460,9 +462,15 @@ describe('Queue Concurrency', () => {
       const taskId = taskQueue.enqueue({ type: 'capture-page', payload, priority: 'normal' });
 
       const updatePromises = [
-        Promise.resolve(db.prepare('UPDATE tasks SET priority = ? WHERE id = ?').run('high', taskId)),
-        Promise.resolve(db.prepare('UPDATE tasks SET priority = ? WHERE id = ?').run('low', taskId)),
-        Promise.resolve(db.prepare('UPDATE tasks SET priority = ? WHERE id = ?').run('normal', taskId)),
+        Promise.resolve(
+          db.prepare('UPDATE tasks SET priority = ? WHERE id = ?').run('high', taskId),
+        ),
+        Promise.resolve(
+          db.prepare('UPDATE tasks SET priority = ? WHERE id = ?').run('low', taskId),
+        ),
+        Promise.resolve(
+          db.prepare('UPDATE tasks SET priority = ? WHERE id = ?').run('normal', taskId),
+        ),
       ];
 
       await Promise.all(updatePromises);
@@ -488,9 +496,7 @@ describe('Queue Concurrency', () => {
       const operations = [];
 
       for (let i = 0; i < 50; i++) {
-        operations.push(
-          Promise.resolve(taskQueue.enqueue({ type: 'capture-page', payload })),
-        );
+        operations.push(Promise.resolve(taskQueue.enqueue({ type: 'capture-page', payload })));
       }
 
       await Promise.all(operations);
@@ -513,9 +519,9 @@ describe('Queue Concurrency', () => {
         taskQueue.enqueue({ type: 'capture-page', payload }),
       );
 
-      const updatePromises = taskIds.slice(0, 10).map((id) =>
-        Promise.resolve(taskQueue.updateStatus(id, 'completed')),
-      );
+      const updatePromises = taskIds
+        .slice(0, 10)
+        .map((id) => Promise.resolve(taskQueue.updateStatus(id, 'completed')));
 
       await Promise.all(updatePromises);
 
