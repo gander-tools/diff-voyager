@@ -1076,3 +1076,427 @@ This document provides a comprehensive overview of all tests in the Diff Voyager
 
     when enqueueBatch is called with a maxAttempts parameter, all created tasks have the specified max_attempts value
 
+### storage
+
+#### Page Repository Drizzle
+
+##### create
+
+- should insert page record
+
+    when creating a page with project ID, normalized URL, and original URL, inserts the record into the database with a valid UUID, stores all URL fields correctly, and sets the createdAt timestamp
+
+- should return created page with UUID
+
+    when creating a page, returns the page object with a valid UUID format, Date object for createdAt, and the correct normalized URL value
+
+##### findById
+
+- should return page when exists
+
+    when finding a page by its ID, returns the complete page object with all properties including ID, project ID, normalized URL, original URL, and createdAt as a Date object
+
+- should return null when not exists
+
+    when finding a page by a non-existent ID, returns null
+
+##### findByProjectId
+
+- should return all pages for project
+
+    when finding pages by project ID, returns all pages associated with that project, each with the correct project ID, and includes all normalized URLs in the result set
+
+- should return empty array when no pages
+
+    when finding pages for a non-existent project, returns an empty array
+
+##### findByNormalizedUrl
+
+- should return page when exists
+
+    when finding a page by project ID and normalized URL, returns the page with matching normalized URL and project ID
+
+- should return null when not exists
+
+    when finding a page by normalized URL that doesn't exist for a project, returns null
+
+- should distinguish between different projects
+
+    when the same normalized URL exists in different projects, correctly returns different page records with different IDs but the same normalized URL, distinguishing by project ID
+
+##### findOrCreate
+
+- should return existing page if found
+
+    when finding or creating a page with a normalized URL that already exists, returns the existing page with the same ID instead of creating a new one
+
+- should create new page if not found
+
+    when finding or creating a page with a normalized URL that doesn't exist, creates a new page record with a valid UUID and stores it in the database
+
+- should be idempotent - multiple calls return same page
+
+    when calling findOrCreate multiple times with the same normalized URL but different original URLs or fragments, returns the same page ID every time and only creates one record in the database
+
+##### date handling
+
+- should correctly convert ISO string timestamps to Date objects
+
+    when creating a page, stores the createdAt timestamp as an ISO string in the database, converts it to a Date object when returned, and the timestamp is within the expected time range
+
+#### Diff Repository
+
+##### create
+
+- should create diff with summary and changes
+
+    when creating a diff with summary statistics and multiple changes, inserts the record with all fields including page ID, run IDs, snapshot IDs, summary data, and changes array, returning a diff with a defined ID
+
+- should generate UUID for new diff
+
+    when creating a diff, generates a valid UUID in the format of 36 characters with hyphens
+
+- should serialize summary_json and changes_json
+
+    when creating a diff with complex summary and changes objects including nested data structures, correctly serializes both to JSON, stores them in the database, and deserializes them correctly when retrieved
+
+- should set created_at timestamp
+
+    when creating a diff, sets the createdAt timestamp to the current time within a reasonable tolerance range
+
+##### findByPageAndRun
+
+- should find diff by pageId and runId
+
+    when finding a diff by page ID and run ID, returns the complete diff object with matching IDs, summary statistics, and changes array
+
+- should return null when diff not found
+
+    when finding a diff with non-existent page and run IDs, returns null
+
+- should deserialize JSON fields correctly
+
+    when retrieving a diff with complex summary and changes including nested objects and metadata, correctly deserializes all JSON fields and preserves the original data structure
+
+##### findByRun
+
+- should find all diffs for a run
+
+    when finding diffs by run ID with multiple pages, returns all diffs associated with that run ID
+
+- should return empty array when no diffs
+
+    when finding diffs for a non-existent run, returns an empty array
+
+- should order by created_at DESC
+
+    when multiple diffs exist for a run, returns them ordered by creation time with the most recent diff first
+
+#### Task Queue Migration
+
+##### tasks table
+
+- should create tasks table
+
+    when running migrations, creates the tasks table in the database
+
+- should have correct columns
+
+    when checking the tasks table schema, contains all required columns including id, type, status, priority, payload_json, attempts, max_attempts, error_message, created_at, started_at, and completed_at
+
+- should have NOT NULL constraints on required columns
+
+    when checking column constraints, id, type, and status columns have NOT NULL constraints enforced
+
+- should have indexes for efficient querying
+
+    when checking table indexes, includes indexes on status column for dequeue operations and created_at column for ordering
+
+- should allow inserting task records
+
+    when inserting a task record with all required fields including UUID, type, status, priority, JSON payload, and attempts, successfully creates the record in the database
+
+#### Project Repository Drizzle
+
+##### create
+
+- should insert project record
+
+    when creating a project with name, base URL, and config, inserts the record with a valid UUID, stores all fields correctly, sets status to NEW, and creates both createdAt and updatedAt timestamps as Date objects
+
+- should return created project with id
+
+    when creating a project with config including maxPages, returns the project with a valid UUID format, Date timestamps, and preserves all config values including nested properties
+
+- should store description when provided
+
+    when creating a project with an optional description field, stores the description value correctly
+
+- should handle optional description
+
+    when creating a project without a description field, leaves description as undefined
+
+##### findById
+
+- should return project when exists
+
+    when finding a project by ID, returns the complete project object with matching ID, name, and correctly deserialized config object
+
+- should return null when not exists
+
+    when finding a project with a non-existent ID, returns null
+
+- should properly deserialize JSON config
+
+    when retrieving a project with complex config including nested viewport object and multiple settings, correctly deserializes all config properties from JSON
+
+##### findAll
+
+- should return all projects
+
+    when finding all projects, returns an object with projects array containing all project records and total count matching the array length
+
+- should support pagination
+
+    when finding projects with limit and offset parameters, returns the correct subset of projects for each page and accurate total count across all pages
+
+- should return projects ordered by created_at DESC
+
+    when retrieving multiple projects, returns them ordered by creation time with the most recently created project first
+
+- should return empty array when no projects
+
+    when finding projects in an empty database, returns an object with empty projects array and total count of zero
+
+##### updateStatus
+
+- should update project status
+
+    when updating a project's status, changes the status value in the database to the new status
+
+- should update updated_at timestamp
+
+    when updating a project's status, sets the updatedAt timestamp to a value greater than the original timestamp
+
+#### Run Repository Drizzle
+
+##### create
+
+- should insert run record
+
+    when creating a run with project ID, baseline flag, and config, inserts the record with a valid UUID, stores all fields, sets status to NEW, initializes statistics as null, creates createdAt timestamp, and leaves startedAt and completedAt undefined
+
+- should return created run with id
+
+    when creating a run, returns the run object with a valid UUID format, Date for createdAt, and correct isBaseline flag value
+
+- should handle baseline flag correctly
+
+    when creating both baseline and comparison runs with different isBaseline values, correctly stores and distinguishes between baseline (true) and comparison (false) runs
+
+##### findById
+
+- should return run when exists
+
+    when finding a run by ID, returns the complete run object with matching ID, project ID, and correctly deserialized config object
+
+- should return null when not exists
+
+    when finding a run with a non-existent ID, returns null
+
+- should properly deserialize JSON columns
+
+    when retrieving a run with config containing nested objects, correctly deserializes the config from JSON and returns null for statistics when not set
+
+- should handle optional timestamps
+
+    when retrieving a newly created run, returns createdAt as a Date object and startedAt and completedAt as undefined
+
+##### findByProjectId
+
+- should return all runs for project
+
+    when finding runs by project ID, returns all run records associated with that project
+
+- should return runs ordered by created_at DESC
+
+    when retrieving multiple runs for a project, returns them ordered by creation time with the most recently created run first
+
+- should return empty array when no runs
+
+    when finding runs for a non-existent project, returns an empty array
+
+##### updateStatus
+
+- should update run status
+
+    when updating a run's status, changes the status value in the database
+
+- should set started_at when status is IN_PROGRESS
+
+    when updating status to IN_PROGRESS, sets the startedAt timestamp to a Date object and leaves completedAt undefined
+
+- should set completed_at when status is COMPLETED
+
+    when updating status to COMPLETED, sets the completedAt timestamp to a Date object
+
+- should not modify timestamps for other statuses
+
+    when updating status to a value other than IN_PROGRESS or COMPLETED (e.g., INTERRUPTED), does not modify startedAt or completedAt timestamps
+
+##### updateStatistics
+
+- should update run statistics
+
+    when updating run statistics with counts for total pages, completed pages, error pages, changed pages, and unchanged pages, stores all statistics values correctly
+
+- should overwrite existing statistics
+
+    when updating statistics multiple times, replaces the previous statistics object with the new values
+
+#### Snapshot Repository Drizzle
+
+##### create
+
+- should insert snapshot record with all fields
+
+    when creating a snapshot with all possible fields including redirect chain, performance data, and file paths, inserts the record with a valid UUID, stores all fields correctly, sets status to PENDING, and generates standard file paths for screenshot and HAR files
+
+- should handle optional fields
+
+    when creating a snapshot with only required fields, correctly handles undefined optional fields like redirectChain, performanceData, screenshotPath, and harPath
+
+- should accept custom ID
+
+    when creating a snapshot with a custom ID provided, uses the provided ID instead of generating a UUID
+
+##### findById
+
+- should return snapshot when exists
+
+    when finding a snapshot by ID, returns the complete snapshot object with all properties and correctly deserialized JSON fields
+
+- should return null when not exists
+
+    when finding a snapshot with a non-existent ID, returns null
+
+- should deserialize all JSON columns
+
+    when retrieving a snapshot with complex data including redirect chain, headers, SEO data, and performance data, correctly deserializes all JSON columns and preserves nested object structures
+
+##### findByPageAndRun
+
+- should return snapshot for page-run combination
+
+    when finding a snapshot by page ID and run ID combination, returns the snapshot with matching IDs
+
+- should return null when combination not exists
+
+    when finding a snapshot with a page-run combination that doesn't exist, returns null
+
+##### findByRunId
+
+- should return all snapshots for run
+
+    when finding snapshots by run ID with multiple pages, returns all snapshot records associated with that run and includes all page IDs
+
+- should return empty array when no snapshots
+
+    when finding snapshots for a non-existent run, returns an empty array
+
+##### findByPageId
+
+- should return all snapshots for page
+
+    when finding snapshots by page ID with multiple runs, returns all snapshot records associated with that page and includes all run IDs
+
+- should return empty array when no snapshots
+
+    when finding snapshots for a non-existent page, returns an empty array
+
+##### update
+
+- should update all fields
+
+    when updating a snapshot with all possible field changes including status, HTTP status, redirect chain, headers, SEO data, performance data, file paths, and error message, updates all fields correctly in the database
+
+- should handle partial updates
+
+    when updating only selected fields like status and error message, updates those fields while preserving all other original field values
+
+#### Diff Repository Drizzle
+
+##### create
+
+- should insert diff record with all fields
+
+    when creating a diff with summary and changes array, inserts the record with a valid UUID, stores all fields including page ID, run IDs, snapshot IDs, summary object, changes array, and sets createdAt timestamp
+
+- should handle empty changes array
+
+    when creating a diff with no changes and hasChanges set to false, correctly stores an empty changes array and zero change counts
+
+- should serialize complex nested JSON
+
+    when creating a diff with deeply nested JSON structures in summary and changes including custom metrics and metadata, correctly serializes and stores all nested data
+
+##### findByPageAndRun
+
+- should return diff for page-run combination
+
+    when finding a diff by page ID and run ID, returns the complete diff object with matching IDs and correctly deserialized summary and changes
+
+- should return null when not exists
+
+    when finding a diff with a non-existent page ID, returns null
+
+- should properly deserialize JSON columns
+
+    when retrieving a diff with multiple changes of different types, correctly deserializes all JSON fields, preserves change types, and maintains the correct array length
+
+##### findByRun
+
+- should return all diffs for run
+
+    when finding diffs by run ID with multiple pages, returns all diff records for that run with correct page IDs
+
+- should return empty array when no diffs
+
+    when finding diffs for a non-existent run, returns an empty array
+
+- should order by created_at DESC
+
+    when multiple diffs exist for a run, returns them ordered by creation time with the most recently created diff first
+
+#### Project Repository
+
+##### create
+
+- should insert project record
+
+    when creating a project, inserts the record with a defined ID, correct name and base URL, and status set to NEW
+
+- should return created project with id
+
+    when creating a project with maxPages config, returns the project with a valid UUID format and Date objects for timestamps
+
+- should store description when provided
+
+    when creating a project with a description, stores the description value in the record
+
+##### findById
+
+- should return project when exists
+
+    when finding a project by ID, returns the project object with matching ID and name
+
+- should return null when not exists
+
+    when finding a project with a non-existent ID, returns null
+
+##### updateStatus
+
+- should update project status
+
+    when updating a project's status, changes the status value to the new status
+
