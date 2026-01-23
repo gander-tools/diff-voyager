@@ -530,3 +530,245 @@ This document provides a comprehensive overview of all tests in the Diff Voyager
 
     when creating description, it includes the diff percentage and pixel count
 
+### crawler
+
+#### Browser Manager
+
+##### getBrowser
+
+- should create browser instance on first call
+
+    when getBrowser is called for the first time, creates a new browser instance and sets active state to true
+
+- should reuse browser instance on subsequent calls
+
+    when getBrowser is called multiple times, returns the same browser instance without creating a new one
+
+- should handle concurrent getBrowser calls safely
+
+    when multiple getBrowser calls are made simultaneously, all receive the same browser instance without creating duplicates
+
+- should throw error when manager is closing
+
+    when getBrowser is called while the manager is in the process of closing, throws an error indicating the manager is closing
+
+- should launch browser in headless mode when configured
+
+    when headless option is set to true, browser launches in headless mode and connects successfully
+
+- should respect maxBrowsers configuration
+
+    when maxBrowsers configuration is provided, the manager respects the limit
+
+##### close
+
+- should close browser and clear instance
+
+    when close is called, closes the active browser, clears the instance, and sets active state to false
+
+- should be safe to call multiple times
+
+    when close is called multiple times consecutively, it handles all calls safely without errors
+
+- should be safe to call without browser
+
+    when close is called without an active browser instance, it completes safely without errors
+
+- should allow getting new browser after close
+
+    when getBrowser is called after closing a previous browser, creates a new browser instance (not the old one)
+
+##### isActive
+
+- should return false when no browser exists
+
+    when no browser has been created yet, isActive returns false
+
+- should return true when browser exists
+
+    when a browser instance exists, isActive returns true
+
+- should return false after close
+
+    when close is called on an active browser, isActive returns false
+
+##### configuration
+
+- should use default configuration when none provided
+
+    when BrowserManager is created without configuration, uses default settings and initializes properly
+
+- should merge provided config with defaults
+
+    when partial configuration is provided, merges it with default configuration and initializes successfully
+
+##### error handling
+
+- should handle browser launch errors gracefully
+
+    when browser launch encounters errors, the error is propagated properly to the caller
+
+- should prevent new browsers during close
+
+    when a browser creation is attempted during the close process, throws an error indicating the manager is closing
+
+#### Page Capturer
+
+##### capture - basic functionality
+
+- should capture HTML content with correct hash
+
+    when capturing a page, saves HTML content and generates a valid SHA256 hash for the content
+
+- should extract HTTP status correctly
+
+    when capturing a page, extracts and returns the HTTP status code from the response
+
+- should capture HTTP headers
+
+    when capturing a page, extracts and returns all HTTP response headers with correct values
+
+##### capture - 404 pages
+
+- should handle 404 pages correctly
+
+    when capturing a 404 page, successfully captures the page with 404 status, creates hash and screenshot without errors
+
+##### capture - redirects
+
+- should follow redirects and capture final page
+
+    when capturing a URL that redirects, follows the redirect chain and captures the final destination page
+
+- should capture redirect chain
+
+    when a page redirects, captures the redirect chain as an array structure
+
+##### capture - screenshots
+
+- should capture full-page screenshot
+
+    when capturing a page, generates a full-page screenshot and saves it as a valid PNG file
+
+- should respect viewport configuration
+
+    when a custom viewport is specified, uses those dimensions when capturing the screenshot
+
+##### capture - HAR collection
+
+- should collect HAR file when collectHar is true
+
+    when collectHar option is true, generates and saves a valid HAR file with log entries and correct JSON structure
+
+- should not collect HAR file when collectHar is false
+
+    when collectHar option is false, does not create a HAR file for the page
+
+- should collect HAR file for pages with multiple resources
+
+    when capturing a page with multiple resources and collectHar is true, HAR file contains entries for all requests
+
+##### capture - SEO data extraction
+
+- should extract title from HTML
+
+    when capturing a page, extracts the title tag content from the HTML
+
+- should extract meta description
+
+    when capturing a page with meta description, extracts the description content correctly
+
+- should extract canonical URL
+
+    when capturing a page with canonical link, extracts the canonical URL value
+
+- should extract robots directive
+
+    when capturing a page with robots meta tag, extracts the robots directive value
+
+- should extract H1 headings
+
+    when capturing a page, extracts all H1 heading texts as an array
+
+- should extract H2 headings
+
+    when capturing a page, extracts all H2 heading texts as an array
+
+- should extract language attribute
+
+    when capturing a page with lang attribute on html element, extracts the language code
+
+- should handle pages without meta tags
+
+    when capturing a page without SEO meta tags, returns undefined for missing tags without errors
+
+- should handle multiple H1 headings
+
+    when a page has multiple H1 headings, extracts all of them into the array
+
+##### capture - performance metrics
+
+- should collect performance metrics
+
+    when capturing a page, collects performance data including load time, request count, and total size
+
+##### capture - waitAfterLoad
+
+- should wait specified time after page load
+
+    when waitAfterLoad is set to a value, waits at least that many milliseconds after page load completes
+
+- should not wait when waitAfterLoad is 0
+
+    when waitAfterLoad is 0, completes the capture quickly without additional waiting
+
+##### capture - error handling
+
+- should handle invalid URLs gracefully
+
+    when capturing an invalid or unreachable URL, returns result with status 0 and error message containing network error details
+
+- should handle timeout scenarios
+
+    when a page takes too long to load and times out, returns result with status 0 and error information
+
+##### capture - Unicode content
+
+- should handle Unicode content correctly
+
+    when capturing a page with Unicode characters, preserves all Unicode content in the saved HTML file
+
+##### close
+
+- should close browser and allow reuse
+
+    when close is called, closes the browser and allows creating a new browser instance for subsequent captures
+
+#### Single Page Processor
+
+##### processPage
+
+- should capture and store a page snapshot
+
+    when processing a page, captures the page data, creates both page and snapshot records in the database with correct associations
+
+- should extract SEO data during capture
+
+    when processing a page, extracts and stores SEO data including title, meta description, and headings in the snapshot
+
+- should handle 404 pages gracefully
+
+    when processing a 404 page, successfully creates page and snapshot records with 404 status without errors
+
+- should reuse existing page for same normalized URL
+
+    when the same normalized URL is processed in different runs, reuses the existing page record but creates separate snapshots
+
+- should handle capture errors and return error info
+
+    when page capture fails (e.g., invalid domain), returns success=false with error message describing the failure
+
+- should respect viewport configuration
+
+    when a custom viewport is specified, uses it during the capture process and creates the snapshot successfully
+
