@@ -46,18 +46,21 @@ jobs:
         id: biome
         run: |
           # Pin Biome to specific version for security and reproducibility
+          set +e
           npx @biomejs/biome@2.3.11 check --write --unsafe --max-diagnostics=200
-          echo "format_exit_code=$?" >> $GITHUB_OUTPUT
+          EXIT_CODE=$?
+          echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
+          exit $EXIT_CODE
         continue-on-error: true
 
       - name: Configure git
-        if: steps.biome.outputs.format_exit_code == '0'
+        if: steps.biome.outputs.exit_code == '0'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Commit formatted changes
-        if: steps.biome.outputs.format_exit_code == '0'
+        if: steps.biome.outputs.exit_code == '0'
         id: commit
         run: |
           git add -A
@@ -72,7 +75,7 @@ jobs:
           fi
 
       - name: Check for formatting errors
-        if: steps.biome.outputs.format_exit_code != '0'
+        if: steps.biome.outputs.exit_code != '0'
         run: |
           echo "## ❌ Biome Formatting Failed" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -81,7 +84,7 @@ jobs:
           exit 1
 
       - name: Summary
-        if: steps.biome.outputs.format_exit_code == '0' && steps.commit.outputs.changes == 'false'
+        if: steps.biome.outputs.exit_code == '0' && steps.commit.outputs.changes == 'false'
         run: |
           echo "## ✅ Code Already Properly Formatted" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
