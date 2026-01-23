@@ -20,6 +20,7 @@
 - [Roadmap](docs/development/roadmap.md) - Current status, completed work, and planned features
 - [GitHub Metadata](docs/development/github.md) - Labels, milestones, and issue conventions
 - [Test Documentation](docs/development/tests.md) - Comprehensive test structure (read-only)
+- [Test Audit Report](docs/development/tests-to-fix.md) - Missing, redundant, and skipped tests to fix (read-only)
 
 **API Reference**:
 - [Endpoints](docs/api/endpoints.md)
@@ -256,6 +257,8 @@ All repositories use Drizzle ORM for type-safe database queries.
 ## Testing Strategy
 
 **Test Documentation**: See [Test Documentation](docs/development/tests.md) for comprehensive overview of all tests (read-only, updated manually or on explicit request).
+
+**Test Audit**: See [Test Audit Report](docs/development/tests-to-fix.md) for list of missing, redundant, and skipped tests requiring fixes (read-only).
 
 ### Backend Tests
 - Domain model tests
