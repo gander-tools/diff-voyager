@@ -6,13 +6,13 @@
 import { mount } from '@vue/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 import { createRouter, createWebHistory } from 'vue-router';
-import DashboardView from '../../../src/views/DashboardView.vue';
-import ProjectListView from '../../../src/views/ProjectListView.vue';
-import ProjectDetailView from '../../../src/views/ProjectDetailView.vue';
-import RunDetailView from '../../../src/views/RunDetailView.vue';
 import ProjectCard from '../../../src/components/ProjectCard.vue';
-import RunCard from '../../../src/components/RunCard.vue';
 import ProjectForm from '../../../src/components/ProjectForm.vue';
+import RunCard from '../../../src/components/RunCard.vue';
+import DashboardView from '../../../src/views/DashboardView.vue';
+import ProjectDetailView from '../../../src/views/ProjectDetailView.vue';
+import ProjectListView from '../../../src/views/ProjectListView.vue';
+import RunDetailView from '../../../src/views/RunDetailView.vue';
 
 const createMockRouter = () => {
   return createRouter({
@@ -293,9 +293,7 @@ describe('Keyboard Navigation Accessibility', () => {
 
       const nav = wrapper.find('nav');
       if (nav.exists()) {
-        expect(
-          nav.attributes('role') === 'navigation' || nav.element.tagName === 'NAV',
-        ).toBe(true);
+        expect(nav.attributes('role') === 'navigation' || nav.element.tagName === 'NAV').toBe(true);
       }
 
       const main = wrapper.find('main, [role="main"]');

@@ -15,8 +15,8 @@ import {
   type DatabaseInstance,
 } from '../../../src/storage/database.js';
 import { createDrizzleDb } from '../../../src/storage/drizzle/db.js';
-import { MockServer } from '../../helpers/mock-server.js';
 import { HTML_FIXTURES } from '../../fixtures/html/index.js';
+import { MockServer } from '../../helpers/mock-server.js';
 
 describe('API Security', () => {
   let app: FastifyInstance;
@@ -445,7 +445,11 @@ describe('API Security', () => {
     });
 
     it('should validate URL schemes', async () => {
-      const invalidSchemes = ['ftp://example.com', 'file:///etc/passwd', 'data:text/html,<h1>test</h1>'];
+      const invalidSchemes = [
+        'ftp://example.com',
+        'file:///etc/passwd',
+        'data:text/html,<h1>test</h1>',
+      ];
 
       for (const url of invalidSchemes) {
         const response = await app.inject({
