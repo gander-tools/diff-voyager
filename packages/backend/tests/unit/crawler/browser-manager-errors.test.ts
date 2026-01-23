@@ -535,7 +535,7 @@ describe('BrowserManager Error Scenarios', () => {
       const operation1 = page1.goto('https://thisdoesnotexist.invalid').catch(() => 'error1');
       const operation2 = page2.setContent('<html><body>Success</body></html>');
 
-      const [result1, result2] = await Promise.all([operation1, operation2]);
+      const [result1, _result2] = await Promise.all([operation1, operation2]);
 
       expect(result1).toBe('error1');
       const content = await page2.content();

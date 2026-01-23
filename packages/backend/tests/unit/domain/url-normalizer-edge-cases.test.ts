@@ -107,7 +107,7 @@ describe('UrlNormalizer Edge Cases', () => {
 
   describe('Very Long URLs', () => {
     it('should handle URL with 2000 character path', () => {
-      const longPath = '/' + 'a'.repeat(2000);
+      const longPath = `/${'a'.repeat(2000)}`;
       const result = UrlNormalizer.normalize(`https://example.com${longPath}`);
       expect(typeof result).toBe('string');
       expect(result.length).toBeGreaterThan(1000);
