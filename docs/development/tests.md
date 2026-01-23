@@ -772,3 +772,307 @@ This document provides a comprehensive overview of all tests in the Diff Voyager
 
     when a custom viewport is specified, uses it during the capture process and creates the snapshot successfully
 
+### queue
+
+#### Task Queue
+
+##### enqueue
+
+- should insert task with generated UUID
+
+    when a task is enqueued, generates a valid UUID string identifier and successfully inserts the task record into the database
+
+- should insert task with pending status
+
+    when a task is enqueued, the task status is set to 'pending' in the database
+
+- should insert task with default normal priority
+
+    when a task is enqueued without specifying priority, the task priority defaults to 'normal'
+
+- should insert task with custom priority
+
+    when a task is enqueued with a specified priority, the task is created with that custom priority value
+
+- should store payload as JSON
+
+    when a task with complex payload including config objects is enqueued, the payload is serialized and stored as JSON, then correctly deserialized when retrieved
+
+- should set attempts to 0
+
+    when a task is newly enqueued, the attempts counter is initialized to 0
+
+- should set default max_attempts to 3
+
+    when a task is enqueued without specifying max attempts, max_attempts defaults to 3
+
+- should set custom max_attempts
+
+    when a task is enqueued with a specified maxAttempts value, the task is created with that custom max_attempts value
+
+- should set created_at timestamp
+
+    when a task is enqueued, the created_at timestamp is set to the current time within a reasonable tolerance
+
+- should allow multiple tasks to be enqueued
+
+    when multiple tasks are enqueued, each receives a unique ID and all tasks are successfully stored in the database
+
+##### dequeue
+
+- should return null when no pending tasks
+
+    when dequeue is called on an empty queue, returns null
+
+- should return and lock oldest pending task
+
+    when dequeue is called with pending tasks, returns the oldest pending task, changes its status to 'processing', and includes the correct task ID, type, and status
+
+- should set started_at timestamp when dequeuing
+
+    when a task is dequeued, the started_at timestamp is set to the current time within a reasonable tolerance
+
+- should increment attempts counter
+
+    when a task is dequeued, the attempts counter is incremented from 0 to 1
+
+- should deserialize payload from JSON
+
+    when a task with complex JSON payload is dequeued, the payload is correctly deserialized and matches the original enqueued payload
+
+- should respect priority order (high > normal > low)
+
+    when tasks with different priorities are enqueued, dequeue returns them in priority order: high priority first, then normal, then low
+
+- should return oldest task when priority is equal
+
+    when multiple tasks have the same priority, dequeue returns them in FIFO order based on creation time
+
+- should not dequeue tasks that are already processing
+
+    when a task is already dequeued and in processing status, subsequent dequeue calls do not return that task and return null if no other pending tasks exist
+
+- should not dequeue completed tasks
+
+    when a task has completed status, dequeue does not return that task
+
+- should not dequeue failed tasks
+
+    when a task has failed status, dequeue does not return that task
+
+##### complete
+
+- should mark task as completed
+
+    when complete is called with a task ID, the task status is updated to 'completed' in the database
+
+- should set completed_at timestamp
+
+    when a task is marked complete, the completed_at timestamp is set to the current time within a reasonable tolerance
+
+- should not affect other tasks
+
+    when one task is completed, other tasks remain in their original status and are not affected
+
+##### fail
+
+- should mark task as failed
+
+    when fail is called with a task ID and error message, the task status is updated to 'failed' in the database
+
+- should store error message
+
+    when fail is called with an error message, the error message is stored in the error_message field
+
+- should set completed_at timestamp
+
+    when a task is marked failed, the completed_at timestamp is set to the current time within a reasonable tolerance
+
+- should handle long error messages
+
+    when fail is called with a very long error message including stack traces, the full error message is stored without truncation
+
+##### retry
+
+- should reset failed task to pending
+
+    when retry is called on a failed task, the task status is reset to 'pending' allowing it to be processed again
+
+- should not reset attempts counter
+
+    when retry is called, the attempts counter is preserved at its current value and not reset to 0
+
+- should clear completed_at timestamp
+
+    when retry is called on a failed task, the completed_at timestamp is cleared (set to null)
+
+- should allow task to be dequeued again after retry
+
+    when a failed task is retried, it can be dequeued again, moves to processing status, and increments the attempts counter
+
+- should handle task that has not reached max attempts
+
+    when a task is retried and has not yet reached max_attempts, the attempts count remains less than max_attempts
+
+##### requeueStaleProcessingTasks
+
+- should requeue processing tasks that started more than timeout ago
+
+    when processing tasks have been running longer than the specified timeout, they are reset to pending status and the count of requeued tasks is returned
+
+- should not requeue recent processing tasks
+
+    when processing tasks started within the timeout period, they remain in processing status and are not requeued
+
+- should not requeue tasks that exceeded max attempts
+
+    when a processing task has already reached its max_attempts limit, it is not requeued even if the timeout has passed
+
+#### Task Processor
+
+##### handler registration
+
+- should register task handler
+
+    when a handler function is registered for a task type, the registration completes successfully without errors
+
+##### start and stop
+
+- should start processor
+
+    when start is called with a registered handler, the processor successfully starts and isRunning returns true
+
+- should stop processor gracefully
+
+    when stop is called on a running processor, it stops gracefully and isRunning returns false
+
+##### task processing
+
+- should process task and mark as completed
+
+    when a task is enqueued and the processor is started, the task handler is executed with the correct task, and the task is marked as completed in the database
+
+- should handle task errors and mark as failed
+
+    when a task handler throws an error, the task is marked as failed with the error message stored in the database
+
+##### getProgress
+
+- should return progress statistics
+
+    when tasks are in various states (pending, processing, completed, failed), getProgress returns accurate counts for each status and the total
+
+#### Task Queue Drizzle
+
+##### enqueue
+
+- should create task with pending status
+
+    when a task is enqueued, creates a task with a valid UUID, pending status, zero attempts, and correct task type
+
+- should use default priority and maxAttempts
+
+    when a task is enqueued without specifying priority or maxAttempts, uses default values of 'normal' priority and 3 max attempts
+
+- should accept custom priority and maxAttempts
+
+    when a task is enqueued with custom priority and maxAttempts values, creates the task with those specified values
+
+- should serialize payload JSON
+
+    when a task with complex payload including nested config objects is enqueued, the payload is correctly serialized and can be retrieved with all properties intact
+
+##### dequeue
+
+- should return null when queue is empty
+
+    when dequeue is called on an empty queue, returns null
+
+- should return next pending task
+
+    when dequeue is called with pending tasks, returns the task, updates status to 'processing', increments attempts to 1, and sets startedAt timestamp
+
+- should respect priority order (high > normal > low)
+
+    when tasks with different priorities are enqueued, dequeue returns them in priority order: high, normal, then low
+
+- should respect FIFO order for same priority
+
+    when multiple tasks have the same priority, dequeue returns them in the order they were created (first in, first out)
+
+- should skip processing tasks
+
+    when a task is already in processing status, dequeue skips it and returns the next pending task
+
+##### complete
+
+- should mark task as completed
+
+    when complete is called on a processing task, updates the task status to 'completed' and sets the completedAt timestamp
+
+##### fail
+
+- should mark task as failed with error message
+
+    when fail is called with an error message, updates the task status to 'failed', stores the error message, and sets the completedAt timestamp
+
+##### retry
+
+- should reset failed task to pending
+
+    when retry is called on a failed task, resets the status to 'pending', clears the error message, and clears the completedAt timestamp
+
+##### requeueStaleProcessingTasks
+
+- should requeue tasks exceeding timeout
+
+    when processing tasks have been running longer than the specified timeout, resets them to pending status, clears startedAt, and returns the count of requeued tasks
+
+- should not requeue tasks within timeout
+
+    when processing tasks started within the timeout period, leaves them in processing status and returns zero
+
+- should not requeue tasks that exceeded max attempts
+
+    when a processing task has reached its max_attempts limit, does not requeue it even if the timeout has passed
+
+##### findById
+
+- should return task when exists
+
+    when findById is called with a valid task ID, returns the complete task object with all properties
+
+- should return null when not exists
+
+    when findById is called with a non-existent task ID, returns null
+
+##### getProgress
+
+- should return zero stats when empty
+
+    when no tasks exist in the queue, getProgress returns zero counts for all statuses (pending, processing, completed, failed, total)
+
+- should count tasks by status
+
+    when tasks exist in various states, getProgress accurately counts and returns the number of tasks in each status category
+
+#### Page Task Queue
+
+##### enqueueBatch
+
+- should enqueue multiple page tasks
+
+    when enqueueBatch is called with multiple page payloads, creates tasks for all pages and returns an array of task IDs with correct count
+
+- should return empty array for empty input
+
+    when enqueueBatch is called with an empty array, returns an empty array without creating any tasks
+
+- should apply priority to all tasks
+
+    when enqueueBatch is called with a priority parameter, all created tasks have the specified priority
+
+- should apply maxAttempts to all tasks
+
+    when enqueueBatch is called with a maxAttempts parameter, all created tasks have the specified max_attempts value
+
