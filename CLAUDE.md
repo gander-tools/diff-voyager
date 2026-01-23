@@ -19,6 +19,7 @@
 **Development Status**:
 - [Roadmap](docs/development/roadmap.md) - Current status, completed work, and planned features
 - [GitHub Metadata](docs/development/github.md) - Labels, milestones, and issue conventions
+- [Test Documentation](docs/development/tests.md) - Comprehensive test structure (read-only)
 
 **API Reference**:
 - [Endpoints](docs/api/endpoints.md)
@@ -253,6 +254,8 @@ All repositories use Drizzle ORM for type-safe database queries.
 - Repositories: `packages/backend/src/repositories/*-repository.ts`
 
 ## Testing Strategy
+
+**Test Documentation**: See [Test Documentation](docs/development/tests.md) for comprehensive overview of all tests (read-only, updated manually or on explicit request).
 
 ### Backend Tests
 - Domain model tests
