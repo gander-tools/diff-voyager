@@ -1,7 +1,17 @@
 name: CI
 
 on:
-  workflow_dispatch: 
+  workflow_dispatch:
+  push:
+    branches:
+      - 'claude/**'
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.vscode/**'
+      - '.idea/**'
+      - 'LICENSE'
+      - '.gitignore'
   pull_request:
     branches:
       - main
