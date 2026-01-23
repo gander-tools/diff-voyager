@@ -6,8 +6,10 @@
 import { mount } from '@vue/test-utils';
 import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
+import { NDialogProvider, NNotificationProvider } from 'naive-ui';
 import { createPinia, setActivePinia } from 'pinia';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { h } from 'vue';
 import { useProjectsStore } from '../../../src/stores/projects';
 import ProjectListView from '../../../src/views/ProjectListView.vue';
 
@@ -32,8 +34,23 @@ describe('ProjectListView', () => {
     mockRouter.push.mockClear();
   });
 
+  // Helper to mount component with required providers
+  const mountWithProviders = () => {
+    return mount({
+      setup() {
+        return () =>
+          h(NDialogProvider, null, {
+            default: () =>
+              h(NNotificationProvider, null, {
+                default: () => h(ProjectListView),
+              }),
+          });
+      },
+    });
+  };
+
   it('should render title', () => {
-    const wrapper = mount(ProjectListView);
+    const wrapper = mountWithProviders();
     expect(wrapper.text()).toContain('Projects');
   });
 
@@ -59,7 +76,7 @@ describe('ProjectListView', () => {
       }),
     );
 
-    mount(ProjectListView);
+    mountWithProviders();
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     const store = useProjectsStore();
@@ -86,7 +103,7 @@ describe('ProjectListView', () => {
       }),
     );
 
-    const wrapper = mount(ProjectListView);
+    const wrapper = mountWithProviders();
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     expect(wrapper.text()).toContain('Test Project');
@@ -102,14 +119,14 @@ describe('ProjectListView', () => {
       }),
     );
 
-    const wrapper = mount(ProjectListView);
+    const wrapper = mountWithProviders();
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     expect(wrapper.text()).toContain('No projects');
   });
 
   it('should navigate to new project on button click', async () => {
-    const wrapper = mount(ProjectListView);
+    const wrapper = mountWithProviders();
     const button = wrapper.find('[data-test="new-project-btn"]');
 
     if (button.exists()) {
@@ -131,7 +148,7 @@ describe('ProjectListView', () => {
       }),
     );
 
-    mount(ProjectListView);
+    mountWithProviders();
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     const store = useProjectsStore();
