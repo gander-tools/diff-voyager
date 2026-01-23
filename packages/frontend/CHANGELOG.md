@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.20](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.19...diff-voyager-frontend-v0.1.20) (2026-01-23)
+
+
+### Bug Fixes
+
+* **frontend:** add delete confirmation dialog to project list view ([531ca4b](https://github.com/gander-tools/diff-voyager/commit/531ca4b112733fb2a56bab0fbb8693ad00456036))
+* **frontend:** add dialog provider wrapper to ProjectListView tests ([7d100d4](https://github.com/gander-tools/diff-voyager/commit/7d100d46a8988f49625b985f05a2371bebd1f2c9))
+
 ## [0.1.19](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.18...diff-voyager-frontend-v0.1.19) (2026-01-14)
 
 
