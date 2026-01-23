@@ -75,7 +75,7 @@ describe('Keyboard Navigation Accessibility', () => {
       });
 
       const inputs = wrapper.findAll('input, textarea, select, button');
-      const tabIndexes = inputs.map((el) => parseInt(el.attributes('tabindex') || '0'));
+      const tabIndexes = inputs.map((el) => parseInt(el.attributes('tabindex') || '0', 10));
 
       const hasExplicitOrder = tabIndexes.some((idx) => idx > 0);
       if (hasExplicitOrder) {
@@ -269,7 +269,7 @@ describe('Keyboard Navigation Accessibility', () => {
       const button = wrapper.find('button');
       if (button.exists()) {
         await button.trigger('focus');
-        const activeBeforeUpdate = document.activeElement;
+        const _activeBeforeUpdate = document.activeElement;
 
         await wrapper.vm.$forceUpdate();
         await wrapper.vm.$nextTick();
@@ -421,7 +421,7 @@ describe('Keyboard Navigation Accessibility', () => {
       });
 
       const headings = wrapper.findAll('h1, h2, h3, h4, h5, h6');
-      const levels = headings.map((h) => parseInt(h.element.tagName[1]));
+      const levels = headings.map((h) => parseInt(h.element.tagName[1], 10));
 
       if (levels.length > 1) {
         for (let i = 1; i < levels.length; i++) {

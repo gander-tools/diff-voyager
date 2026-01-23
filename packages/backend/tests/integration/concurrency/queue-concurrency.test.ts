@@ -202,7 +202,7 @@ describe('Queue Concurrency', () => {
 
       expect(tasks.length).toBe(10);
 
-      const taskIds = new Set(tasks.map((t) => t!.id));
+      const taskIds = new Set(tasks.map((t) => t?.id));
       expect(taskIds.size).toBe(10);
     });
   });
@@ -407,7 +407,7 @@ describe('Queue Concurrency', () => {
           taskQueue.enqueue({ type: 'capture-page', payload });
           throw new Error('Simulated error');
         })();
-      } catch (error) {
+      } catch (_error) {
         // Expected error
       }
 

@@ -3,7 +3,6 @@
  * Tests for concurrent storage operations, transaction isolation, and data consistency
  */
 
-import { randomUUID } from 'node:crypto';
 import { mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import type Database from 'better-sqlite3';
@@ -83,7 +82,7 @@ describe('Storage Concurrency', () => {
 
       const updated = projectRepo.findById(project.id);
       expect(updated).not.toBeNull();
-      expect(updated!.name).toContain('Updated Project');
+      expect(updated?.name).toContain('Updated Project');
     });
 
     it('should handle concurrent project reads', async () => {
@@ -100,7 +99,7 @@ describe('Storage Concurrency', () => {
       const results = await Promise.all(readPromises);
 
       expect(results.every((r) => r !== null)).toBe(true);
-      expect(results.every((r) => r!.id === project.id)).toBe(true);
+      expect(results.every((r) => r?.id === project.id)).toBe(true);
     });
 
     it('should maintain consistency during concurrent create and read', async () => {
@@ -184,7 +183,7 @@ describe('Storage Concurrency', () => {
 
       const updated = runRepo.findById(run.id);
       expect(updated).not.toBeNull();
-      expect(['processing', 'completed', 'failed']).toContain(updated!.status);
+      expect(['processing', 'completed', 'failed']).toContain(updated?.status);
     });
 
     it('should isolate runs across concurrent transactions', async () => {
@@ -301,8 +300,8 @@ describe('Storage Concurrency', () => {
 
       const updated = pageRepo.findById(page.id);
       expect(updated).not.toBeNull();
-      expect(updated!.status).toBeGreaterThanOrEqual(200);
-      expect(updated!.status).toBeLessThanOrEqual(209);
+      expect(updated?.status).toBeGreaterThanOrEqual(200);
+      expect(updated?.status).toBeLessThanOrEqual(209);
     });
 
     it('should maintain consistency across concurrent page operations', async () => {
@@ -650,7 +649,7 @@ describe('Storage Concurrency', () => {
 
       const updated = projectRepo.findById(project.id);
       expect(updated).not.toBeNull();
-      expect(updated!.name).toContain('Updated');
+      expect(updated?.name).toContain('Updated');
     });
   });
 });
