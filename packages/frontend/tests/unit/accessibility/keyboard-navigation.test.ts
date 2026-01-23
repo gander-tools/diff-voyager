@@ -10,6 +10,22 @@ import ProjectCard from '../../../src/components/ProjectCard.vue';
 import ProjectForm from '../../../src/components/ProjectForm.vue';
 import RunCard from '../../../src/components/RunCard.vue';
 
+// Mock useMessage from naive-ui
+const mockMessage = {
+  error: vi.fn(),
+  success: vi.fn(),
+  warning: vi.fn(),
+  info: vi.fn(),
+};
+
+vi.mock('naive-ui', async () => {
+  const actual = await vi.importActual('naive-ui');
+  return {
+    ...actual,
+    useMessage: () => mockMessage,
+  };
+});
+
 // Mock router
 const mockRouter = {
   push: vi.fn(),
@@ -30,29 +46,15 @@ describe('Keyboard Navigation Accessibility', () => {
   beforeEach(() => {
     setActivePinia(createPinia());
     mockRouter.push.mockClear();
+    mockMessage.error.mockClear();
+    mockMessage.success.mockClear();
+    mockMessage.warning.mockClear();
+    mockMessage.info.mockClear();
   });
 
-  // Helper to mount component with Naive UI stubs
+  // Helper to mount component
   const mountComponent = (component: any, options: any = {}) => {
-    return mount(component, {
-      ...options,
-      global: {
-        ...options.global,
-        stubs: {
-          NMessageProvider: { template: '<div><slot /></div>' },
-          NDialogProvider: { template: '<div><slot /></div>' },
-          NConfigProvider: { template: '<div><slot /></div>' },
-          NNotificationProvider: { template: '<div><slot /></div>' },
-          NButton: { template: '<button><slot /></button>' },
-          NCard: { template: '<div><slot /></div>' },
-          NForm: { template: '<form><slot /></form>' },
-          NFormItem: { template: '<div><slot /></div>' },
-          NInput: { template: '<input />' },
-          NSpace: { template: '<div><slot /></div>' },
-          ...options.global?.stubs,
-        },
-      },
-    });
+    return mount(component, options);
   };
 
   describe('Tab Navigation', () => {
