@@ -208,7 +208,7 @@ describe('Queue Concurrency', () => {
   });
 
   describe('Concurrent Status Updates', () => {
-    it('should handle concurrent status updates to different tasks', async () => {
+    it('should handle concurrent task completions', async () => {
       const payload: CapturePagePayload = {
         runId: 'run-123',
         pageId: 'page-456',
@@ -222,17 +222,15 @@ describe('Queue Concurrency', () => {
         taskQueue.enqueue({ type: 'capture-page', payload }),
       );
 
-      const updatePromises = taskIds.map((id) =>
-        Promise.resolve(taskQueue.updateStatus(id, 'processing')),
-      );
+      const updatePromises = taskIds.map((id) => Promise.resolve(taskQueue.complete(id)));
 
       await Promise.all(updatePromises);
 
       const tasks = db.prepare('SELECT status FROM tasks').all() as { status: string }[];
-      expect(tasks.every((t) => t.status === 'processing')).toBe(true);
+      expect(tasks.every((t) => t.status === 'completed')).toBe(true);
     });
 
-    it('should handle concurrent updates to same task', async () => {
+    it('should handle concurrent failures and retries', async () => {
       const payload: CapturePagePayload = {
         runId: 'run-123',
         pageId: 'page-456',
@@ -242,18 +240,25 @@ describe('Queue Concurrency', () => {
         config: {},
       };
 
-      const taskId = taskQueue.enqueue({ type: 'capture-page', payload });
+      const taskIds = Array.from({ length: 10 }, () =>
+        taskQueue.enqueue({ type: 'capture-page', payload }),
+      );
 
-      const updatePromises = Array.from({ length: 10 }, () =>
-        Promise.resolve(taskQueue.updateStatus(taskId, 'processing')),
+      const updatePromises = taskIds.map((id, index) =>
+        index % 2 === 0
+          ? Promise.resolve(taskQueue.fail(id, 'Test error'))
+          : Promise.resolve(taskQueue.complete(id)),
       );
 
       await Promise.all(updatePromises);
 
-      const task = db.prepare('SELECT status FROM tasks WHERE id = ?').get(taskId) as {
-        status: string;
-      };
-      expect(task.status).toBe('processing');
+      const completed = (
+        db.prepare('SELECT COUNT(*) as count FROM tasks WHERE status = ?').get('completed') as any
+      ).count;
+      const failed = (
+        db.prepare('SELECT COUNT(*) as count FROM tasks WHERE status = ?').get('failed') as any
+      ).count;
+      expect(completed + failed).toBe(10);
     });
 
     it('should maintain status consistency under race conditions', async () => {
@@ -268,17 +273,18 @@ describe('Queue Concurrency', () => {
 
       const taskId = taskQueue.enqueue({ type: 'capture-page', payload });
 
-      const statuses = ['processing', 'completed', 'failed', 'processing'];
-      const updatePromises = statuses.map((status) =>
-        Promise.resolve(taskQueue.updateStatus(taskId, status as any)),
-      );
+      const operations = [
+        Promise.resolve(taskQueue.complete(taskId)),
+        Promise.resolve(taskQueue.fail(taskId, 'Error')),
+        Promise.resolve(taskQueue.retry(taskId)),
+      ];
 
-      await Promise.all(updatePromises);
+      await Promise.all(operations);
 
       const task = db.prepare('SELECT status FROM tasks WHERE id = ?').get(taskId) as {
         status: string;
       };
-      expect(['processing', 'completed', 'failed']).toContain(task.status);
+      expect(['pending', 'completed', 'failed']).toContain(task.status);
     });
   });
 
@@ -312,7 +318,7 @@ describe('Queue Concurrency', () => {
 
       const taskId = taskQueue.enqueue({ type: 'capture-page', payload });
       for (let i = 0; i < 5; i++) {
-        operations.push(Promise.resolve(taskQueue.updateStatus(taskId, 'processing')));
+        operations.push(Promise.resolve(taskQueue.complete(taskId)));
       }
 
       await Promise.all(operations);
@@ -519,9 +525,7 @@ describe('Queue Concurrency', () => {
         taskQueue.enqueue({ type: 'capture-page', payload }),
       );
 
-      const updatePromises = taskIds
-        .slice(0, 10)
-        .map((id) => Promise.resolve(taskQueue.updateStatus(id, 'completed')));
+      const updatePromises = taskIds.slice(0, 10).map((id) => Promise.resolve(taskQueue.complete(id)));
 
       await Promise.all(updatePromises);
 
