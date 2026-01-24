@@ -616,6 +616,18 @@ This file is part of the test documentation. See [../tests.md](../tests.md) for 
 
     when requesting an existing page, returns 200 status with page ID, URL, original URL, project ID, and data from the latest snapshot
 
+- should include SEO data from latest snapshot
+
+    when requesting a page with SEO metadata in the latest snapshot, returns 200 status with seoData object containing title and metaDescription fields matching the snapshot data
+
+- should include HTTP headers from latest snapshot
+
+    when requesting a page with HTTP headers in the latest snapshot, returns 200 status with httpHeaders object containing all headers (content-type, cache-control, etc.) from the snapshot
+
+- should include performance metrics from latest snapshot
+
+    when requesting a page with performance data in the latest snapshot, returns 200 status with performanceData object containing loadTimeMs, requestCount, and totalSizeBytes fields matching the snapshot data
+
 - should include artifact URLs
 
     when requesting a page with artifacts, returns artifact URLs for screenshot, HAR, and HTML files
