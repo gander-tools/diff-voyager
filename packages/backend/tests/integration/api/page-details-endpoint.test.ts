@@ -103,7 +103,7 @@ describe('GET /api/v1/pages/:pageId', () => {
       httpStatus: 200,
       htmlHash: 'hash1',
       headers: { 'content-type': 'text/html' },
-      seo: { title: 'Test Page', description: 'Test description' },
+      seo: { title: 'Test Page', metaDescription: 'Test description' },
       hasScreenshot: true,
       hasHar: false,
       hasDiff: false,
@@ -122,7 +122,7 @@ describe('GET /api/v1/pages/:pageId', () => {
     expect(body.projectId).toBe(project.id);
   });
 
-  it.skip('should include SEO data from latest snapshot', async () => {
+  it('should include SEO data from latest snapshot', async () => {
     const project = await projectRepo.create({
       name: 'Test Project',
       baseUrl: 'https://example.com',
@@ -159,7 +159,7 @@ describe('GET /api/v1/pages/:pageId', () => {
       headers: { 'content-type': 'text/html' },
       seo: {
         title: 'SEO Test Page',
-        description: 'Test SEO description',
+        metaDescription: 'Test SEO description',
       },
       hasScreenshot: true,
       hasHar: false,
@@ -175,10 +175,10 @@ describe('GET /api/v1/pages/:pageId', () => {
     const body = JSON.parse(response.body);
     expect(body.seoData).toBeDefined();
     expect(body.seoData.title).toBe('SEO Test Page');
-    expect(body.seoData.description).toBe('Test SEO description');
+    expect(body.seoData.metaDescription).toBe('Test SEO description');
   });
 
-  it.skip('should include HTTP headers from latest snapshot', async () => {
+  it('should include HTTP headers from latest snapshot', async () => {
     const project = await projectRepo.create({
       name: 'Test Project',
       baseUrl: 'https://example.com',
@@ -216,7 +216,7 @@ describe('GET /api/v1/pages/:pageId', () => {
         'content-type': 'text/html',
         'cache-control': 'max-age=3600',
       },
-      seo: { title: 'Headers Test', description: 'Test headers' },
+      seo: { title: 'Headers Test', metaDescription: 'Test headers' },
       hasScreenshot: true,
       hasHar: false,
       hasDiff: false,
@@ -234,7 +234,7 @@ describe('GET /api/v1/pages/:pageId', () => {
     expect(body.httpHeaders['cache-control']).toBe('max-age=3600');
   });
 
-  it.skip('should include performance metrics from latest snapshot', async () => {
+  it('should include performance metrics from latest snapshot', async () => {
     const project = await projectRepo.create({
       name: 'Test Project',
       baseUrl: 'https://example.com',
@@ -269,11 +269,11 @@ describe('GET /api/v1/pages/:pageId', () => {
       httpStatus: 200,
       htmlHash: 'hash1',
       headers: { 'content-type': 'text/html' },
-      seo: { title: 'Perf Test', description: 'Test performance' },
+      seo: { title: 'Perf Test', metaDescription: 'Test performance' },
       performanceData: {
-        loadTime: 1234,
+        loadTimeMs: 1234,
         requestCount: 10,
-        totalSize: 50000,
+        totalSizeBytes: 50000,
       },
       hasScreenshot: true,
       hasHar: false,
@@ -288,9 +288,9 @@ describe('GET /api/v1/pages/:pageId', () => {
     expect(response.statusCode).toBe(200);
     const body = JSON.parse(response.body);
     expect(body.performanceData).toBeDefined();
-    expect(body.performanceData.loadTime).toBe(1234);
+    expect(body.performanceData.loadTimeMs).toBe(1234);
     expect(body.performanceData.requestCount).toBe(10);
-    expect(body.performanceData.totalSize).toBe(50000);
+    expect(body.performanceData.totalSizeBytes).toBe(50000);
   });
 
   it('should include artifact URLs', async () => {
@@ -328,7 +328,7 @@ describe('GET /api/v1/pages/:pageId', () => {
       httpStatus: 200,
       htmlHash: 'hash1',
       headers: { 'content-type': 'text/html' },
-      seo: { title: 'Artifacts Test', description: 'Test artifacts' },
+      seo: { title: 'Artifacts Test', metaDescription: 'Test artifacts' },
       hasScreenshot: true,
       hasHar: true,
       hasDiff: false,
