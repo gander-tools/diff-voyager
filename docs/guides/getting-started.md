@@ -288,6 +288,13 @@ If SQLite database is locked:
 
 ### Run Tests
 
+**Important**: Make sure you've installed Playwright browsers first (see step 3 above):
+```bash
+npx playwright install
+```
+
+Then run tests:
+
 ```bash
 # All tests
 npm test
@@ -301,6 +308,8 @@ npm run test:coverage:backend
 # Watch mode (auto-rerun on changes)
 cd packages/backend && npm run test:watch
 ```
+
+**Note**: Many backend tests require Playwright browsers to be installed. Without them, 60+ tests will fail with "Executable doesn't exist" errors.
 
 ### Linting and Formatting
 
