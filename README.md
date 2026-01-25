@@ -26,7 +26,7 @@ packages/
 └── shared/    # Shared TypeScript types
 ```
 
-See [Architecture Overview](docs/architecture/overview.md) for detailed design.
+See [Documentation](docs/README.md) for detailed design.
 
 ## Technology Stack
 
@@ -46,7 +46,7 @@ See [Architecture Overview](docs/architecture/overview.md) for detailed design.
 - **Validation**: vee-validate + Zod
 - **Build**: Vite
 
-See [Technology Stack](docs/architecture/technology-stack.md) for detailed information.
+See [Documentation](docs/README.md) for detailed information.
 
 ## Requirements
 
@@ -82,26 +82,11 @@ curl -X POST http://localhost:3000/api/v1/scans \
   -d '{"url": "https://example.com", "sync": true}' | jq
 ```
 
-See **[Getting Started Guide](docs/guides/getting-started.md)** for detailed installation, configuration, and usage instructions.
+See **[Documentation](docs/README.md)** for detailed installation, configuration, and usage instructions.
 
 ## Documentation
 
-### Getting Started
-- **[Getting Started](docs/guides/getting-started.md)** - Installation, setup, and first scan
-- **[Development Workflow](docs/guides/development-workflow.md)** - TDD approach, commit guidelines, and best practices
-- **[Testing Strategy](docs/guides/testing-strategy.md)** - Test structure and coverage
-
-### Architecture & Design
-- **[Architecture Overview](docs/architecture/overview.md)** - System design and monorepo structure
-- **[Domain Model](docs/architecture/domain-model.md)** - Core entities and relationships
-- **[Technology Stack](docs/architecture/technology-stack.md)** - Technologies used across all packages
-
-### Development Status
-- **[Roadmap](docs/development/roadmap.md)** - Current status, completed features, and planned work
-
-### API Reference
-- **[API Endpoints](docs/api/endpoints.md)** - Complete REST API specification
-- **[Types and Schemas](docs/api/types.md)** - TypeScript interfaces and request/response types
+Complete documentation is available in **[docs/README.md](docs/README.md)**.
 
 ### Additional Resources
 - **[CLAUDE.md](CLAUDE.md)** - AI-assisted development guide
@@ -197,7 +182,7 @@ Migrations are applied automatically when the backend starts. The database schem
 
 **Migration Configuration**: See `packages/backend/drizzle.config.ts` for Drizzle configuration.
 
-**Learn More**: See [Drizzle ORM Guide](docs/guides/drizzle-orm.md) for schema patterns and query examples.
+**Learn More**: See [Documentation](docs/README.md) for schema patterns and query examples.
 
 ## How It Works
 
@@ -209,12 +194,12 @@ Migrations are applied automatically when the backend starts. The database schem
 
 **Core entities**: Project, Baseline, Run, Page Snapshot, Diff, Mute Rules
 
-See [Domain Model](docs/architecture/domain-model.md) for detailed entity descriptions and relationships.
+See [Documentation](docs/README.md) for detailed entity descriptions and relationships.
 
 ## Contributing
 
 1. Read the [PRD](.claude/PRD.md) to understand requirements
-2. Follow [Development Workflow](docs/guides/development-workflow.md) - TDD and commit guidelines
+2. Follow TDD and commit guidelines (see [Documentation](docs/README.md))
 3. Use shared TypeScript types from `@gander-tools/diff-voyager-shared`
 4. Keep changes focused and avoid over-engineering
 5. Update documentation as needed
