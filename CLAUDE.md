@@ -17,7 +17,8 @@
 - [Technology Stack](docs/architecture/technology-stack.md)
 
 **Development Status**:
-- [Roadmap](docs/development/roadmap.md) - Current status, completed work, and planned features
+- [Status](docs/development/status.md) - Current status, completed work, and known issues
+- [Goals](docs/development/goals.md) - Short-term, medium-term, and long-term goals
 - [GitHub Metadata](docs/development/github.md) - Labels, milestones, and issue conventions
 - [Test Documentation](docs/development/tests.md) - Comprehensive test structure (read-only)
 - [Test Audit Report](docs/development/tests-to-fix.md) - Missing, redundant, and skipped tests to fix (read-only)
