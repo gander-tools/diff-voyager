@@ -14,7 +14,8 @@ Welcome to the Diff Voyager documentation. This guide will help you navigate thr
 - **[Technology Stack](architecture/technology-stack.md)** - Technologies used across all packages
 
 ### Development Status
-- **[Roadmap](development/roadmap.md)** - Current status, completed work, known issues, and planned features
+- **[Status](development/status.md)** - Current status, completed work, and known issues
+- **[Goals](development/goals.md)** - Short-term, medium-term, and long-term goals
 
 ### API Reference
 - **[API Endpoints](api/endpoints.md)** - Complete REST API specification
@@ -53,7 +54,8 @@ docs/
 │   ├── domain-model.md
 │   └── technology-stack.md
 ├── development/
-│   ├── roadmap.md
+│   ├── status.md
+│   ├── goals.md
 │   └── changelog.md
 ├── api/
 │   ├── endpoints.md
