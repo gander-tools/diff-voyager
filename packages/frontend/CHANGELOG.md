@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.21](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.20...diff-voyager-frontend-v0.1.21) (2026-01-26)
+
+
+### Bug Fixes
+
+* **tests:** configure Pinia and Naive UI providers in accessibility tests ([0fbbd0c](https://github.com/gander-tools/diff-voyager/commit/0fbbd0cc633b0b4263fc4dd319b92717da1dd5d7))
+* **tests:** mock useMessage in accessibility tests ([8660b9e](https://github.com/gander-tools/diff-voyager/commit/8660b9eee82c3a1d90471fe2b58508a1f265f590))
+
 ## [0.1.20](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-frontend-v0.1.19...diff-voyager-frontend-v0.1.20) (2026-01-23)
 
 
