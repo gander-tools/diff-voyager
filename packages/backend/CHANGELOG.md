@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.23](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.22...diff-voyager-backend-v0.1.23) (2026-01-26)
+
+
+### Bug Fixes
+
+* **tests:** correct test expectations to match actual implementation ([f440bc5](https://github.com/gander-tools/diff-voyager/commit/f440bc59a4bb555fa7f4258c0fc8077d357b693a))
+* **tests:** replace insecure HTTP URL with HTTPS in CSP test ([9b2c67b](https://github.com/gander-tools/diff-voyager/commit/9b2c67bbf0ae710acaee04e735252afe9b167a61))
+
 ## [0.1.22](https://github.com/gander-tools/diff-voyager/compare/diff-voyager-backend-v0.1.21...diff-voyager-backend-v0.1.22) (2026-01-14)
 
 
