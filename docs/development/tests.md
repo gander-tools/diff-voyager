@@ -20,13 +20,13 @@ The test suite is organized into three main categories:
 
 Backend tests are split into unit and integration tests:
 
-- **[Backend Unit Tests](tests/backend-unit.md)** - Domain logic, crawler components, queue management, and storage repositories
+- **Backend Unit Tests** - Domain logic, crawler components, queue management, and storage repositories
   - Domain: Comparators (Header, Page, Performance, SEO, Visual), URL Normalizer
   - Crawler: Browser Manager, Page Capturer, Single Page Processor
   - Queue: Task Queue, Task Processor, Page Task Queue
   - Storage: Repository implementations
 
-- **[Backend Integration Tests](tests/backend-integration.md)** - Cross-component integration, security, concurrency, and API testing
+- **Backend Integration Tests** - Cross-component integration, security, concurrency, and API testing
   - Storage: Repository comparisons (SQL vs Drizzle)
   - Security: Path traversal, input validation
   - Concurrency: Queue and storage concurrent operations
@@ -35,7 +35,7 @@ Backend tests are split into unit and integration tests:
 
 ### Shared Tests
 
-- **[Shared Tests](tests/shared.md)** - API contract validation and schema testing
+- **Shared Tests** - API contract validation and schema testing
   - Diff Schemas
   - Nested Schemas
   - Path Parameters
@@ -46,7 +46,7 @@ Backend tests are split into unit and integration tests:
 
 ### Frontend Tests
 
-- **[Frontend Tests](tests/frontend.md)** - Vue.js components, views, stores, and accessibility
+- **Frontend Tests** - Vue.js components, views, stores, and accessibility
   - Views: Dashboard, Settings, Project/Run/Page/Rule management
   - Components: Badges, Cards, Forms, Statistics, Diff viewers
   - Stores: Pinia state management
