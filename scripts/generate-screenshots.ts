@@ -139,6 +139,69 @@ async function createTestData(): Promise<{
 }
 
 /**
+ * Capture screenshots of the 3-step project creation wizard
+ */
+async function captureProjectWizard(page: any): Promise<void> {
+  console.log('\n  Capturing project creation wizard...');
+
+  try {
+    // Navigate to project creation form
+    await page.goto(`${FRONTEND_URL}/projects/new`, { waitUntil: 'networkidle' });
+    await page.waitForTimeout(WAIT_AFTER_LOAD);
+
+    // Step 1: Basic Info (with filled data)
+    console.log('    Filling Step 1: Basic Info...');
+    await page.fill('[data-test="url-input"] input', 'https://example.com');
+    await page.waitForTimeout(200);
+    await page.fill('[data-test="name-input"] input', 'My Website Upgrade');
+    await page.waitForTimeout(200);
+    await page.fill('textarea', 'Testing framework upgrade from v4 to v5');
+    await page.waitForTimeout(300);
+
+    await page.screenshot({
+      path: `${SCREENSHOT_DIR}/03-project-create-step1.png`,
+      fullPage: false,
+    });
+    console.log('    ✓ 03-project-create-step1.png');
+
+    // Move to Step 2
+    await page.click('[data-test="next-step-btn"]');
+    await page.waitForTimeout(WAIT_AFTER_LOAD);
+
+    // Step 2: Crawl Settings (with filled data)
+    console.log('    Filling Step 2: Crawl Settings...');
+    await page.click('.n-switch');
+    await page.waitForTimeout(300);
+    await page.fill('.n-input-number input', '50');
+    await page.waitForTimeout(300);
+
+    await page.screenshot({
+      path: `${SCREENSHOT_DIR}/03-project-create-step2.png`,
+      fullPage: false,
+    });
+    console.log('    ✓ 03-project-create-step2.png');
+
+    // Move to Step 3
+    await page.click('[data-test="next-step-btn"]');
+    await page.waitForTimeout(WAIT_AFTER_LOAD);
+
+    // Step 3: Run Profile (default settings are fine)
+    console.log('    Capturing Step 3: Run Profile...');
+    await page.waitForTimeout(300);
+
+    await page.screenshot({
+      path: `${SCREENSHOT_DIR}/03-project-create-step3.png`,
+      fullPage: false,
+    });
+    console.log('    ✓ 03-project-create-step3.png');
+
+    console.log('  ✓ Project wizard screenshots captured\n');
+  } catch (error) {
+    console.error('  ✗ Failed to capture project wizard:', error);
+  }
+}
+
+/**
  * Generate screenshots for all routes
  */
 async function generateScreenshots(
@@ -158,7 +221,6 @@ async function generateScreenshots(
   const routes: Route[] = [
     { name: '01-dashboard', path: '/' },
     { name: '02-projects-list', path: '/projects' },
-    { name: '03-project-create', path: '/projects/new' },
     { name: '04-project-detail', path: `/projects/${projectId}` },
     { name: '05-run-create', path: `/projects/${projectId}/runs/new` },
     { name: '06-run-detail', path: runId ? `/runs/${runId}` : '/runs/placeholder' },
@@ -168,6 +230,9 @@ async function generateScreenshots(
     { name: '10-settings', path: '/settings' },
     { name: '11-not-found', path: '/non-existent-route' },
   ];
+
+  // Special handling for multi-step project creation wizard
+  await captureProjectWizard(page);
 
   for (const route of routes) {
     try {

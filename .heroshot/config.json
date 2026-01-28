@@ -1,0 +1,69 @@
+{
+  "outputDirectory": "docs/screenshots",
+  "browser": {
+    "viewport": {
+      "width": 1024,
+      "height": 768
+    },
+    "colorScheme": "light"
+  },
+  "screenshots": [
+    {
+      "name": "01-dashboard",
+      "url": "http://localhost:5173/",
+      "actions": [
+        {
+          "type": "wait",
+          "time": 500
+        }
+      ]
+    },
+    {
+      "name": "02-projects-list",
+      "url": "http://localhost:5173/projects",
+      "actions": [
+        {
+          "type": "wait",
+          "time": 500
+        }
+      ]
+    },
+    {
+      "name": "03-project-create-step1",
+      "url": "http://localhost:5173/projects/new",
+      "actions": [
+        {
+          "type": "wait",
+          "time": 1000
+        },
+        {
+          "type": "type",
+          "selector": "[data-test=\"url-input\"] input",
+          "text": "https://example.com"
+        },
+        {
+          "type": "wait",
+          "time": 300
+        },
+        {
+          "type": "type",
+          "selector": "[data-test=\"name-input\"] input",
+          "text": "My Website Upgrade"
+        },
+        {
+          "type": "wait",
+          "time": 300
+        },
+        {
+          "type": "type",
+          "selector": "textarea",
+          "text": "Testing framework upgrade from v4 to v5"
+        },
+        {
+          "type": "wait",
+          "time": 500
+        }
+      ]
+    }
+  ]
+}
