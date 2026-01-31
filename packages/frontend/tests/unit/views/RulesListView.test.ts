@@ -281,7 +281,9 @@ describe('RulesListView', () => {
 
     // Switch to global filter - find the input element directly
     const radioInputs = wrapper.findAll('input[type="radio"]');
-    const globalRadio = radioInputs.find((input) => input.element.value === 'global');
+    const globalRadio = radioInputs.find(
+      (input) => (input.element as HTMLInputElement).value === 'global',
+    );
     if (globalRadio) {
       await globalRadio.setValue(true);
       await wrapper.vm.$nextTick();
@@ -315,7 +317,9 @@ describe('RulesListView', () => {
 
     // Switch to project filter - find the input element directly
     const radioInputs = wrapper.findAll('input[type="radio"]');
-    const projectRadio = radioInputs.find((input) => input.element.value === 'project');
+    const projectRadio = radioInputs.find(
+      (input) => (input.element as HTMLInputElement).value === 'project',
+    );
     if (projectRadio) {
       await projectRadio.setValue(true);
       await wrapper.vm.$nextTick();
