@@ -3,6 +3,7 @@
  * Tests condition management, validation, and operator logic
  */
 
+import { DiffType } from '@gander-tools/diff-voyager-shared';
 import { mount } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
 import RuleConditionBuilder from '../../../src/components/RuleConditionBuilder.vue';
@@ -103,7 +104,7 @@ describe('RuleConditionBuilder', () => {
       operator: 'OR',
       conditions: [
         {
-          diffType: 'visual',
+          diffType: DiffType.VISUAL,
           cssSelector: '.header',
           xpathSelector: '',
           fieldPattern: '',
@@ -111,7 +112,7 @@ describe('RuleConditionBuilder', () => {
           valuePattern: '',
         },
         {
-          diffType: 'seo',
+          diffType: DiffType.SEO,
           cssSelector: '',
           xpathSelector: '//title',
           fieldPattern: 'title',
@@ -218,7 +219,7 @@ describe('RuleConditionBuilder', () => {
       operator: 'AND',
       conditions: [
         {
-          diffType: 'seo',
+          diffType: DiffType.SEO,
           cssSelector: '',
           xpathSelector: '',
           fieldPattern: 'title',
@@ -226,7 +227,7 @@ describe('RuleConditionBuilder', () => {
           valuePattern: '',
         },
         {
-          diffType: 'visual',
+          diffType: DiffType.VISUAL,
           cssSelector: '.content',
           xpathSelector: '',
           fieldPattern: '',
@@ -234,7 +235,7 @@ describe('RuleConditionBuilder', () => {
           valuePattern: '',
         },
         {
-          diffType: 'headers',
+          diffType: DiffType.HEADERS,
           cssSelector: '',
           xpathSelector: '',
           fieldPattern: '',

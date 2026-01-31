@@ -3,6 +3,7 @@
  * Tests rule creation form with validation
  */
 
+import { RuleScope } from '@gander-tools/diff-voyager-shared';
 import { mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -90,11 +91,11 @@ describe('RuleCreateView', () => {
 
     const formData = {
       name: 'Test Rule',
-      scope: 'global' as const,
+      scope: RuleScope.GLOBAL,
       active: true,
       description: 'Test description',
       conditions: {
-        operator: 'and' as const,
+        operator: 'AND' as const,
         conditions: [],
       },
     };
@@ -111,9 +112,9 @@ describe('RuleCreateView', () => {
     vi.spyOn(rulesStore, 'createRule').mockResolvedValue({
       id: 'rule-123',
       name: 'Test Rule',
-      scope: 'global',
+      scope: RuleScope.GLOBAL,
       active: true,
-      conditions: { operator: 'and', conditions: [] },
+      conditions: { operator: 'AND', conditions: [] },
       createdAt: '2024-01-01T00:00:00Z',
     });
 
@@ -122,11 +123,11 @@ describe('RuleCreateView', () => {
 
     const formData = {
       name: 'Test Rule',
-      scope: 'global' as const,
+      scope: RuleScope.GLOBAL,
       active: true,
       description: 'Test description',
       conditions: {
-        operator: 'and' as const,
+        operator: 'AND' as const,
         conditions: [],
       },
     };
@@ -160,9 +161,9 @@ describe('RuleCreateView', () => {
       return {
         id: 'rule-123',
         name: 'Test Rule',
-        scope: 'global',
+        scope: RuleScope.GLOBAL,
         active: true,
-        conditions: { operator: 'and', conditions: [] },
+        conditions: { operator: 'AND', conditions: [] },
         createdAt: '2024-01-01T00:00:00Z',
       };
     });
@@ -172,10 +173,10 @@ describe('RuleCreateView', () => {
 
     const formData = {
       name: 'Test Rule',
-      scope: 'global' as const,
+      scope: RuleScope.GLOBAL,
       active: true,
       conditions: {
-        operator: 'and' as const,
+        operator: 'AND' as const,
         conditions: [],
       },
     };
@@ -210,10 +211,10 @@ describe('RuleCreateView', () => {
 
     const formData = {
       name: 'Test Rule',
-      scope: 'global' as const,
+      scope: RuleScope.GLOBAL,
       active: true,
       conditions: {
-        operator: 'and' as const,
+        operator: 'AND' as const,
         conditions: [],
       },
     };

@@ -3,6 +3,7 @@
  * Tests form validation, loading states, error display, and scope logic
  */
 
+import { DiffType, RuleScope } from '@gander-tools/diff-voyager-shared';
 import { mount } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
 import RuleForm from '../../../src/components/RuleForm.vue';
@@ -41,13 +42,13 @@ describe('RuleForm', () => {
     const modelValue: Partial<CreateRuleInput> = {
       name: 'Ignore Header Changes',
       description: 'Mute all header-related differences',
-      scope: 'global',
+      scope: RuleScope.GLOBAL,
       active: true,
       conditions: {
         operator: 'AND' as const,
         conditions: [
           {
-            diffType: 'headers' as const,
+            diffType: DiffType.HEADERS,
             cssSelector: '',
             xpathSelector: '',
             fieldPattern: '',
@@ -136,7 +137,7 @@ describe('RuleForm', () => {
       props: {
         modelValue: {
           name: 'a'.repeat(101), // Exceeds 100 character limit
-          scope: 'global',
+          scope: RuleScope.GLOBAL,
         },
       },
     });
@@ -157,7 +158,7 @@ describe('RuleForm', () => {
         modelValue: {
           name: 'Valid Name',
           description: 'a'.repeat(501), // Exceeds 500 character limit
-          scope: 'global',
+          scope: RuleScope.GLOBAL,
         },
       },
     });
@@ -242,7 +243,7 @@ describe('RuleForm', () => {
       props: {
         modelValue: {
           name: 'Existing Rule',
-          scope: 'global',
+          scope: RuleScope.GLOBAL,
         },
       },
     });
