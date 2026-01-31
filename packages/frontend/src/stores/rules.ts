@@ -1,3 +1,4 @@
+import { type DiffType, RuleScope } from '@gander-tools/diff-voyager-shared';
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 import { rulesApi } from '../services/api';
@@ -6,7 +7,7 @@ import type { CreateRuleInput, RuleConditionBuilderInput } from '../utils/valida
 export type MuteRule = {
   id: string;
   name: string;
-  scope: 'global' | 'project';
+  scope: RuleScope;
   description?: string;
   active: boolean;
   conditions: RuleConditionBuilderInput;
@@ -26,8 +27,8 @@ export const useRulesStore = defineStore('rules', () => {
 
   // Computed
   const rulesCount = computed(() => rules.value.length);
-  const globalRules = computed(() => rules.value.filter((r) => r.scope === 'global'));
-  const projectRules = computed(() => rules.value.filter((r) => r.scope === 'project'));
+  const globalRules = computed(() => rules.value.filter((r) => r.scope === RuleScope.GLOBAL));
+  const projectRules = computed(() => rules.value.filter((r) => r.scope === RuleScope.PROJECT));
 
   // Actions
   async function fetchRules() {
@@ -39,12 +40,19 @@ export const useRulesStore = defineStore('rules', () => {
       rules.value = response.rules.map((r) => ({
         id: r.id,
         name: r.name,
-        scope: r.scope,
+        scope: r.scope as RuleScope,
         description: r.description,
         active: r.active,
         conditions: {
           operator: 'AND' as const,
-          conditions: r.conditions,
+          conditions: r.conditions as Array<{
+            diffType: DiffType;
+            cssSelector?: string;
+            xpathSelector?: string;
+            fieldPattern?: string;
+            headerName?: string;
+            valuePattern?: string;
+          }>,
         },
         createdAt: r.createdAt,
         updatedAt: r.updatedAt,
@@ -74,12 +82,19 @@ export const useRulesStore = defineStore('rules', () => {
       const rule: MuteRule = {
         id: createdRule.id,
         name: createdRule.name,
-        scope: createdRule.scope,
+        scope: createdRule.scope as RuleScope,
         description: createdRule.description,
         active: createdRule.active,
         conditions: {
           operator: 'AND' as const,
-          conditions: createdRule.conditions,
+          conditions: createdRule.conditions as Array<{
+            diffType: DiffType;
+            cssSelector?: string;
+            xpathSelector?: string;
+            fieldPattern?: string;
+            headerName?: string;
+            valuePattern?: string;
+          }>,
         },
         createdAt: createdRule.createdAt,
         updatedAt: createdRule.updatedAt,
@@ -112,12 +127,19 @@ export const useRulesStore = defineStore('rules', () => {
         rules.value[index] = {
           id: updatedRule.id,
           name: updatedRule.name,
-          scope: updatedRule.scope,
+          scope: updatedRule.scope as RuleScope,
           description: updatedRule.description,
           active: updatedRule.active,
           conditions: {
             operator: 'AND' as const,
-            conditions: updatedRule.conditions,
+            conditions: updatedRule.conditions as Array<{
+              diffType: DiffType;
+              cssSelector?: string;
+              xpathSelector?: string;
+              fieldPattern?: string;
+              headerName?: string;
+              valuePattern?: string;
+            }>,
           },
           createdAt: updatedRule.createdAt,
           updatedAt: updatedRule.updatedAt,

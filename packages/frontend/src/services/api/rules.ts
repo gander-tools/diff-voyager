@@ -3,7 +3,7 @@
  * Type-safe API client for rule management
  */
 
-import type { apiContract } from '@gander-tools/diff-voyager-shared';
+import type { apiContract, DiffType, RuleScope } from '@gander-tools/diff-voyager-shared';
 import type { ClientInferResponseBody } from '@ts-rest/core';
 import { tsRestClient } from './client';
 
@@ -18,7 +18,7 @@ export const rulesApi = {
     limit?: number;
     offset?: number;
     projectId?: string;
-    scope?: 'global' | 'project';
+    scope?: RuleScope;
     active?: boolean;
   }) {
     const response = await tsRestClient.listRules({
@@ -54,10 +54,10 @@ export const rulesApi = {
     projectId?: string;
     name: string;
     description?: string;
-    scope: 'global' | 'project';
+    scope: RuleScope;
     active: boolean;
     conditions: Array<{
-      diffType: 'seo' | 'visual' | 'content' | 'performance' | 'http_status' | 'headers';
+      diffType: DiffType;
       cssSelector?: string;
       xpathSelector?: string;
       fieldPattern?: string;
@@ -86,7 +86,7 @@ export const rulesApi = {
       description?: string;
       active?: boolean;
       conditions?: Array<{
-        diffType: 'seo' | 'visual' | 'content' | 'performance' | 'http_status' | 'headers';
+        diffType: DiffType;
         cssSelector?: string;
         xpathSelector?: string;
         fieldPattern?: string;

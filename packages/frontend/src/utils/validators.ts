@@ -3,6 +3,7 @@
  * Used for client-side validation with type inference
  */
 
+import { DiffType, RuleScope } from '@gander-tools/diff-voyager-shared';
 import { z } from 'zod';
 
 /**
@@ -67,7 +68,7 @@ export type CreateRunInput = z.infer<typeof createRunSchema>;
  * Each condition filters diffs based on type and optional selectors/patterns
  */
 export const ruleConditionSchema = z.object({
-  diffType: z.enum(['seo', 'visual', 'content', 'performance', 'http_status', 'headers'], {
+  diffType: z.nativeEnum(DiffType, {
     errorMap: () => ({ message: 'Please select a diff type' }),
   }),
   cssSelector: z.string().trim().optional(),
@@ -103,7 +104,7 @@ export type RuleConditionBuilderInput = z.infer<typeof ruleConditionBuilderSchem
 export const createRuleSchema = z.object({
   name: z.string().trim().min(1, 'Name is required').max(100, 'Maximum 100 characters'),
   description: z.string().trim().max(500, 'Maximum 500 characters').optional(),
-  scope: z.enum(['global', 'project'], {
+  scope: z.nativeEnum(RuleScope, {
     errorMap: () => ({ message: 'Please select a scope' }),
   }),
   active: z.boolean().default(true),
