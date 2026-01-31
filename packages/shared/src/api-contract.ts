@@ -16,7 +16,12 @@ const c = initContract();
 
 // Common schemas
 export const uuidSchema = z.string().uuid();
-export const urlSchema = z.string().url();
+export const urlSchema = z
+	.string()
+	.url()
+	.refine((url) => /^https?:\/\//i.test(url), {
+		message: 'URL must use HTTP or HTTPS scheme',
+	});
 export const timestampSchema = z.string().datetime();
 
 // Viewport configuration
