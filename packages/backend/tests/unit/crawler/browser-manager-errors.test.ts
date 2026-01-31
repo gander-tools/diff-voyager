@@ -396,6 +396,19 @@ describe('BrowserManager Error Scenarios', () => {
     // FIXME: Test uses incorrect Playwright API for evaluate() timeout
     // page.evaluate() doesn't accept { timeout } as second parameter in Playwright API
     // Should use page.setDefaultTimeout() before evaluate() or rewrite test
+    //
+    // ENABLE WHEN:
+    // - Rewrite test to use correct Playwright API for timeouts
+    // Option 1: Use page.setDefaultTimeout(100) before page.evaluate()
+    // Option 2: Use context.setDefaultTimeout(100) when creating context
+    // Option 3: Pass timeout in page.goto() options, not evaluate()
+    //
+    // PHASE: Phase 7 - Production Polish (Test Quality Improvements)
+    // COMPONENT: BrowserManager (packages/backend/src/crawler/browser-manager.ts)
+    // STATUS: ⚠️ NOT DOCUMENTED in docs/ - Component exists but not in documentation
+    // PLAYWRIGHT API: https://playwright.dev/docs/api/class-page#page-evaluate (external)
+    // NOTE: Playwright's page.evaluate() accepts (pageFunction, arg?) but NOT options object
+    // FIX: Replace lines 406-413 with proper timeout API usage
     it.skip('should handle evaluate timeout', async () => {
       const browser = await browserManager.getBrowser();
       const context = await browser.newContext();
@@ -436,6 +449,18 @@ describe('BrowserManager Error Scenarios', () => {
     // FIXME: Test fails because browserManager.isActive() behavior after browser.close() needs verification
     // After calling browser.close() directly (not browserManager.close()), the manager state may not update
     // This test should either use browserManager.close() or verify actual browser state behavior
+    //
+    // ENABLE WHEN:
+    // Option 1: Fix test to use browserManager.close() instead of browser.close()
+    // Option 2: Update BrowserManager to track browser state when browser.close() is called directly
+    // Option 3: Remove isActive() check and only verify browser.isConnected()
+    //
+    // PHASE: Phase 7 - Production Polish (Test Quality Improvements)
+    // COMPONENT: BrowserManager (packages/backend/src/crawler/browser-manager.ts)
+    // STATUS: ⚠️ NOT DOCUMENTED in docs/ - Component exists but not in documentation
+    // ISSUE: BrowserManager.isActive() may not update when browser is closed directly
+    // RECOMMENDATION: Use browserManager.close() consistently instead of browser.close()
+    // FIX: Replace line 443 `await browser.close()` with `await browserManager.close()`
     it.skip('should handle browser disconnection gracefully', async () => {
       const browser = await browserManager.getBrowser();
       expect(browser.isConnected()).toBe(true);

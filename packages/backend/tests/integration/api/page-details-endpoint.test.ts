@@ -122,6 +122,22 @@ describe('GET /api/v1/pages/:pageId', () => {
     expect(body.projectId).toBe(project.id);
   });
 
+  // FIXME: Page details endpoint doesn't populate seoData in response
+  // GET /api/v1/pages/:pageId should return snapshot data including seoData, httpHeaders, performanceData
+  //
+  // ENABLE WHEN:
+  // - Page details endpoint implementation populates snapshot data in response
+  // - Endpoint queries latest snapshot for the page and includes seo, headers, performance fields
+  // - Response matches pageResponseSchema defined in api-contract.ts
+  //
+  // PHASE: Phase 6 - Integration Workflows (Diff Generation Integration)
+  // COMPONENT: GET /api/v1/pages/:pageId endpoint (packages/backend/src/api/routes-ts-rest.ts)
+  // STATUS: Endpoint exists but doesn't populate snapshot data fields
+  // DOCUMENTATION:
+  // - API Contract: packages/shared/src/api-contract.ts (pageResponseSchema includes seoData)
+  // - API Types: docs/api/types.md (PageDetailsResponse interface)
+  // ISSUE: Endpoint returns page entity but not associated snapshot data
+  // FIX NEEDED: Query latest snapshot and include seo, headers, performance in response
   it.skip('should include SEO data from latest snapshot', async () => {
     const project = await projectRepo.create({
       name: 'Test Project',
@@ -178,6 +194,22 @@ describe('GET /api/v1/pages/:pageId', () => {
     expect(body.seoData.description).toBe('Test SEO description');
   });
 
+  // FIXME: Page details endpoint doesn't populate httpHeaders in response
+  // GET /api/v1/pages/:pageId should return snapshot data including httpHeaders
+  //
+  // ENABLE WHEN:
+  // - Page details endpoint implementation populates snapshot data in response
+  // - Endpoint queries latest snapshot for the page and includes headers field
+  // - Response matches pageResponseSchema defined in api-contract.ts
+  //
+  // PHASE: Phase 6 - Integration Workflows (Diff Generation Integration)
+  // COMPONENT: GET /api/v1/pages/:pageId endpoint (packages/backend/src/api/routes-ts-rest.ts)
+  // STATUS: Endpoint exists but doesn't populate snapshot data fields
+  // DOCUMENTATION:
+  // - API Contract: packages/shared/src/api-contract.ts (pageResponseSchema includes httpHeaders)
+  // - API Types: docs/api/types.md (PageDetailsResponse interface)
+  // ISSUE: Same as SEO data test - endpoint doesn't join with snapshots table
+  // FIX NEEDED: Query latest snapshot and include headers in response
   it.skip('should include HTTP headers from latest snapshot', async () => {
     const project = await projectRepo.create({
       name: 'Test Project',
@@ -234,6 +266,22 @@ describe('GET /api/v1/pages/:pageId', () => {
     expect(body.httpHeaders['cache-control']).toBe('max-age=3600');
   });
 
+  // FIXME: Page details endpoint doesn't populate performanceData in response
+  // GET /api/v1/pages/:pageId should return snapshot data including performanceData
+  //
+  // ENABLE WHEN:
+  // - Page details endpoint implementation populates snapshot data in response
+  // - Endpoint queries latest snapshot for the page and includes performance field
+  // - Response matches pageResponseSchema defined in api-contract.ts
+  //
+  // PHASE: Phase 6 - Integration Workflows (Diff Generation Integration)
+  // COMPONENT: GET /api/v1/pages/:pageId endpoint (packages/backend/src/api/routes-ts-rest.ts)
+  // STATUS: Endpoint exists but doesn't populate snapshot data fields
+  // DOCUMENTATION:
+  // - API Contract: packages/shared/src/api-contract.ts (pageResponseSchema includes performanceData)
+  // - API Types: docs/api/types.md (PageDetailsResponse interface)
+  // ISSUE: Same as SEO data and headers tests - endpoint doesn't join with snapshots table
+  // FIX NEEDED: Query latest snapshot and include performanceData in response
   it.skip('should include performance metrics from latest snapshot', async () => {
     const project = await projectRepo.create({
       name: 'Test Project',
