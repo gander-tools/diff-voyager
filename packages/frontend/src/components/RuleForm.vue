@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { DiffType, RuleScope } from '@gander-tools/diff-voyager-shared';
 import { toTypedSchema } from '@vee-validate/zod';
 import { NAlert, NButton, NForm, NFormItem, NInput, NSelect, NSpace, NSwitch } from 'naive-ui';
 import { useForm } from 'vee-validate';
@@ -33,13 +34,14 @@ const { handleSubmit, errors, defineField, values, setFieldValue } = useForm({
   initialValues: {
     name: props.modelValue?.name || '',
     description: props.modelValue?.description || '',
-    scope: props.modelValue?.scope || (isProjectScoped.value ? 'project' : 'global'),
+    scope:
+      props.modelValue?.scope || (isProjectScoped.value ? RuleScope.PROJECT : RuleScope.GLOBAL),
     active: props.modelValue?.active ?? true,
     conditions: props.modelValue?.conditions || {
       operator: 'AND' as const,
       conditions: [
         {
-          diffType: 'seo' as const,
+          diffType: DiffType.SEO,
           cssSelector: '',
           xpathSelector: '',
           fieldPattern: '',
@@ -69,11 +71,11 @@ const conditions = computed({
 // Scope options
 const scopeOptions = computed(() => {
   if (isProjectScoped.value) {
-    return [{ label: 'Project', value: 'project' }];
+    return [{ label: 'Project', value: RuleScope.PROJECT }];
   }
   return [
-    { label: 'Global', value: 'global' },
-    { label: 'Project', value: 'project' },
+    { label: 'Global', value: RuleScope.GLOBAL },
+    { label: 'Project', value: RuleScope.PROJECT },
   ];
 });
 
@@ -81,8 +83,8 @@ const scopeOptions = computed(() => {
 watch(
   () => props.projectId,
   (newProjectId) => {
-    if (newProjectId && scope.value !== 'project') {
-      setFieldValue('scope', 'project');
+    if (newProjectId && scope.value !== RuleScope.PROJECT) {
+      setFieldValue('scope', RuleScope.PROJECT);
     }
   },
   { immediate: true },

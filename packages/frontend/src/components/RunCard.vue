@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { RunStatus } from '@gander-tools/diff-voyager-shared';
 import { NButton, NCard, NProgress, NSpace, NText, NTime } from 'naive-ui';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -28,7 +29,7 @@ const progress = computed(() => {
 });
 
 const isInProgress = computed(() => {
-  return props.run.status === 'in_progress' || props.run.status === 'pending';
+  return props.run.status === RunStatus.IN_PROGRESS || props.run.status === RunStatus.NEW;
 });
 
 const createdDate = computed(() => {
