@@ -4,7 +4,7 @@
  */
 
 import type { PageResponse } from '@gander-tools/diff-voyager-shared';
-import { PageStatus } from '@gander-tools/diff-voyager-shared';
+import { DiffSeverity, DiffType, PageStatus } from '@gander-tools/diff-voyager-shared';
 import { mount } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
 import PageList from '../../../src/components/PageList.vue';
@@ -12,7 +12,6 @@ import PageList from '../../../src/components/PageList.vue';
 describe('PageList', () => {
   const mockPageWithoutDiff: PageResponse = {
     id: 'page-123',
-    projectId: 'project-123',
     url: 'https://example.com',
     originalUrl: 'https://example.com',
     status: PageStatus.COMPLETED,
@@ -26,7 +25,6 @@ describe('PageList', () => {
 
   const mockPageWithDiff: PageResponse = {
     id: 'page-456',
-    projectId: 'project-123',
     url: 'https://example.com/about',
     originalUrl: 'https://example.com/about',
     status: PageStatus.COMPLETED,
@@ -39,19 +37,28 @@ describe('PageList', () => {
       summary: {
         totalChanges: 5,
         criticalChanges: 2,
-        warningChanges: 2,
-        infoChanges: 1,
+        acceptedChanges: 0,
+        mutedChanges: 0,
+        changesByType: {
+          [DiffType.SEO]: 2,
+          [DiffType.VISUAL]: 1,
+          [DiffType.HEADERS]: 1,
+          [DiffType.PERFORMANCE]: 1,
+          [DiffType.CONTENT]: 0,
+          [DiffType.HTTP_STATUS]: 0,
+        },
+        thresholdExceeded: true,
       },
       seoChanges: [
         {
           field: 'title',
-          severity: 'critical',
+          severity: DiffSeverity.CRITICAL,
           baselineValue: 'Old Title',
           currentValue: 'New Title',
         },
         {
           field: 'description',
-          severity: 'warning',
+          severity: DiffSeverity.WARNING,
           baselineValue: 'Old Desc',
           currentValue: 'New Desc',
         },
@@ -59,7 +66,7 @@ describe('PageList', () => {
       headerChanges: [
         {
           headerName: 'X-Custom-Header',
-          severity: 'info',
+          severity: DiffSeverity.INFO,
           baselineValue: 'old-value',
           currentValue: 'new-value',
         },
@@ -67,7 +74,7 @@ describe('PageList', () => {
       performanceChanges: [
         {
           metric: 'loadTime',
-          severity: 'warning',
+          severity: DiffSeverity.WARNING,
           baselineValue: 1000,
           currentValue: 1500,
           changePercentage: 50,
@@ -85,13 +92,11 @@ describe('PageList', () => {
 
   const mockPageWithError: PageResponse = {
     id: 'page-789',
-    projectId: 'project-123',
     url: 'https://example.com/error',
     originalUrl: 'https://example.com/error',
     status: PageStatus.ERROR,
     httpStatus: 500,
     capturedAt: '2024-01-01T10:00:00Z',
-    errorMessage: 'Server error',
     artifacts: {},
     diff: null,
   };

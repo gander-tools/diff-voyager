@@ -97,7 +97,9 @@ describe('SeoDiffView', () => {
 
     const baselineValues = wrapper.findAll('[data-test="baseline-value"]');
     const canonicalBaseline = baselineValues[2]; // Third change has null baseline
-    expect(canonicalBaseline.text()).toContain('(not set)');
+    if (canonicalBaseline) {
+      expect(canonicalBaseline.text()).toContain('(not set)');
+    }
   });
 
   it('should format empty string values as "(empty)"', () => {

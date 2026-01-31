@@ -3,6 +3,7 @@
  * Tests run card component for displaying run info
  */
 
+import { RunProfile, RunStatus } from '@gander-tools/diff-voyager-shared';
 import { mount } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
 import RunCard from '../../../src/components/RunCard.vue';
@@ -13,7 +14,14 @@ describe('RunCard', () => {
     id: 'run-12345678-abcd-1234-efgh-ijklmnopqrst',
     projectId: 'proj-123',
     baselineId: 'baseline-456',
-    status: 'completed',
+    status: RunStatus.COMPLETED,
+    config: {
+      profile: RunProfile.VISUAL_SEO,
+      viewport: { width: 1920, height: 1080 },
+      captureScreenshots: true,
+      captureHar: false,
+      generateDiffImages: true,
+    },
     createdAt: '2024-01-01T10:00:00Z',
     startedAt: '2024-01-01T10:00:01Z',
     completedAt: '2024-01-01T10:05:00Z',
@@ -112,7 +120,7 @@ describe('RunCard', () => {
   it('should show progress bar for in-progress runs', () => {
     const inProgressRun = {
       ...mockRun,
-      status: 'in_progress',
+      status: RunStatus.IN_PROGRESS,
       completedAt: undefined,
     };
 
@@ -126,7 +134,7 @@ describe('RunCard', () => {
   it('should show progress bar for pending runs', () => {
     const pendingRun = {
       ...mockRun,
-      status: 'pending',
+      status: RunStatus.NEW,
       completedAt: undefined,
     };
 
