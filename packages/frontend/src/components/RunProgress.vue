@@ -134,6 +134,13 @@ const progressStatus = computed(() => {
   }
   return 'default';
 });
+
+// Expose for testing
+defineExpose({
+  progress,
+  progressStatus,
+  formatDuration,
+});
 </script>
 
 <template>
