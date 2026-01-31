@@ -139,46 +139,34 @@ describe('VisualComparator Edge Cases', () => {
   describe('Large Images', () => {
     // NOTE: Large image tests have increased timeout (30s) due to buffer allocation overhead
     // HD resolution (1920x1080) = 2,073,600 pixels * 4 bytes = ~8MB per image
-    it(
-      'should handle HD resolution images (1920x1080)',
-      () => {
-        const image1 = createTestImage(1920, 1080, [255, 255, 255, 255]);
-        const image2 = createTestImage(1920, 1080, [255, 255, 255, 255]);
+    it('should handle HD resolution images (1920x1080)', () => {
+      const image1 = createTestImage(1920, 1080, [255, 255, 255, 255]);
+      const image2 = createTestImage(1920, 1080, [255, 255, 255, 255]);
 
-        const result = VisualComparator.compare(image1, image2);
+      const result = VisualComparator.compare(image1, image2);
 
-        expect(result.diffPixels).toBe(0);
-        expect(result.width).toBe(1920);
-        expect(result.height).toBe(1080);
-      },
-      30000,
-    ); // 30 second timeout for large image allocation
+      expect(result.diffPixels).toBe(0);
+      expect(result.width).toBe(1920);
+      expect(result.height).toBe(1080);
+    }, 30000); // 30 second timeout for large image allocation
 
-    it(
-      'should handle tall images (100x2000)',
-      () => {
-        const image1 = createTestImage(100, 2000, [255, 255, 255, 255]);
-        const image2 = createTestImage(100, 2000, [255, 255, 255, 255]);
+    it('should handle tall images (100x2000)', () => {
+      const image1 = createTestImage(100, 2000, [255, 255, 255, 255]);
+      const image2 = createTestImage(100, 2000, [255, 255, 255, 255]);
 
-        const result = VisualComparator.compare(image1, image2);
+      const result = VisualComparator.compare(image1, image2);
 
-        expect(result.diffPixels).toBe(0);
-      },
-      30000,
-    ); // 30 second timeout for large image allocation
+      expect(result.diffPixels).toBe(0);
+    }, 30000); // 30 second timeout for large image allocation
 
-    it(
-      'should handle wide images (2000x100)',
-      () => {
-        const image1 = createTestImage(2000, 100, [255, 255, 255, 255]);
-        const image2 = createTestImage(2000, 100, [255, 255, 255, 255]);
+    it('should handle wide images (2000x100)', () => {
+      const image1 = createTestImage(2000, 100, [255, 255, 255, 255]);
+      const image2 = createTestImage(2000, 100, [255, 255, 255, 255]);
 
-        const result = VisualComparator.compare(image1, image2);
+      const result = VisualComparator.compare(image1, image2);
 
-        expect(result.diffPixels).toBe(0);
-      },
-      30000,
-    ); // 30 second timeout for large image allocation
+      expect(result.diffPixels).toBe(0);
+    }, 30000); // 30 second timeout for large image allocation
   });
 
   describe('Transparency and Alpha Channel', () => {
