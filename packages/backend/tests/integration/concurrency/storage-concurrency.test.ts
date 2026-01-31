@@ -43,8 +43,17 @@ describe('Storage Concurrency', () => {
   });
 
   describe('Concurrent Project Operations', () => {
-    // FIXME: Test needs refactoring for Drizzle async methods (missing await on line 62)
+    // FIXME: Test needs refactoring for Drizzle async methods (missing await on line 64)
     // This test was written for synchronous SQL repositories but Drizzle methods are async
+    //
+    // ENABLE WHEN:
+    // - All Drizzle repository methods are properly awaited
+    // - Line 64: Add `await` before `projectRepo.findAll({})`
+    //
+    // PHASE: Phase 7 - Production Polish (Backend Optimization)
+    // COMPONENT: ProjectRepositoryDrizzle (packages/backend/src/storage/repositories/project-repository.drizzle.ts)
+    // STATUS: Component implemented but test needs async/await refactoring
+    // DOCUMENTATION: packages/backend/src/storage/repositories/interfaces/project-repository.interface.ts
     it.skip('should handle concurrent project creation', async () => {
       const createPromises = Array.from({ length: 20 }, (_, i) =>
         Promise.resolve(
@@ -68,6 +77,15 @@ describe('Storage Concurrency', () => {
     // FIXME: Test uses projectRepo.update() which doesn't exist in Drizzle IProjectRepository interface
     // The interface only has: create(), findById(), findAll(), updateStatus(), delete()
     // This test needs to be refactored to use available methods or the interface needs to be extended
+    //
+    // ENABLE WHEN:
+    // Option 1: Extend IProjectRepository interface with update(id, data) method
+    // Option 2: Refactor test to use only existing methods (updateStatus, delete + create)
+    //
+    // PHASE: Future - Repository Interface Extension (not currently planned)
+    // COMPONENT: IProjectRepository interface (packages/backend/src/storage/repositories/interfaces/project-repository.interface.ts)
+    // STATUS: ⚠️ NOT DOCUMENTED - Feature not planned in any phase
+    // RECOMMENDATION: Either extend interface or rewrite test using existing methods
     it.skip('should handle concurrent project updates', async () => {
       const project = projectRepo.create({
         name: 'Test Project',
@@ -90,8 +108,18 @@ describe('Storage Concurrency', () => {
       expect(updated?.name).toContain('Updated Project');
     });
 
-    // FIXME: Test needs refactoring for Drizzle async methods (missing await on lines 94, 101)
+    // FIXME: Test needs refactoring for Drizzle async methods (missing await on lines 96, 103)
     // This test was written for synchronous SQL repositories but Drizzle methods are async
+    //
+    // ENABLE WHEN:
+    // - All Drizzle repository methods are properly awaited
+    // - Line 96: Add `await` before `projectRepo.create()`
+    // - Line 103: Add `await` in Promise.resolve() wrapper
+    //
+    // PHASE: Phase 7 - Production Polish (Backend Optimization)
+    // COMPONENT: ProjectRepositoryDrizzle (packages/backend/src/storage/repositories/project-repository.drizzle.ts)
+    // STATUS: Component implemented but test needs async/await refactoring
+    // DOCUMENTATION: packages/backend/src/storage/repositories/interfaces/project-repository.interface.ts
     it.skip('should handle concurrent project reads', async () => {
       const project = projectRepo.create({
         name: 'Test Project',
@@ -109,8 +137,17 @@ describe('Storage Concurrency', () => {
       expect(results.every((r) => r?.id === project.id)).toBe(true);
     });
 
-    // FIXME: Test needs refactoring for Drizzle async methods (missing await on lines 116, 126, 131)
+    // FIXME: Test needs refactoring for Drizzle async methods (missing await on lines 120, 130, 135)
     // This test was written for synchronous SQL repositories but Drizzle methods are async
+    //
+    // ENABLE WHEN:
+    // - All Drizzle repository methods are properly awaited
+    // - Lines 120, 130, 135: Add `await` before repository method calls
+    //
+    // PHASE: Phase 7 - Production Polish (Backend Optimization)
+    // COMPONENT: ProjectRepositoryDrizzle
+    // STATUS: Component implemented but test needs async/await refactoring
+    // DOCUMENTATION: packages/backend/src/storage/repositories/interfaces/project-repository.interface.ts
     it.skip('should maintain consistency during concurrent create and read', async () => {
       const operations = [];
 
@@ -138,8 +175,18 @@ describe('Storage Concurrency', () => {
   });
 
   describe('Concurrent Run Operations', () => {
-    // FIXME: Test needs refactoring for Drizzle async methods (missing await on lines 142, 150, 164)
+    // FIXME: Test needs refactoring for Drizzle async methods (missing await on lines 144, 166)
     // This test was written for synchronous SQL repositories but Drizzle methods are async
+    //
+    // ENABLE WHEN:
+    // - All Drizzle repository methods are properly awaited
+    // - Line 144: Add `await` before `projectRepo.create()`
+    // - Line 166: Add `await` before `runRepo.findByProjectId()`
+    //
+    // PHASE: Phase 7 - Production Polish (Backend Optimization)
+    // COMPONENT: RunRepositoryDrizzle (packages/backend/src/storage/repositories/run-repository.drizzle.ts)
+    // STATUS: Component implemented but test needs async/await refactoring
+    // DOCUMENTATION: packages/backend/src/storage/repositories/interfaces/run-repository.interface.ts
     it.skip('should handle concurrent run creation for same project', async () => {
       const project = projectRepo.create({
         name: 'Test Project',
@@ -170,6 +217,15 @@ describe('Storage Concurrency', () => {
     // FIXME: Test uses runRepo.update() which doesn't exist in Drizzle IRunRepository interface
     // The interface only has: create(), findById(), findByProjectId(), updateStatus(), updateStatistics()
     // This test needs to be refactored to use available methods or the interface needs to be extended
+    //
+    // ENABLE WHEN:
+    // Option 1: Extend IRunRepository interface with update(id, data) method
+    // Option 2: Refactor test to use only updateStatus() for status changes
+    //
+    // PHASE: Future - Repository Interface Extension (not currently planned)
+    // COMPONENT: IRunRepository interface (packages/backend/src/storage/repositories/interfaces/run-repository.interface.ts)
+    // STATUS: ⚠️ NOT DOCUMENTED - Feature not planned in any phase
+    // RECOMMENDATION: Refactor test to use updateStatus() instead of generic update()
     it.skip('should handle concurrent run status updates', async () => {
       const project = projectRepo.create({
         name: 'Test Project',
@@ -201,8 +257,20 @@ describe('Storage Concurrency', () => {
     });
 
     // FIXME: Test needs refactoring for Drizzle async methods and transaction API
-    // Missing await on lines 204, 213, 227, 240. Also uses db.transaction() which has different API in Drizzle
+    // Missing await on lines 207, 243. Also uses db.transaction() which has different API in Drizzle
     // This test was written for synchronous SQL repositories but Drizzle methods are async
+    //
+    // ENABLE WHEN:
+    // - Drizzle transaction API is properly implemented
+    // - Line 207: Add `await` before `projectRepo.create()`
+    // - Line 243: Add `await` before `runRepo.findByProjectId()`
+    // - Lines 214, 228: Replace better-sqlite3 db.transaction() with Drizzle transaction API
+    //
+    // PHASE: Phase 7 - Production Polish (Backend Optimization)
+    // COMPONENT: RunRepositoryDrizzle + Drizzle Transaction API
+    // STATUS: Requires Drizzle transaction wrapper implementation
+    // DOCUMENTATION: https://orm.drizzle.team/docs/transactions (external)
+    // NOTE: better-sqlite3 transaction API is different from Drizzle ORM transaction API
     it.skip('should isolate runs across concurrent transactions', async () => {
       const project = projectRepo.create({
         name: 'Test Project',
@@ -249,6 +317,15 @@ describe('Storage Concurrency', () => {
     // FIXME: Test uses pageRepo.findByRunId() which doesn't exist in Drizzle IPageRepository interface
     // The interface only has: create(), findById(), findByProjectId(), findByNormalizedUrl(), findOrCreate()
     // This test needs to be refactored to use available methods or the interface needs to be extended
+    //
+    // ENABLE WHEN:
+    // Option 1: Extend IPageRepository interface with findByRunId(runId) method
+    // Option 2: Refactor test to use findByProjectId() and filter results by runId
+    //
+    // PHASE: Future - Repository Interface Extension (not currently planned)
+    // COMPONENT: IPageRepository interface (packages/backend/src/storage/repositories/interfaces/page-repository.interface.ts)
+    // STATUS: ⚠️ NOT DOCUMENTED - Feature not planned in any phase
+    // RECOMMENDATION: Extend interface if needed for run-based page queries
     it.skip('should handle concurrent page creation', async () => {
       const project = projectRepo.create({
         name: 'Test Project',
@@ -288,6 +365,15 @@ describe('Storage Concurrency', () => {
     // FIXME: Test uses pageRepo.update() which doesn't exist in Drizzle IPageRepository interface
     // The interface only has: create(), findById(), findByProjectId(), findByNormalizedUrl(), findOrCreate()
     // This test needs to be refactored to use available methods or the interface needs to be extended
+    //
+    // ENABLE WHEN:
+    // Option 1: Extend IPageRepository interface with update(id, data) method
+    // Option 2: Refactor test to use delete + create pattern instead of update
+    //
+    // PHASE: Future - Repository Interface Extension (not currently planned)
+    // COMPONENT: IPageRepository interface (packages/backend/src/storage/repositories/interfaces/page-repository.interface.ts)
+    // STATUS: ⚠️ NOT DOCUMENTED - Feature not planned in any phase
+    // RECOMMENDATION: Either extend interface or rewrite test without updates
     it.skip('should handle concurrent page updates', async () => {
       const project = projectRepo.create({
         name: 'Test Project',
@@ -330,6 +416,15 @@ describe('Storage Concurrency', () => {
     // FIXME: Test uses pageRepo.findByRunId() which doesn't exist in Drizzle IPageRepository interface
     // The interface only has: create(), findById(), findByProjectId(), findByNormalizedUrl(), findOrCreate()
     // This test needs to be refactored to use available methods or the interface needs to be extended
+    //
+    // ENABLE WHEN:
+    // Option 1: Extend IPageRepository interface with findByRunId(runId) method
+    // Option 2: Refactor test to use findByProjectId() and filter by runId
+    //
+    // PHASE: Future - Repository Interface Extension (not currently planned)
+    // COMPONENT: IPageRepository interface
+    // STATUS: ⚠️ NOT DOCUMENTED - Feature not planned in any phase
+    // RECOMMENDATION: Extend interface with findByRunId() for better query performance
     it.skip('should maintain consistency across concurrent page operations', async () => {
       const project = projectRepo.create({
         name: 'Test Project',
@@ -376,6 +471,14 @@ describe('Storage Concurrency', () => {
     // FIXME: Test uses pageRepo.findByRunId() which doesn't exist in Drizzle IPageRepository interface
     // The interface only has: create(), findById(), findByProjectId(), findByNormalizedUrl(), findOrCreate()
     // This test needs to be refactored to use available methods or the interface needs to be extended
+    //
+    // ENABLE WHEN:
+    // Option 1: Extend IPageRepository interface with findByRunId(runId) method
+    // Option 2: Refactor test to use alternative query pattern
+    //
+    // PHASE: Future - Repository Interface Extension (not currently planned)
+    // COMPONENT: IPageRepository interface
+    // STATUS: ⚠️ NOT DOCUMENTED - Feature not planned in any phase
     it.skip('should handle concurrent operations across projects, runs, and pages', async () => {
       const operations = [];
 
@@ -429,6 +532,14 @@ describe('Storage Concurrency', () => {
     // FIXME: Test uses pageRepo.findByRunId() which doesn't exist in Drizzle IPageRepository interface
     // The interface only has: create(), findById(), findByProjectId(), findByNormalizedUrl(), findOrCreate()
     // This test needs to be refactored to use available methods or the interface needs to be extended
+    //
+    // ENABLE WHEN:
+    // Option 1: Extend IPageRepository interface with findByRunId(runId) method
+    // Option 2: Refactor test to verify referential integrity using findByProjectId()
+    //
+    // PHASE: Future - Repository Interface Extension (not currently planned)
+    // COMPONENT: IPageRepository interface
+    // STATUS: ⚠️ NOT DOCUMENTED - Feature not planned in any phase
     it.skip('should maintain referential integrity under concurrent operations', async () => {
       const project = projectRepo.create({
         name: 'Test Project',
@@ -478,6 +589,16 @@ describe('Storage Concurrency', () => {
     // FIXME: Test uses projectRepo.deleteById() which doesn't exist in Drizzle IProjectRepository interface
     // The interface only has: create(), findById(), findAll(), updateStatus(), delete()
     // This test needs to be refactored to use available methods or the interface needs to be extended
+    //
+    // ENABLE WHEN:
+    // - Refactor test to use delete(id) instead of deleteById(id)
+    // - Both methods have same signature, just rename the method call
+    //
+    // PHASE: Phase 7 - Production Polish (Backend Optimization)
+    // COMPONENT: IProjectRepository interface
+    // STATUS: Component has delete() method, test just uses wrong name
+    // DOCUMENTATION: packages/backend/src/storage/repositories/interfaces/project-repository.interface.ts
+    // FIX: Replace `deleteById(id)` with `delete(id)` on line 501
     it.skip('should handle concurrent deletes with cascade', async () => {
       const projects = Array.from({ length: 5 }, (_, i) =>
         projectRepo.create({
@@ -509,6 +630,16 @@ describe('Storage Concurrency', () => {
     // FIXME: Test uses projectRepo.deleteById() which doesn't exist in Drizzle IProjectRepository interface
     // The interface only has: create(), findById(), findAll(), updateStatus(), delete()
     // This test needs to be refactored to use available methods or the interface needs to be extended
+    //
+    // ENABLE WHEN:
+    // - Refactor test to use delete(id) instead of deleteById(id)
+    // - Both methods have same signature, just rename the method call
+    //
+    // PHASE: Phase 7 - Production Polish (Backend Optimization)
+    // COMPONENT: IProjectRepository interface
+    // STATUS: Component has delete() method, test just uses wrong name
+    // DOCUMENTATION: packages/backend/src/storage/repositories/interfaces/project-repository.interface.ts
+    // FIX: Replace `deleteById(id)` with `delete(id)` on line 527
     it.skip('should maintain consistency when deleting parent during child creation', async () => {
       const project = projectRepo.create({
         name: 'Test Project',
@@ -550,8 +681,19 @@ describe('Storage Concurrency', () => {
 
   describe('Deadlock Prevention', () => {
     // FIXME: Test uses projectRepo.update() which doesn't exist in Drizzle IProjectRepository interface
-    // Also missing await on lines 553, 559, 584, 585
+    // Also missing await on lines 556, 562, 587, 588
     // This test was written for synchronous SQL repositories but Drizzle methods are async
+    //
+    // ENABLE WHEN:
+    // Option 1: Extend IProjectRepository interface with update(id, data) method AND add await
+    // Option 2: Refactor test to use updateStatus() instead of generic update()
+    //
+    // PHASE: Future - Repository Interface Extension (not currently planned)
+    // COMPONENT: IProjectRepository interface
+    // STATUS: ⚠️ NOT DOCUMENTED - Feature not planned in any phase
+    // ADDITIONAL FIXES NEEDED:
+    // - Line 556, 562: Add `await` before projectRepo.create()
+    // - Line 587, 588: Add `await` before projectRepo.findById()
     it.skip('should prevent deadlocks on concurrent updates', async () => {
       const project1 = projectRepo.create({
         name: 'Project 1',
@@ -595,6 +737,15 @@ describe('Storage Concurrency', () => {
     // IRunRepository only has: create(), findById(), findByProjectId(), updateStatus(), updateStatistics()
     // IProjectRepository only has: create(), findById(), findAll(), updateStatus(), delete()
     // This test needs to be refactored to use available methods or the interfaces need to be extended
+    //
+    // ENABLE WHEN:
+    // Option 1: Extend both interfaces with update() methods
+    // Option 2: Refactor to use updateStatus() for runs and available methods for projects
+    //
+    // PHASE: Future - Repository Interface Extension (not currently planned)
+    // COMPONENT: IRunRepository + IProjectRepository interfaces
+    // STATUS: ⚠️ NOT DOCUMENTED - Feature not planned in any phase
+    // RECOMMENDATION: Refactor test to use updateStatus() and updateStatistics()
     it.skip('should handle circular dependency updates', async () => {
       const project = projectRepo.create({
         name: 'Test Project',
@@ -641,6 +792,18 @@ describe('Storage Concurrency', () => {
     // This test was written for synchronous SQL repositories but Drizzle methods are async
     // Line 664: projectRepo.findAll({}) needs await
     // Line 668: runRepo.findByProjectId() needs await
+    //
+    // ENABLE WHEN:
+    // - All Drizzle repository methods are properly awaited
+    // - Line 664: Add `await` before `projectRepo.findAll({})`
+    // - Line 668: Add `await` before `runRepo.findByProjectId()`
+    //
+    // PHASE: Phase 7 - Production Polish (Backend Optimization)
+    // COMPONENT: ProjectRepositoryDrizzle + RunRepositoryDrizzle
+    // STATUS: Components implemented but test needs async/await refactoring
+    // DOCUMENTATION:
+    // - packages/backend/src/storage/repositories/interfaces/project-repository.interface.ts
+    // - packages/backend/src/storage/repositories/interfaces/run-repository.interface.ts
     it.skip('should maintain data consistency under heavy concurrent load', async () => {
       const operations = [];
 
@@ -677,6 +840,18 @@ describe('Storage Concurrency', () => {
     // FIXME: Test uses projectRepo.update() which doesn't exist in Drizzle IProjectRepository interface
     // Also missing await on lines 674, 695
     // This test was written for synchronous SQL repositories but Drizzle methods are async
+    //
+    // ENABLE WHEN:
+    // Option 1: Extend IProjectRepository interface with update(id, data) method AND add await
+    // Option 2: Refactor test to use updateStatus() or delete+create pattern
+    //
+    // PHASE: Future - Repository Interface Extension (not currently planned)
+    // COMPONENT: IProjectRepository interface
+    // STATUS: ⚠️ NOT DOCUMENTED - Feature not planned in any phase
+    // ADDITIONAL FIXES NEEDED:
+    // - Line 674: Add `await` before projectRepo.create()
+    // - Line 695: Add `await` before projectRepo.findById()
+    // RECOMMENDATION: Rewrite test to use only existing interface methods
     it.skip('should handle mixed read/write operations correctly', async () => {
       const project = projectRepo.create({
         name: 'Test Project',
