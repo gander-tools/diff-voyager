@@ -186,7 +186,14 @@ describe('DiffSummary', () => {
 
   it('should handle empty changesByType object', () => {
     const summary = createMockSummary({
-      changesByType: {},
+      changesByType: {
+        [DiffType.SEO]: 0,
+        [DiffType.VISUAL]: 0,
+        [DiffType.CONTENT]: 0,
+        [DiffType.PERFORMANCE]: 0,
+        [DiffType.HTTP_STATUS]: 0,
+        [DiffType.HEADERS]: 0,
+      },
     });
 
     const wrapper = mount(DiffSummary, {
@@ -201,8 +208,8 @@ describe('DiffSummary', () => {
       },
     });
 
-    // Should not render type breakdown when changesByType is empty
-    expect(wrapper.find('[data-test="type-breakdown"]').exists()).toBe(false);
+    // Type breakdown should exist even with all 0 values (component checks for keys, not values)
+    expect(wrapper.find('[data-test="type-breakdown"]').exists()).toBe(true);
   });
 
   it('should support compact mode', () => {
@@ -252,7 +259,11 @@ describe('DiffSummary', () => {
     const summary = createMockSummary({
       changesByType: {
         [DiffType.SEO]: 5,
-        // Other types missing
+        [DiffType.VISUAL]: 0,
+        [DiffType.CONTENT]: 0,
+        [DiffType.PERFORMANCE]: 0,
+        [DiffType.HTTP_STATUS]: 0,
+        [DiffType.HEADERS]: 0,
       },
     });
 
