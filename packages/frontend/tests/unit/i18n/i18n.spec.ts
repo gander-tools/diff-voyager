@@ -13,15 +13,19 @@ describe('i18n', () => {
 
   describe('i18n instance', () => {
     it('should have default locale as English', () => {
+      // @ts-expect-error - TypeScript incorrectly infers locale as string, but it's actually a WritableComputedRef at runtime
       expect(i18n.global.locale.value).toBe('en');
     });
 
     it('should have fallback locale as English', () => {
+      // @ts-expect-error - TypeScript incorrectly infers fallbackLocale type, but it's actually a ref at runtime
       expect(i18n.global.fallbackLocale.value).toBe('en');
     });
 
     it('should have English and Polish messages', () => {
+      // @ts-expect-error - TypeScript incorrectly infers messages as object, but it's actually a ref at runtime
       expect(i18n.global.messages.value).toHaveProperty('en');
+      // @ts-expect-error - TypeScript incorrectly infers messages as object, but it's actually a ref at runtime
       expect(i18n.global.messages.value).toHaveProperty('pl');
     });
 
@@ -78,6 +82,7 @@ describe('i18n', () => {
 
   describe('Polish translations', () => {
     it('should have Polish translations for common keys', () => {
+      // @ts-expect-error - TypeScript incorrectly infers locale as string, but it's actually a WritableComputedRef at runtime
       i18n.global.locale.value = 'pl';
       const t = i18n.global.t;
 
@@ -87,6 +92,7 @@ describe('i18n', () => {
     });
 
     it('should fall back to English for missing keys', () => {
+      // @ts-expect-error - TypeScript incorrectly infers locale as string, but it's actually a WritableComputedRef at runtime
       i18n.global.locale.value = 'pl';
       const t = i18n.global.t;
 
