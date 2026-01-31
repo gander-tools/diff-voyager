@@ -1,4 +1,9 @@
-import type { RunProfile } from '@gander-tools/diff-voyager-shared';
+import type {
+  PageStatus,
+  RunConfig,
+  RunProfile,
+  RunStatus,
+} from '@gander-tools/diff-voyager-shared';
 import { tsRestClient } from './client';
 
 /**
@@ -30,7 +35,8 @@ export interface RunDetailsResponse {
   id: string;
   projectId: string;
   baselineId: string;
-  status: string;
+  status: RunStatus;
+  config: RunConfig;
   createdAt: string;
   startedAt?: string;
   completedAt?: string;
@@ -130,7 +136,7 @@ export interface ListRunPagesQuery {
 export interface RunPageResponse {
   id: string;
   url: string;
-  status: string;
+  status: PageStatus;
   httpStatus?: number;
 }
 
