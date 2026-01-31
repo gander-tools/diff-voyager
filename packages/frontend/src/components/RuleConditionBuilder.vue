@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { DiffType } from '@gander-tools/diff-voyager-shared';
 import { toTypedSchema } from '@vee-validate/zod';
 import { Help, Plus, Trash } from '@vicons/tabler';
 import {
@@ -39,7 +40,7 @@ const { handleSubmit, errors, defineField, values } = useForm({
     operator: 'AND' as const,
     conditions: [
       {
-        diffType: 'seo' as const,
+        diffType: DiffType.SEO,
         cssSelector: '',
         xpathSelector: '',
         fieldPattern: '',

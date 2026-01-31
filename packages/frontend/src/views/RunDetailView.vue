@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { RunStatus } from '@gander-tools/diff-voyager-shared';
 import {
   type DataTableColumns,
   NButton,
@@ -46,7 +47,7 @@ const progress = computed(() => {
 });
 
 const isInProgress = computed(() => {
-  return run.value?.status === 'in_progress' || run.value?.status === 'pending';
+  return run.value?.status === RunStatus.IN_PROGRESS || run.value?.status === RunStatus.NEW;
 });
 
 const createdDate = computed(() => {
