@@ -1,3 +1,4 @@
+import { RunStatus } from '@gander-tools/diff-voyager-shared';
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 import type { CreateRunRequest, RunDetailsResponse } from '@/services/api';
@@ -78,8 +79,8 @@ export const useRunsStore = defineStore('runs', () => {
         const run = await getRun(runId);
         currentRun.value = run;
 
-        // Stop polling if run is completed or failed
-        if (run.status === 'completed' || run.status === 'error') {
+        // Stop polling if run is completed
+        if (run.status === RunStatus.COMPLETED) {
           stopPolling();
         }
       } catch (err) {

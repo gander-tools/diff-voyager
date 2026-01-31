@@ -1,4 +1,9 @@
-import type { PerformanceData, SeoData } from '@gander-tools/diff-voyager-shared';
+import type {
+  DiffSeverity,
+  PageStatus,
+  PerformanceData,
+  SeoData,
+} from '@gander-tools/diff-voyager-shared';
 import { tsRestClient } from './client';
 
 /**
@@ -9,7 +14,7 @@ export interface PageDetailsResponse {
   projectId: string;
   url: string;
   originalUrl: string;
-  status: string;
+  status: PageStatus;
   httpStatus?: number;
   capturedAt?: string;
   seoData?: SeoData;
@@ -29,7 +34,7 @@ export interface PageDetailsResponse {
  */
 export interface SeoChangeResponse {
   field: string;
-  severity: string;
+  severity: DiffSeverity;
   baselineValue?: string;
   currentValue?: string;
 }
@@ -111,7 +116,7 @@ export async function getPageDiff(pageId: string): Promise<PageDiffResponse> {
   });
 
   if (result.status === 200) {
-    return result.body as PageDiffResponse;
+    return result.body as unknown as PageDiffResponse;
   }
 
   const errorBody = result.body as { message?: string };
