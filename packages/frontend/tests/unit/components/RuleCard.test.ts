@@ -3,6 +3,7 @@
  * Tests rule card component for displaying rule info
  */
 
+import { DiffType, RuleScope } from '@gander-tools/diff-voyager-shared';
 import { mount } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
 import RuleCard from '../../../src/components/RuleCard.vue';
@@ -13,7 +14,7 @@ describe('RuleCard', () => {
     id: 'rule-123',
     name: 'Ignore dynamic timestamps',
     description: 'Ignore changes in timestamp fields',
-    scope: 'project',
+    scope: RuleScope.PROJECT,
     active: true,
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-02T00:00:00Z',
@@ -21,11 +22,11 @@ describe('RuleCard', () => {
       operator: 'AND' as const,
       conditions: [
         {
-          diffType: 'seo' as const,
+          diffType: DiffType.SEO,
           cssSelector: '.timestamp',
         },
         {
-          diffType: 'content' as const,
+          diffType: DiffType.CONTENT,
           fieldPattern: 'date',
         },
       ],
@@ -79,7 +80,7 @@ describe('RuleCard', () => {
       ...mockRule,
       conditions: {
         operator: 'AND' as const,
-        conditions: [mockRule.conditions.conditions[0]],
+        conditions: mockRule.conditions.conditions[0] ? [mockRule.conditions.conditions[0]] : [],
       },
     };
 
@@ -209,7 +210,7 @@ describe('RuleCard', () => {
   it('should handle global scope rule', () => {
     const globalRule: MuteRule = {
       ...mockRule,
-      scope: 'global' as const,
+      scope: RuleScope.GLOBAL,
     };
 
     const wrapper = mount(RuleCard, {
