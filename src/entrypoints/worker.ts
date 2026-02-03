@@ -1,5 +1,3 @@
-#!/usr/bin/env bun
-
 import { JobType } from '@/queue/domain/job.entity';
 import { InMemoryQueue } from '@/queue/infrastructure/in-memory-queue';
 

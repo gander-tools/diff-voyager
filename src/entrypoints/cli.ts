@@ -1,5 +1,3 @@
-#!/usr/bin/env bun
-
 import { Command } from 'commander';
 
 const DEFAULT_API_URL = process.env.API_URL || 'http://localhost:3000';

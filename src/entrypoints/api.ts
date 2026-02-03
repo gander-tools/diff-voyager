@@ -1,5 +1,3 @@
-#!/usr/bin/env bun
-
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
 import Fastify from 'fastify';

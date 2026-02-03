@@ -14,36 +14,61 @@ Multi-process visual regression testing platform with API server, Worker, and CL
 bun install
 ```
 
+## Build
+
+Build optimized production bundles with tsdown:
+
+```bash
+bun run build
+```
+
+This creates:
+- `dist/api.js` - API server bundle (10.9 kB)
+- `dist/worker.js` - Worker process bundle (3.2 kB)
+- `dist/cli.js` - CLI bundle (3.9 kB)
+- TypeScript definitions (.d.ts)
+- Source maps (.js.map)
+
 ## Development
 
 ### Start API Server
 
 ```bash
+# Development (with watch mode)
 bun run dev:api
+
+# Production (from built bundle)
+bun run start:api
 # Server runs on http://localhost:3000
 ```
 
 ### Start Worker
 
 ```bash
+# Development (with watch mode)
 bun run dev:worker
+
+# Production (from built bundle)
+bun run start:worker
 # Polls queue every 5 seconds
 ```
 
 ### Use CLI
 
 ```bash
-# Create project
+# Development
 bun run dev:cli project create my-site https://example.com
 
-# Get project
-bun run dev:cli project get my-site
+# Production (from built bundle)
+node dist/cli.js project create my-site https://example.com
 
-# List projects
-bun run dev:cli project list
+# Or using npm bin
+console project create my-site https://example.com
 
-# Create snapshot
-bun run dev:cli snapshot create my-site --full
+# Other commands
+console project get my-site
+console project list
+console snapshot create my-site --full
 ```
 
 ## Testing

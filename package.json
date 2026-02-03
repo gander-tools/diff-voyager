@@ -6,26 +6,30 @@
   "main": "dist/index.js",
   "module": "dist/index.js",
   "exports": {
-    ".": "./dist/index.js",
-    "./api": "./dist/entrypoints/api.js",
-    "./worker": "./dist/entrypoints/worker.js",
-    "./cli": "./dist/entrypoints/cli.js"
+    "./api": "./dist/api.js",
+    "./worker": "./dist/worker.js",
+    "./cli": "./dist/cli.js"
   },
   "bin": {
-    "console": "./dist/entrypoints/cli.js"
+    "console": "./dist/cli.js"
   },
   "scripts": {
     "dev:api": "bun run --watch src/entrypoints/api.ts",
     "dev:worker": "bun run --watch src/entrypoints/worker.ts",
     "dev:cli": "bun run src/entrypoints/cli.ts",
-    "build": "bun build src/entrypoints/api.ts src/entrypoints/worker.ts src/entrypoints/cli.ts --outdir dist --target node --format esm",
+    "build": "tsdown",
+    "build:prod": "NODE_ENV=production tsdown",
+    "start:api": "node dist/api.js",
+    "start:worker": "node dist/worker.js",
+    "start:cli": "node dist/cli.js",
     "test": "bun test",
     "test:watch": "bun test --watch",
     "test:coverage": "bun test --coverage",
     "format": "bunx @biomejs/biome check --write .",
     "format:check": "bunx @biomejs/biome check .",
     "lint": "bunx @biomejs/biome lint .",
-    "typecheck": "bun run --bun tsc --noEmit"
+    "typecheck": "bun run --bun tsc --noEmit",
+    "prepublishOnly": "bun run build:prod"
   },
   "keywords": [
     "visual-regression",
@@ -77,6 +81,7 @@
     "@types/bun": "latest",
     "@types/node": "^24.0.0",
     "drizzle-kit": "^0.31.0",
+    "tsdown": "^0.20.1",
     "typescript": "^5.9.3"
   },
   "engines": {
