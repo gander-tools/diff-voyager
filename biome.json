@@ -49,5 +49,17 @@
 			"bracketSpacing": true,
 			"quoteProperties": "asNeeded"
 		}
-	}
+	},
+	"overrides": [
+		{
+			"includes": ["src/entrypoints/**/*.ts"],
+			"linter": {
+				"rules": {
+					"suspicious": {
+						"noConsole": "off"
+					}
+				}
+			}
+		}
+	]
 }
