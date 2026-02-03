@@ -172,6 +172,12 @@ This project was built using **Test-Driven Development (TDD)**:
 - **RED → GREEN → REFACTOR** cycle strictly followed
 - Every feature has tests written first
 
+## Contributing
+
+**LANGUAGE POLICY: ENGLISH ONLY**
+
+All contributions (code, comments, commits, documentation) must be in English. See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidelines.
+
 ## License
 
 GPL-3.0
