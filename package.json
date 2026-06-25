@@ -1,0 +1,48 @@
+{
+  "name": "@gander-tools/diff-voyager",
+  "version": "0.0.1",
+  "description": "Web scraper CLI + background worker using Playwright and SQLite",
+  "author": "Adam Gąsowski",
+  "license": "GPL-3.0",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gander-tools/diff-voyager"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "voyager": "dist/cli.js"
+  },
+  "scripts": {
+    "setup": "playwright install chromium",
+    "dev:cli": "tsx src/cli.ts",
+    "dev:worker": "tsx src/worker.ts",
+    "build": "tsc",
+    "start": "node dist/cli.js",
+    "start:worker": "node dist/worker.js",
+    "test": "vitest",
+    "lint": "biome check --write",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.11.1",
+    "commander": "^15.0.0",
+    "pino": "^10.3.1",
+    "playwright": "^1.61.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.0",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^26.0.1",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.9"
+  },
+  "allowScripts": {
+    "better-sqlite3@12.11.1": true,
+    "esbuild@0.28.1": true
+  }
+}
