@@ -49,6 +49,7 @@
 *.7z
 *.bz2
 *.gz
+*.har
 
 # Data files
 *.db

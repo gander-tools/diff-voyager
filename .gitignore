@@ -3,5 +3,8 @@
 .env.local
 .idea
 CLAUDE.local.md
+data
 dist
+logs
 node_modules
+snapshots
