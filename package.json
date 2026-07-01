@@ -17,13 +17,14 @@
   },
   "scripts": {
     "setup": "playwright install chromium",
+    "prepare": "lefthook install",
     "dev:cli": "tsx src/cli.ts",
     "dev:worker": "tsx src/worker.ts",
     "build": "tsc",
     "start": "node dist/cli.js",
     "start:worker": "node dist/worker.js",
-    "test": "vitest",
-    "lint": "biome check --write",
+    "test": "vitest --run",
+    "lint": "biome check --write --error-on-warnings",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -40,12 +41,14 @@
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^26.1.0",
     "drizzle-kit": "^1.0.0-rc.4",
+    "lefthook": "^2.1.9",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3",
     "vitest": "^4.1.9"
   },
   "allowScripts": {
     "better-sqlite3@12.11.1": true,
-    "esbuild@0.28.1": true
+    "esbuild@0.28.1": true,
+    "lefthook@2.1.9": true
   }
 }
