@@ -2,8 +2,8 @@ import path from 'node:path';
 import dotenv from 'dotenv';
 
 export function loadEnvFiles(envPath: string, envLocalPath: string): void {
-  dotenv.config({ path: envPath });
-  dotenv.config({ path: envLocalPath, override: true });
+  dotenv.config({ path: envPath, quiet: true });
+  dotenv.config({ path: envLocalPath, override: true, quiet: true });
 }
 
 loadEnvFiles(path.resolve('.env'), path.resolve('.env.local'));
