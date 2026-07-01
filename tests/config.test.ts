@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { loadEnvFiles } from '../src/config';
 
 const VAR = 'VOYAGER_TEST_VAR';
@@ -45,5 +45,25 @@ describe('loadEnvFiles', () => {
 
     expect(() => loadEnvFiles(envPath, envLocalPath)).not.toThrow();
     expect(process.env[VAR]).toBeUndefined();
+  });
+
+  it('does not log "injected env" tip lines to stdout (V27)', () => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'voyager-'));
+    const envPath = path.join(tmpDir, '.env');
+    const envLocalPath = path.join(tmpDir, '.env.local');
+    fs.writeFileSync(envPath, `${VAR}=from_env\n`);
+    fs.writeFileSync(envLocalPath, `${VAR}=from_local\n`);
+
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    try {
+      loadEnvFiles(envPath, envLocalPath);
+
+      for (const call of logSpy.mock.calls) {
+        expect(call.join(' ')).not.toContain('injected env');
+      }
+    } finally {
+      logSpy.mockRestore();
+    }
   });
 });
