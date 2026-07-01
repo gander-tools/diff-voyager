@@ -147,8 +147,8 @@ CREATE TABLE url_runs
 - V20: `cli.ts` invoked w/ ⊥ subcommand → print help/usage, exit 0 (⊥ error — missing subcommand ≠ usage error); unknown cmd | bad args unaffected, still exit 1
 - V21: `openDb` (db.ts) → dir of `DB_PATH` missing → `fs.mkdirSync(path.dirname(dbPath), {recursive:true})` before opening `better-sqlite3`; fixes crash confirmed from both `cli.ts` (`add`) & `worker.ts` (both route through `openDb`); fix lives solely in `db.ts`, ⊥ `config.ts`
 - V22: test seeding for `run stop` ESRCH-path ! use fixed magic PID (kernel `pid_max` varies — some environments default well below `999999`; wrong-range PID → `EINVAL` not `ESRCH` → wrong branch, flaky by host); ! derive provably-free PID (spawn short-lived child, wait exit, reuse its pid) for portability across environments
-- ? HAR format: Playwright v1.46+ may write `.zip` instead of flat `.har` — verify actual output format before T7
-- ? SNAPSHOT_DIR/LOG_DIR auto-create (future, ⊥ scheduled): if needed, logic ! go in `config.ts` (⊥ `db.ts`, no dup w/ V21); undecided — side-effect on `config.ts` import (auto-load) vs explicit fn called from actual disk-writing call sites; no confirmed bug yet unlike V21
+- V23: HAR output — `recordHar: { path: '.../archive.har', content: 'embed' }` (scraper.ts:86) + Playwright `^1.61.1` (package.json:36) → flat `.har` JSON (⊥ `.zip`; `.zip` only if path ends `.zip` | `content≠'embed'`)
+- V24: SNAPSHOT_DIR/LOG_DIR mkdir → at disk-writing call site, ⊥ `config.ts`: `scraper.ts:81` (SNAPSHOT_DIR), `worker.ts:185` (LOG_DIR); symmetric w/ V21 "fix lives solely in db.ts" — no dup side-effect logic across modules
 
 ## §T TASKS
 
