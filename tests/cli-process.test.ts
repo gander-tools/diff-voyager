@@ -79,4 +79,25 @@ describe('cli isMainModule wiring (subprocess characterization, V19)', () => {
     },
     10000,
   );
+
+  it(
+    'invoked with 0 args prints help/usage text and exits 0',
+    () => {
+      const result = runCli([], dbPath);
+
+      expect(result.stdout).toContain('Usage:');
+      expect(result.status).toBe(0);
+    },
+    10000,
+  );
+
+  it(
+    'invoked with an unknown command still exits 1 (unaffected by 0-arg help path)',
+    () => {
+      const result = runCli(['foobar'], dbPath);
+
+      expect(result.status).toBe(1);
+    },
+    10000,
+  );
 });

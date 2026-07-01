@@ -174,8 +174,8 @@ CREATE TABLE url_runs
 | T18 | x      | setup `lefthook` — devDependency, `lefthook.yml` (lint→typecheck→test), `package.json` `prepare` script                                                                                        | §C            |
 | T19 | x      | tests: characterize `cli.ts` `isMainModule` wiring (stdout + exit code) for `add`, `run start`, error path — currently 0% covered; red before refactor                                         | V19           |
 | T20 | x      | `src/cli.ts` — extract `runCommand(fn)`; rewire all 8 `.action()` callbacks through it; pure refactor, ⊥ behavior change                                                                       | V19           |
-| T21 | .      | tests: `cli.ts` invoked w/ 0 args → exitCode 0 & stdout contains help/usage text                                                                                                               | V20           |
-| T22 | .      | `src/cli.ts` — 0-arg invocation → print help, exit 0 (⊥ affect unknown-cmd/bad-arg exit 1 path)                                                                                                | V20           |
+| T21 | x      | tests: `cli.ts` invoked w/ 0 args → exitCode 0 & stdout contains help/usage text                                                                                                               | V20           |
+| T22 | x      | `src/cli.ts` — 0-arg invocation → print help, exit 0 (⊥ affect unknown-cmd/bad-arg exit 1 path)                                                                                                | V20           |
 | T23 | .      | tests: `openDb` w/ non-existent nested dir on `DB_PATH` → does ⊥ throw, dir+db file created                                                                                                    | V21           |
 | T24 | .      | `src/db.ts` — `openDb` `fs.mkdirSync(path.dirname(dbPath), {recursive:true})` before opening `better-sqlite3`                                                                                  | V21           |
 
