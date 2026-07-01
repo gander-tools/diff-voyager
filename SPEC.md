@@ -163,8 +163,8 @@ CREATE TABLE url_runs
 | T12 | x      | `src/cli.ts` — `run stop`, `run reset`, `url list`, `url remove`, `url clear`                                                                                                                  | §I,V8         |
 | T13 | x      | tests: scraper unit (Playwright mocked), config defaults, wait_for variants, error catch                                                                                                       | V4,V5,V14,V15 |
 | T14 | x      | `src/scraper.ts` — meta, links, js_errors, HAR (embed), screenshot, HTML → disk                                                                                                                | V4,V5,V15     |
-| T15 | .      | tests: atomic claim race (two workers), V9 abandoned-race, exit codes                                                                                                                          | V2,V6,V9      |
-| T16 | .      | `src/worker.ts` — poll loop, atomic claim, invoke scraper, write meta.json, cleanup+exit                                                                                                       | V2,V9         |
+| T15 | x      | tests: atomic claim race (two workers), V9 abandoned-race, exit codes                                                                                                                          | V2,V6,V9      |
+| T16 | x      | `src/worker.ts` — poll loop, atomic claim, invoke scraper, write meta.json, cleanup+exit                                                                                                       | V2,V9         |
 | T17 | .      | integration test: e2e — add url → run start → worker processes → verify artifacts+db state (wires cli+worker+db+scraper)                                                                       | V2,V8,V9,V15  |
 | T18 | x      | setup `lefthook` — devDependency, `lefthook.yml` (lint→typecheck→test), `package.json` `prepare` script                                                                                        | §C            |
 
