@@ -61,14 +61,18 @@ export function loadUrls(
   let added = 0;
   let skipped = 0;
 
-  for (const url of candidates) {
-    if (urlExists(db, url)) {
-      skipped++;
-      continue;
+  const insertAll = db.transaction(() => {
+    for (const url of candidates) {
+      if (urlExists(db, url)) {
+        skipped++;
+        continue;
+      }
+      insertUrl(db, url);
+      added++;
     }
-    insertUrl(db, url);
-    added++;
-  }
+  });
+
+  insertAll();
 
   return { added, skipped };
 }

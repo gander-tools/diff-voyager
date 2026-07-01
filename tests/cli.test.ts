@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import type Database from 'better-sqlite3';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   abandonRun,
   addUrl,
@@ -93,6 +93,32 @@ describe('addUrl / loadUrls', () => {
 
       expect(() => loadUrls(db, filePath)).toThrow(/not-a-url/);
       expect(urlCount()).toBe(0);
+    });
+
+    it('rolls back all inserts from this call when a write fails mid-loop (real transaction, V13)', () => {
+      addUrl(db, 'https://example.com/existing');
+      const filePath = writeUrlsFile(
+        ['https://example.com/b', 'https://example.com/c'].join('\n'),
+      );
+
+      const originalPrepare = db.prepare.bind(db);
+      let insertCalls = 0;
+      vi.spyOn(db, 'prepare').mockImplementation(((sql: string) => {
+        if (sql.startsWith('INSERT INTO urls')) {
+          insertCalls++;
+          if (insertCalls === 2) {
+            return { run: () => {
+              throw new Error('disk full');
+            } } as unknown as ReturnType<Database.Database['prepare']>;
+          }
+        }
+        return originalPrepare(sql);
+      }) as Database.Database['prepare']);
+
+      expect(() => loadUrls(db, filePath)).toThrow('disk full');
+      expect(urlCount()).toBe(1);
+
+      vi.restoreAllMocks();
     });
   });
 });
