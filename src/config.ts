@@ -6,6 +6,8 @@ export function loadEnvFiles(envPath: string, envLocalPath: string): void {
   dotenv.config({ path: envLocalPath, override: true });
 }
 
+loadEnvFiles(path.resolve('.env'), path.resolve('.env.local'));
+
 export const DB_PATH = process.env.DB_PATH ?? path.resolve('data/voyager.db');
 export const SNAPSHOT_DIR = process.env.SNAPSHOT_DIR ?? path.resolve('snapshots');
 export const CONFIG_PATH = process.env.CONFIG_PATH ?? path.resolve('config.json');
