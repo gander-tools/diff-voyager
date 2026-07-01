@@ -32,6 +32,7 @@ PoC versioned web scraper. CLI stages URLs → `run start` creates version and l
 - skeleton Txt: `describe` + named `it(...)` stubs derived from §V for that task; ⊥ assertions
 - skeleton Tx: interface/type signature in `src/types.ts` + impl file w/ `throw new Error("not implemented")` bodies
 - ⊥ all skeletons upfront
+- pre-commit gate: `lefthook` runs `lint → typecheck → test`, in order; each step only runs if prior exits 0; lint step = `biome check` (⊥ `--write` — hook ⊥ modify files mid-commit, deterministic); `npm run lint` (`--write`) stays manual dev command for fixing before commit
 - diff: ⊥ PoC (MVP+); future diff compares `version-N/<slug>/meta.json` vs `version-M/<slug>/meta.json` — same slug = same URL across versions
 - vectors: ⊥ (future)
 - crawler: ⊥ — user supplies URLs
@@ -42,6 +43,8 @@ PoC versioned web scraper. CLI stages URLs → `run start` creates version and l
 - job lifecycle: `pending` → `processing` → `done | failed`; worker claims atomically via `UPDATE … RETURNING` (safe for future multi-worker)
 - files: `src/config.ts` DB path & env consts | `src/db.ts` connection factory, migration, typed query helpers | `src/cli.ts` commander CLI, URL zod-validated | `src/worker.ts` poll loop (500ms idle), atomic claim, scrape, persist | `src/scraper.ts` Playwright logic, typed result → JSON
 - commands: `npm run dev:cli -- <cmd>` CLI via tsx | `npm run dev:worker` worker via tsx | `npm run build` tsc | `npm run test` / `-- <file>` / `-- --watch` vitest | `npm run lint` biome check --write | `npm run typecheck` tsc --noEmit
+- file: `lefthook.yml` — pre-commit hook config: 3 steps `lint` (`biome check`, ⊥ write) → `typecheck` (`tsc --noEmit`) → `test` (`vitest run`)
+- `package.json` `"prepare": "lefthook install"` → auto-installs git hook after `npm install`
 - cmd: `add <url>` → validate (zod) → insert into `urls` (skip if url exists) → print ok | "already exists"
 - cmd: `load <file>` → single tx; skip empty lines & `#` comments; validate each url; ∃ invalid → rollback all, exit w/ error listing invalid lines; bulk insert `urls` (skip duplicates) → print added/skipped counts
 - cmd: `run start` → ⊥ if `urls` empty; ⊥ if ∃ open run; BEGIN tx: INSERT run (version = COALESCE(MAX(version),0)+1), INSERT url_runs for all `urls`, COMMIT; spawn worker (detached, unref); save PID to runs.pid → print "run N started, PID: X"
@@ -163,3 +166,4 @@ CREATE TABLE url_runs
 | T15 | .      | tests: atomic claim race (two workers), V9 abandoned-race, exit codes                                                                                                                          | V2,V6,V9      |
 | T16 | .      | `src/worker.ts` — poll loop, atomic claim, invoke scraper, write meta.json, cleanup+exit                                                                                                       | V2,V9         |
 | T17 | .      | integration test: e2e — add url → run start → worker processes → verify artifacts+db state (wires cli+worker+db+scraper)                                                                       | V2,V8,V9,V15  |
+| T18 | x      | setup `lefthook` — devDependency, `lefthook.yml` (lint→typecheck→test), `package.json` `prepare` script                                                                                        | §C            |
