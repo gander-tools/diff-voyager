@@ -21,7 +21,10 @@ PoC versioned web scraper. CLI stages URLs → `run start` creates version and l
 - `run start` → create run, insert `url_runs` for all `urls`, spawn worker
 - worker: one-shot; polls pending `url_runs`; on finish → DELETE url_runs, mark run `done` (if still open), close browser, exit 0/1
 - TypeScript 6; tsx dev; compiled JS prod
-- libs: `commander`, `better-sqlite3`, `playwright`, `zod`, `pino`, `@biomejs/biome` 2.5, `vitest`
+- libs: `commander`, `drizzle-orm` (driver: `better-sqlite3`, sync), `playwright`, `zod`, `pino`, `dotenv`, `@biomejs/biome` 2.5, `vitest`; ⊥ `@libsql/client` (dead dep, rm from package.json)
+- env files: `.env` committed — dev defaults for `DB_PATH`, `SNAPSHOT_DIR`, `CONFIG_PATH`, `LOG_DIR`; `.env.local` gitignored — local overrides; load order in `config.ts`: `dotenv.config({path:'.env'})` → `dotenv.config({path:'.env.local', override:true})`; existing per-var fallbacks in `config.ts` stay as last resort (prod w/o `.env`); `.gitignore`: rm `.env`, add `.env.local`
+- DB: `src/schema.ts` — drizzle table defs `urls`/`runs`/`url_runs`; `drizzle-kit generate` → `migrations/*.sql`; `migrate()` (`drizzle-orm/better-sqlite3/migrator`) runs them on boot (CLI + worker)
+- V2 atomic claim → Drizzle query builder `.update().set().where(and(...)).returning()`; ⊥ raw SQL unless builder can't guarantee same atomicity (fallback: `sql\`\`` tag, verify @ T3)
 - `src/types.ts` first — central TS interfaces (`ScrapedPage`, `RunRecord`, `UrlRecord`, `Config`, `UrlRun`) defined before any implementation file
 - TDD: Chicago school (classicist); real objects; mocks only when unavoidable (Playwright browser, SIGTERM)
 - test-first cycle: red → green per task; ⊥ implementation task ships w/o passing test
@@ -35,6 +38,10 @@ PoC versioned web scraper. CLI stages URLs → `run start` creates version and l
 
 ## §I INTERFACES
 
+- arch: CLI (`src/cli.ts`) & worker (`src/worker.ts`) separate processes; talk only via SQLite DB (`src/db.ts`); WAL + `busy_timeout=5000` ! prevent SQLITE_BUSY under concurrent access
+- job lifecycle: `pending` → `processing` → `done | failed`; worker claims atomically via `UPDATE … RETURNING` (safe for future multi-worker)
+- files: `src/config.ts` DB path & env consts | `src/db.ts` connection factory, migration, typed query helpers | `src/cli.ts` commander CLI, URL zod-validated | `src/worker.ts` poll loop (500ms idle), atomic claim, scrape, persist | `src/scraper.ts` Playwright logic, typed result → JSON
+- commands: `npm run dev:cli -- <cmd>` CLI via tsx | `npm run dev:worker` worker via tsx | `npm run build` tsc | `npm run test` / `-- <file>` / `-- --watch` vitest | `npm run lint` biome check --write | `npm run typecheck` tsc --noEmit
 - cmd: `add <url>` → validate (zod) → insert into `urls` (skip if url exists) → print ok | "already exists"
 - cmd: `load <file>` → single tx; skip empty lines & `#` comments; validate each url; ∃ invalid → rollback all, exit w/ error listing invalid lines; bulk insert `urls` (skip duplicates) → print added/skipped counts
 - cmd: `run start` → ⊥ if `urls` empty; ⊥ if ∃ open run; BEGIN tx: INSERT run (version = COALESCE(MAX(version),0)+1), INSERT url_runs for all `urls`, COMMIT; spawn worker (detached, unref); save PID to runs.pid → print "run N started, PID: X"
@@ -67,27 +74,30 @@ PoC versioned web scraper. CLI stages URLs → `run start` creates version and l
 - db schema (`unixepoch()` requires SQLite ≥ 3.38.0; alternative: `strftime('%s','now')`):
 
 ```sqlite
-CREATE TABLE urls (
-  id         TEXT PRIMARY KEY,
-  url        TEXT NOT NULL UNIQUE,
-  path       TEXT NOT NULL,
-  created_at INTEGER DEFAULT (unixepoch())
+CREATE TABLE urls
+(
+    id         TEXT PRIMARY KEY,
+    url        TEXT NOT NULL UNIQUE,
+    path       TEXT NOT NULL,
+    created_at INTEGER DEFAULT (unixepoch())
 );
-CREATE TABLE runs (
-  id         TEXT PRIMARY KEY,
-  version    INTEGER NOT NULL UNIQUE,
-  status     TEXT NOT NULL DEFAULT 'open', -- open | done | abandoned
-  pid        INTEGER,
-  created_at INTEGER DEFAULT (unixepoch())
+CREATE TABLE runs
+(
+    id         TEXT PRIMARY KEY,
+    version    INTEGER NOT NULL UNIQUE,
+    status     TEXT    NOT NULL DEFAULT 'open', -- open | done | abandoned
+    pid        INTEGER,
+    created_at INTEGER          DEFAULT (unixepoch())
 );
-CREATE TABLE url_runs (
-  id           TEXT PRIMARY KEY,
-  url_id       TEXT NOT NULL REFERENCES urls(id),
-  run_id       TEXT NOT NULL REFERENCES runs(id),
-  status       TEXT NOT NULL DEFAULT 'pending', -- pending | processing | done | failed
-  error        TEXT,
-  created_at   INTEGER DEFAULT (unixepoch()),
-  UNIQUE(url_id, run_id)
+CREATE TABLE url_runs
+(
+    id         TEXT PRIMARY KEY,
+    url_id     TEXT NOT NULL REFERENCES urls (id),
+    run_id     TEXT NOT NULL REFERENCES runs (id),
+    status     TEXT NOT NULL DEFAULT 'pending', -- pending | processing | done | failed
+    error      TEXT,
+    created_at INTEGER       DEFAULT (unixepoch()),
+    UNIQUE (url_id, run_id)
 );
 ```
 
@@ -132,21 +142,22 @@ CREATE TABLE url_runs (
 
 ## §T TASKS
 
-| id  | status | task                                                                                                | cites         |
-|-----|--------|-----------------------------------------------------------------------------------------------------|---------------|
-| T0  | .      | `src/types.ts` — all shared interfaces: `ScrapedPage`, `RunRecord`, `UrlRecord`, `Config`, `UrlRun` | §I            |
-| T1  | .      | `src/config.ts` — env constants: DB_PATH, SNAPSHOT_DIR, CONFIG_PATH, LOG_DIR                        | -             |
-| T2  | .      | `src/db.ts` — connection factory, WAL pragma, schema migration                                      | V3,V7         |
-| T2t | .      | tests: DB schema, UNIQUE constraints, WAL pragma set, FK enforcement                                | V3,V6,V7      |
-| T3  | .      | `src/slug.ts` — URL → slug (`slugify(path)` + `-` + `sha256(url)[:8]`)                              | V14           |
-| T3t | .      | tests: slug determinism, uniqueness across URLs, special chars                                      | V14           |
-| T4  | .      | `src/cli.ts` — `add <url>`, `load <file>`                                                           | V1,V10,V13    |
-| T4t | .      | tests: URL validation, duplicate skip, `load` rollback on invalid, line parsing                     | V1,V10,V13    |
-| T5  | .      | `src/cli.ts` — `run start`: guards, create run + url_runs (tx), spawn worker                        | V8,V11,V12    |
-| T5t | .      | tests: empty-urls guard, open-run guard, atomic INSERT tx, spawn-fail rollback                      | V8,V11,V12    |
-| T6  | .      | `src/cli.ts` — `run stop`, `run reset`, `url list`, `url remove`, `url clear`                       | §I,V8         |
-| T6t | .      | tests: url remove/clear open-run guard, run stop SIGTERM mock, abandoned-race guard                 | V8,V9,V16     |
-| T7  | .      | `src/scraper.ts` — meta, links, js_errors, HAR (embed), screenshot, HTML → disk                     | V4,V5,V15     |
-| T7t | .      | tests: scraper unit (Playwright mocked), config defaults, wait_for variants, error catch            | V4,V5,V14,V15 |
-| T8  | .      | `src/worker.ts` — poll loop, atomic claim, invoke scraper, write meta.json, cleanup+exit            | V2,V9         |
-| T8t | .      | tests: atomic claim race (two workers), V9 abandoned-race, exit codes                               | V2,V6,V9      |
+| id  | status | task                                                                                                                                 | cites         |
+|-----|--------|--------------------------------------------------------------------------------------------------------------------------------------|---------------|
+| T0  | x      | `src/types.ts` — all shared interfaces: `ScrapedPage`, `RunRecord`, `UrlRecord`, `Config`, `UrlRun`                                  | §I            |
+| T1  | ~      | `src/config.ts` — env constants: DB_PATH, SNAPSHOT_DIR, CONFIG_PATH, LOG_DIR (done); dotenv `.env`→`.env.local` load order (pending) | -             |
+| T2  | .      | tests: DB schema, UNIQUE constraints, WAL pragma set, FK enforcement                                                                 | V3,V6,V7      |
+| T3  | .      | `src/db.ts` — connection factory, WAL pragma, schema migration                                                                       | V3,V7         |
+| T4  | .      | tests: slug determinism, uniqueness across URLs, special chars                                                                       | V14           |
+| T5  | .      | `src/slug.ts` — URL → slug (`slugify(path)` + `-` + `sha256(url)[:8]`)                                                               | V14           |
+| T6  | .      | tests: URL validation, duplicate skip, `load` rollback on invalid, line parsing                                                      | V1,V10,V13    |
+| T7  | .      | `src/cli.ts` — `add <url>`, `load <file>`                                                                                            | V1,V10,V13    |
+| T8  | .      | tests: empty-urls guard, open-run guard, atomic INSERT tx, spawn-fail rollback                                                       | V8,V11,V12    |
+| T9  | .      | `src/cli.ts` — `run start`: guards, create run + url_runs (tx), spawn worker                                                         | V8,V11,V12    |
+| T10 | .      | tests: url remove/clear open-run guard, run stop SIGTERM mock, abandoned-race guard                                                  | V8,V9,V16     |
+| T11 | .      | `src/cli.ts` — `run stop`, `run reset`, `url list`, `url remove`, `url clear`                                                        | §I,V8         |
+| T12 | .      | tests: scraper unit (Playwright mocked), config defaults, wait_for variants, error catch                                             | V4,V5,V14,V15 |
+| T13 | .      | `src/scraper.ts` — meta, links, js_errors, HAR (embed), screenshot, HTML → disk                                                      | V4,V5,V15     |
+| T14 | .      | tests: atomic claim race (two workers), V9 abandoned-race, exit codes                                                                | V2,V6,V9      |
+| T15 | .      | `src/worker.ts` — poll loop, atomic claim, invoke scraper, write meta.json, cleanup+exit                                             | V2,V9         |
+| T16 | .      | integration test: e2e — add url → run start → worker processes → verify artifacts+db state (wires cli+worker+db+scraper)             | V2,V8,V9,V15  |
