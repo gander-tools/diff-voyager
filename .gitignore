@@ -1,6 +1,6 @@
 *.db
 .ck
-.env
+.env.local
 .idea
 CLAUDE.local.md
 dist
