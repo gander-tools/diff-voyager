@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type Database from 'better-sqlite3';
 import BetterSqlite3 from 'better-sqlite3';
@@ -6,8 +8,10 @@ import { migrate as drizzleMigrate } from 'drizzle-orm/better-sqlite3/migrator';
 
 const migrationsFolder = fileURLToPath(new URL('../migrations', import.meta.url));
 
-export function openDb(path: string): Database.Database {
-  const db = new BetterSqlite3(path);
+export function openDb(dbPath: string): Database.Database {
+  fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+
+  const db = new BetterSqlite3(dbPath);
 
   db.pragma('journal_mode = WAL');
   db.pragma('busy_timeout = 5000');

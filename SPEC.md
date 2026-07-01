@@ -176,8 +176,8 @@ CREATE TABLE url_runs
 | T20 | x      | `src/cli.ts` — extract `runCommand(fn)`; rewire all 8 `.action()` callbacks through it; pure refactor, ⊥ behavior change                                                                       | V19           |
 | T21 | x      | tests: `cli.ts` invoked w/ 0 args → exitCode 0 & stdout contains help/usage text                                                                                                               | V20           |
 | T22 | x      | `src/cli.ts` — 0-arg invocation → print help, exit 0 (⊥ affect unknown-cmd/bad-arg exit 1 path)                                                                                                | V20           |
-| T23 | .      | tests: `openDb` w/ non-existent nested dir on `DB_PATH` → does ⊥ throw, dir+db file created                                                                                                    | V21           |
-| T24 | .      | `src/db.ts` — `openDb` `fs.mkdirSync(path.dirname(dbPath), {recursive:true})` before opening `better-sqlite3`                                                                                  | V21           |
+| T23 | x      | tests: `openDb` w/ non-existent nested dir on `DB_PATH` → does ⊥ throw, dir+db file created                                                                                                    | V21           |
+| T24 | x      | `src/db.ts` — `openDb` `fs.mkdirSync(path.dirname(dbPath), {recursive:true})` before opening `better-sqlite3`                                                                                  | V21           |
 
 ## §B BUGS
 

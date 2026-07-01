@@ -44,6 +44,17 @@ describe('openDb', () => {
       db = openDb(':memory:');
     }).not.toThrow();
   });
+
+  it('creates missing nested parent directories for DB_PATH and does not throw', () => {
+    const nestedDbPath = path.join(tmpDir, 'nested', 'deep', 'test.db');
+
+    expect(() => {
+      db = openDb(nestedDbPath);
+    }).not.toThrow();
+
+    expect(fs.existsSync(path.dirname(nestedDbPath))).toBe(true);
+    expect(fs.existsSync(nestedDbPath)).toBe(true);
+  });
 });
 
 describe('migrate', () => {
