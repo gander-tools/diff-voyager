@@ -1,9 +1,21 @@
+import { randomUUID } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import type Database from 'better-sqlite3';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { addUrl, insertRunAndUrlRuns, loadUrls, runStart } from '../src/cli';
+import {
+  abandonRun,
+  addUrl,
+  insertRunAndUrlRuns,
+  loadUrls,
+  runReset,
+  runStart,
+  runStop,
+  urlClear,
+  urlList,
+  urlRemove,
+} from '../src/cli';
 import { migrate, openDb } from '../src/db';
 
 describe('addUrl / loadUrls', () => {
@@ -85,7 +97,7 @@ describe('addUrl / loadUrls', () => {
   });
 });
 
-describe('run lifecycle', () => {
+describe('run lifecycle / url management', () => {
   let db: Database.Database;
 
   beforeEach(() => {
@@ -111,7 +123,7 @@ describe('run lifecycle', () => {
   }
 
   describe('runStart', () => {
-    it("throws 'no URLs registered' when urls is empty", () => {
+    it('throws \'no URLs registered\' when urls is empty', () => {
       expect(() => runStart(db)).toThrow('no URLs registered');
     });
 
@@ -135,7 +147,9 @@ describe('run lifecycle', () => {
         status: string;
       };
       expect(run).toEqual({ version: 1, pid: 4242, status: 'open' });
-      expect((db.prepare('SELECT COUNT(*) AS c FROM url_runs').get() as { c: number }).c).toBe(2);
+      expect(
+        (db.prepare('SELECT COUNT(*) AS c FROM url_runs').get() as { c: number }).c,
+      ).toBe(2);
     });
 
     it('deletes url_runs and the run, then rethrows, when spawnWorker throws', () => {
@@ -148,7 +162,9 @@ describe('run lifecycle', () => {
       ).toThrow('spawn failed');
 
       expect((db.prepare('SELECT COUNT(*) AS c FROM runs').get() as { c: number }).c).toBe(0);
-      expect((db.prepare('SELECT COUNT(*) AS c FROM url_runs').get() as { c: number }).c).toBe(0);
+      expect(
+        (db.prepare('SELECT COUNT(*) AS c FROM url_runs').get() as { c: number }).c,
+      ).toBe(0);
     });
   });
 
@@ -168,8 +184,123 @@ describe('run lifecycle', () => {
       insertRunAndUrlRuns(db, 1);
 
       expect(() => insertRunAndUrlRuns(db, 1)).toThrow();
-      expect((db.prepare('SELECT COUNT(*) AS c FROM runs').get() as { c: number }).c).toBe(1);
-      expect((db.prepare('SELECT COUNT(*) AS c FROM url_runs').get() as { c: number }).c).toBe(1);
+      expect(
+        (db.prepare('SELECT COUNT(*) AS c FROM runs').get() as { c: number }).c,
+      ).toBe(1);
+      expect(
+        (db.prepare('SELECT COUNT(*) AS c FROM url_runs').get() as { c: number }).c,
+      ).toBe(1);
+    });
+  });
+
+  describe('urlRemove', () => {
+    it('throws when a run is open', () => {
+      addUrl(db, 'https://example.com/a');
+      runStart(db, () => ({ pid: 4242 }));
+
+      expect(() => urlRemove(db, 'https://example.com/a')).toThrow('run 1 is still open');
+    });
+
+    it("removes an existing url and returns 'removed'", () => {
+      addUrl(db, 'https://example.com/a');
+
+      expect(urlRemove(db, 'https://example.com/a')).toBe('removed');
+      expect(
+        (db.prepare('SELECT COUNT(*) AS c FROM urls').get() as { c: number }).c,
+      ).toBe(0);
+    });
+
+    it("returns 'not-found' for a url that does not exist", () => {
+      expect(urlRemove(db, 'https://example.com/missing')).toBe('not-found');
+    });
+  });
+
+  describe('urlClear', () => {
+    it('throws when a run is open', () => {
+      addUrl(db, 'https://example.com/a');
+      runStart(db, () => ({ pid: 4242 }));
+
+      expect(() => urlClear(db)).toThrow('run 1 is still open');
+    });
+
+    it('deletes all urls and returns the count', () => {
+      addUrl(db, 'https://example.com/a');
+      addUrl(db, 'https://example.com/b');
+
+      expect(urlClear(db)).toBe(2);
+      expect(
+        (db.prepare('SELECT COUNT(*) AS c FROM urls').get() as { c: number }).c,
+      ).toBe(0);
+    });
+  });
+
+  describe('urlList', () => {
+    it('returns registered urls with their created_at timestamp', () => {
+      addUrl(db, 'https://example.com/a');
+
+      expect(urlList(db)).toEqual([
+        { url: 'https://example.com/a', createdAt: expect.any(Number) },
+      ]);
+    });
+  });
+
+  describe('runStop', () => {
+    it('kills the process, deletes url_runs, marks the run abandoned', () => {
+      addUrl(db, 'https://example.com/a');
+      const { pid } = runStart(db, () => ({ pid: 4242 }));
+      const run = db.prepare('SELECT id FROM runs').get() as { id: string };
+      const killed: number[] = [];
+
+      runStop(db, (killPid) => {
+        killed.push(killPid);
+      });
+
+      expect(killed).toEqual([pid]);
+      expect(runStatus(run.id)).toBe('abandoned');
+      expect(urlRunCount(run.id)).toBe(0);
+    });
+
+    it("throws 'process not found, use run reset' when kill fails with ESRCH", () => {
+      addUrl(db, 'https://example.com/a');
+      runStart(db, () => ({ pid: 4242 }));
+
+      expect(() =>
+        runStop(db, () => {
+          throw Object.assign(new Error('kill ESRCH'), { code: 'ESRCH' });
+        }),
+      ).toThrow('process not found, use run reset');
+    });
+
+    it("throws 'no open run' when there is no open run", () => {
+      expect(() => runStop(db, () => {})).toThrow('no open run');
+    });
+  });
+
+  describe('runReset', () => {
+    it('deletes url_runs and marks the run abandoned, without killing anything', () => {
+      addUrl(db, 'https://example.com/a');
+      runStart(db, () => ({ pid: 4242 }));
+      const openRun = db.prepare('SELECT id FROM runs').get() as { id: string };
+
+      runReset(db);
+
+      expect(runStatus(openRun.id)).toBe('abandoned');
+      expect(urlRunCount(openRun.id)).toBe(0);
+    });
+
+    it("throws 'no open run' when there is no open run", () => {
+      expect(() => runReset(db)).toThrow('no open run');
+    });
+  });
+
+  describe('abandonRun', () => {
+    it('does not overwrite a run already marked done (abandoned-race guard)', () => {
+      const runId = randomUUID();
+      db.prepare("INSERT INTO runs (id, version, status) VALUES (?, ?, 'done')").run(runId, 1);
+
+      abandonRun(db, runId);
+
+      expect(runStatus(runId)).toBe('done');
     });
   });
 });
