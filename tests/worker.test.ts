@@ -131,14 +131,17 @@ describe('claimNextPending', () => {
 
 describe('finalizeRun', () => {
   let db: Database.Database;
+  let tmpDir: string;
 
   beforeEach(() => {
     db = openDb(':memory:');
     migrate(db);
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'voyager-worker-finalize-'));
   });
 
   afterEach(() => {
     db.close();
+    fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
   it('deletes url_runs and marks run done when run was open, returns 0 when nothing failed', () => {
@@ -146,7 +149,7 @@ describe('finalizeRun', () => {
     const urlId = insertUrl(db);
     insertUrlRun(db, urlId, run.id, 'done');
 
-    const exitCode = finalizeRun(db, run.id);
+    const exitCode = finalizeRun(db, run.id, run.version, tmpDir);
 
     expect(exitCode).toBe(0);
     expect(db.prepare('SELECT COUNT(*) c FROM url_runs WHERE run_id = ?').get(run.id)).toEqual({
@@ -163,7 +166,7 @@ describe('finalizeRun', () => {
     const urlId = insertUrl(db);
     insertUrlRun(db, urlId, run.id, 'failed');
 
-    expect(finalizeRun(db, run.id)).toBe(1);
+    expect(finalizeRun(db, run.id, run.version, tmpDir)).toBe(1);
   });
 
   it('does not overwrite an abandoned run back to done', () => {
@@ -171,12 +174,44 @@ describe('finalizeRun', () => {
     const urlId = insertUrl(db);
     insertUrlRun(db, urlId, run.id, 'done');
 
-    finalizeRun(db, run.id);
+    finalizeRun(db, run.id, run.version, tmpDir);
 
     expect(
       (db.prepare('SELECT status FROM runs WHERE id = ?').get(run.id) as { status: string })
         .status,
     ).toBe('abandoned');
+  });
+
+  it('writes errors.json and sets done_with_errors when a url_run failed (V9)', () => {
+    const run = insertRun(db, 'open');
+    const urlId = insertUrl(db, 'https://example.com/broken');
+    insertUrlRun(db, urlId, run.id, 'failed');
+    db.prepare("UPDATE url_runs SET error = 'boom' WHERE run_id = ?").run(run.id);
+
+    const exitCode = finalizeRun(db, run.id, run.version, tmpDir);
+
+    expect(exitCode).toBe(1);
+    expect(
+      (db.prepare('SELECT status FROM runs WHERE id = ?').get(run.id) as { status: string })
+        .status,
+    ).toBe('done_with_errors');
+    const errorsPath = path.join(tmpDir, `version-${run.version}`, 'errors.json');
+    const errors = JSON.parse(fs.readFileSync(errorsPath, 'utf-8'));
+    expect(errors).toEqual([{ url: 'https://example.com/broken', error: 'boom' }]);
+  });
+
+  it('does not write errors.json and keeps done when no url_run failed (V9)', () => {
+    const run = insertRun(db, 'open');
+    const urlId = insertUrl(db);
+    insertUrlRun(db, urlId, run.id, 'done');
+
+    finalizeRun(db, run.id, run.version, tmpDir);
+
+    expect(
+      (db.prepare('SELECT status FROM runs WHERE id = ?').get(run.id) as { status: string })
+        .status,
+    ).toBe('done');
+    expect(fs.existsSync(path.join(tmpDir, `version-${run.version}`, 'errors.json'))).toBe(false);
   });
 });
 

@@ -50,17 +50,41 @@ export function countPending(db: Database.Database, runId: string): number {
   ).c;
 }
 
-export function finalizeRun(db: Database.Database, runId: string): 0 | 1 {
-  const failed = (
-    db
-      .prepare("SELECT COUNT(*) AS c FROM url_runs WHERE run_id = ? AND status = 'failed'")
-      .get(runId) as { c: number }
-  ).c;
+export function finalizeRun(
+  db: Database.Database,
+  runId: string,
+  version: number,
+  snapshotBaseDir: string,
+): 0 | 1 {
+  const failedRows = db
+    .prepare(
+      `SELECT urls.url AS url, url_runs.error AS error
+       FROM url_runs
+       JOIN urls ON urls.id = url_runs.url_id
+       WHERE url_runs.run_id = ? AND url_runs.status = 'failed'`,
+    )
+    .all(runId) as { url: string; error: string | null }[];
+
+  if (failedRows.length > 0) {
+    const versionDir = path.join(snapshotBaseDir, `version-${version}`);
+    fs.mkdirSync(versionDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(versionDir, 'errors.json'),
+      JSON.stringify(
+        failedRows.map((row) => ({ url: row.url, error: row.error })),
+        null,
+        2,
+      ),
+    );
+  }
 
   db.prepare('DELETE FROM url_runs WHERE run_id = ?').run(runId);
-  db.prepare("UPDATE runs SET status = 'done' WHERE id = ? AND status = 'open'").run(runId);
+  db.prepare("UPDATE runs SET status = ? WHERE id = ? AND status = 'open'").run(
+    failedRows.length > 0 ? 'done_with_errors' : 'done',
+    runId,
+  );
 
-  return failed > 0 ? 1 : 0;
+  return failedRows.length > 0 ? 1 : 0;
 }
 
 export async function processUrlRun(
@@ -140,7 +164,7 @@ export async function runWorker(
     await sleepFn(500);
   }
 
-  return finalizeRun(db, run.id);
+  return finalizeRun(db, run.id, run.version, snapshotBaseDir);
 }
 
 export function loadWorkerConfig(configPath: string): Config {

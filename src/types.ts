@@ -20,7 +20,7 @@ export interface ScrapedPage {
 export interface RunRecord {
   id: string;
   version: number;
-  status: 'open' | 'done' | 'abandoned';
+  status: 'open' | 'done' | 'done_with_errors' | 'abandoned';
   pid: number | null;
   created_at: number;
 }

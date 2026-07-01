@@ -116,7 +116,12 @@ describe('e2e: add url -> run start -> worker processes', () => {
     expect(
       (db.prepare('SELECT status FROM runs WHERE id = ?').get(run.id) as { status: string })
         .status,
-    ).toBe('done');
+    ).toBe('done_with_errors');
     expect(runResult.version).toBeGreaterThan(0);
+
+    const errors = JSON.parse(
+      fs.readFileSync(path.join(tmpDir, `version-${run.version}`, 'errors.json'), 'utf-8'),
+    );
+    expect(errors).toEqual([{ url: badUrl, error: expect.any(String) }]);
   });
 });
