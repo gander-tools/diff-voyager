@@ -82,7 +82,7 @@ CREATE TABLE urls
     id         TEXT PRIMARY KEY,
     url        TEXT NOT NULL UNIQUE,
     path       TEXT NOT NULL,
-    created_at INTEGER DEFAULT (unixepoch())
+    created_at INTEGER DEFAULT (unixepoch('now'))
 );
 CREATE TABLE runs
 (
@@ -90,7 +90,7 @@ CREATE TABLE runs
     version    INTEGER NOT NULL UNIQUE,
     status     TEXT    NOT NULL DEFAULT 'open', -- open | done | abandoned
     pid        INTEGER,
-    created_at INTEGER          DEFAULT (unixepoch())
+    created_at INTEGER          DEFAULT (unixepoch('now'))
 );
 CREATE TABLE url_runs
 (
@@ -99,7 +99,7 @@ CREATE TABLE url_runs
     run_id     TEXT NOT NULL REFERENCES runs (id),
     status     TEXT NOT NULL DEFAULT 'pending', -- pending | processing | done | failed
     error      TEXT,
-    created_at INTEGER       DEFAULT (unixepoch()),
+    created_at INTEGER       DEFAULT (unixepoch('now')),
     UNIQUE (url_id, run_id)
 );
 ```
