@@ -20,7 +20,7 @@ export interface ScrapedPage {
 export interface RunRecord {
   id: string;
   version: number;
-  status: "open" | "done" | "abandoned";
+  status: 'open' | 'done' | 'abandoned';
   pid: number | null;
   created_at: number;
 }
@@ -37,7 +37,7 @@ export interface Config {
     selector?: string;
     exclude?: string[];
     full_page?: boolean;
-    format?: "png" | "jpeg";
+    format?: 'png' | 'jpeg';
     quality?: number;
   };
   timeout_ms?: number;
@@ -51,7 +51,7 @@ export interface UrlRun {
   id: string;
   url_id: string;
   run_id: string;
-  status: "pending" | "processing" | "done" | "failed";
+  status: 'pending' | 'processing' | 'done' | 'failed';
   error: string | null;
   created_at: number;
 }
