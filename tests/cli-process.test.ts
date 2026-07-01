@@ -341,6 +341,94 @@ describe('cli `url remove <url>` (subprocess, T25)', () => {
   );
 });
 
+describe('cli `clean` (subprocess, T34)', () => {
+  let tmpDir: string;
+  let dbPath: string;
+  let snapshotDir: string;
+  let logDir: string;
+
+  function runClean(env: Record<string, string>) {
+    return spawnSync(tsxBin, [cliPath, 'clean'], {
+      cwd: repoRoot,
+      env: { ...process.env, ...env },
+      encoding: 'utf-8',
+    });
+  }
+
+  function seedSnapshotAndLogs(): void {
+    fs.mkdirSync(snapshotDir, { recursive: true });
+    fs.writeFileSync(path.join(snapshotDir, 'placeholder.txt'), 'snapshot');
+    fs.mkdirSync(logDir, { recursive: true });
+    fs.writeFileSync(path.join(logDir, 'worker-v1.log'), 'log');
+  }
+
+  function seedDb(): void {
+    const db = openDb(dbPath);
+    migrate(db);
+    db.close();
+  }
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'voyager-cli-proc-'));
+    dbPath = path.join(tmpDir, 'data', 'test.db');
+    snapshotDir = path.join(tmpDir, 'snapshots');
+    logDir = path.join(tmpDir, 'logs');
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it(
+    'prints "is still open" to stderr and exits 1 when a run is open, leaving artifacts intact (V25)',
+    () => {
+      seedOpenRun(dbPath, 4242);
+      seedSnapshotAndLogs();
+
+      const result = runClean({ DB_PATH: dbPath, SNAPSHOT_DIR: snapshotDir, LOG_DIR: logDir });
+
+      expect(result.stderr).toContain('is still open');
+      expect(result.status).toBe(1);
+      expect(fs.existsSync(path.dirname(dbPath))).toBe(true);
+      expect(fs.existsSync(snapshotDir)).toBe(true);
+      expect(fs.existsSync(logDir)).toBe(true);
+    },
+    10000,
+  );
+
+  it(
+    'deletes the DB_PATH dir, SNAPSHOT_DIR and LOG_DIR and prints "cleaned:" when no run is open (V25)',
+    () => {
+      seedDb();
+      seedSnapshotAndLogs();
+
+      const result = runClean({ DB_PATH: dbPath, SNAPSHOT_DIR: snapshotDir, LOG_DIR: logDir });
+
+      expect(result.stdout).toContain('cleaned:');
+      expect(result.status).toBe(0);
+      expect(fs.existsSync(path.dirname(dbPath))).toBe(false);
+      expect(fs.existsSync(snapshotDir)).toBe(false);
+      expect(fs.existsSync(logDir)).toBe(false);
+    },
+    10000,
+  );
+
+  it(
+    'a subsequent CLI invocation recreates the DB_PATH dir without throwing (V21/V25)',
+    () => {
+      seedDb();
+      seedSnapshotAndLogs();
+      runClean({ DB_PATH: dbPath, SNAPSHOT_DIR: snapshotDir, LOG_DIR: logDir });
+
+      const result = runCli(['url', 'list'], dbPath);
+
+      expect(result.status).toBe(0);
+      expect(fs.existsSync(path.dirname(dbPath))).toBe(true);
+    },
+    10000,
+  );
+});
+
 describe('cli `url clear` (subprocess, T25)', () => {
   let tmpDir: string;
   let dbPath: string;

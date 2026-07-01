@@ -1,11 +1,12 @@
 import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import fs from 'node:fs';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type Database from 'better-sqlite3';
 import { Command } from 'commander';
 import { z } from 'zod';
-import { DB_PATH } from './config';
+import { DB_PATH, LOG_DIR, SNAPSHOT_DIR } from './config';
 import { migrate, openDb } from './db';
 
 const urlSchema = z.url();
@@ -207,6 +208,22 @@ export function urlClear(db: Database.Database): number {
   return db.prepare('DELETE FROM urls').run().changes;
 }
 
+export function cleanProject(
+  db: Database.Database,
+  paths: { dbDir: string; snapshotDir: string; logDir: string },
+): string[] {
+  const open = findOpenRun(db);
+  if (open) {
+    throw new Error(`run ${open.version} is still open`);
+  }
+
+  const removed = [paths.dbDir, paths.snapshotDir, paths.logDir];
+  for (const dir of removed) {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+  return removed;
+}
+
 const isMainModule = process.argv[1] === fileURLToPath(import.meta.url);
 
 function runCommand<T>(fn: (db: Database.Database) => T): T | undefined {
@@ -310,6 +327,20 @@ if (isMainModule) {
       runCommand((db) => {
         const n = urlClear(db);
         console.log(`cleared ${n} urls`);
+      });
+    });
+
+  program
+    .command('clean')
+    .description('delete DB, snapshots, and logs, resetting to a fresh install')
+    .action(() => {
+      runCommand((db) => {
+        const removed = cleanProject(db, {
+          dbDir: path.dirname(DB_PATH),
+          snapshotDir: SNAPSHOT_DIR,
+          logDir: LOG_DIR,
+        });
+        console.log(`cleaned: ${removed.join(', ')}`);
       });
     });
 
