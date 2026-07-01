@@ -144,7 +144,10 @@ CREATE TABLE url_runs
 - V16: `run stop` SIGTERM → ESRCH → exit w/ error "process not found, use run reset"; ⊥ silent continue; `UPDATE runs SET status='abandoned' WHERE status='open'` — ⊥ overwrite `done` (symmetric with V9)
 - V17: config load order → `dotenv.config({path:'.env'})` → `dotenv.config({path:'.env.local', override:true})` → per-var `process.env` fallback (last resort); missing `.env`/`.env.local` files ⊥ fail, fallback still works; `loadEnvFiles()` called automatically on `config.ts` module top-level — importing `config.ts` alone is enough, ⊥ requires any entrypoint to call it explicitly
 - V19: ∀ CLI command action → wired via single `runCommand(fn)`: `openDb` → `migrate` → invoke `fn(db)` → catch → `console.error` + `exitCode=1` → finally `db.close()`; ⊥ inline open/migrate/try/catch/finally duplicated per command (prevents re-shallowing, cf. B1/B2 drift pattern)
+- V20: `cli.ts` invoked w/ ⊥ subcommand → print help/usage, exit 0 (⊥ error — missing subcommand ≠ usage error); unknown cmd | bad args unaffected, still exit 1
+- V21: `openDb` (db.ts) → dir of `DB_PATH` missing → `fs.mkdirSync(path.dirname(dbPath), {recursive:true})` before opening `better-sqlite3`; fixes crash confirmed from both `cli.ts` (`add`) & `worker.ts` (both route through `openDb`); fix lives solely in `db.ts`, ⊥ `config.ts`
 - ? HAR format: Playwright v1.46+ may write `.zip` instead of flat `.har` — verify actual output format before T7
+- ? SNAPSHOT_DIR/LOG_DIR auto-create (future, ⊥ scheduled): if needed, logic ! go in `config.ts` (⊥ `db.ts`, no dup w/ V21); undecided — side-effect on `config.ts` import (auto-load) vs explicit fn called from actual disk-writing call sites; no confirmed bug yet unlike V21
 
 ## §T TASKS
 
@@ -171,6 +174,10 @@ CREATE TABLE url_runs
 | T18 | x      | setup `lefthook` — devDependency, `lefthook.yml` (lint→typecheck→test), `package.json` `prepare` script                                                                                        | §C            |
 | T19 | x      | tests: characterize `cli.ts` `isMainModule` wiring (stdout + exit code) for `add`, `run start`, error path — currently 0% covered; red before refactor                                         | V19           |
 | T20 | x      | `src/cli.ts` — extract `runCommand(fn)`; rewire all 8 `.action()` callbacks through it; pure refactor, ⊥ behavior change                                                                       | V19           |
+| T21 | .      | tests: `cli.ts` invoked w/ 0 args → exitCode 0 & stdout contains help/usage text                                                                                                               | V20           |
+| T22 | .      | `src/cli.ts` — 0-arg invocation → print help, exit 0 (⊥ affect unknown-cmd/bad-arg exit 1 path)                                                                                                | V20           |
+| T23 | .      | tests: `openDb` w/ non-existent nested dir on `DB_PATH` → does ⊥ throw, dir+db file created                                                                                                    | V21           |
+| T24 | .      | `src/db.ts` — `openDb` `fs.mkdirSync(path.dirname(dbPath), {recursive:true})` before opening `better-sqlite3`                                                                                  | V21           |
 
 ## §B BUGS
 
