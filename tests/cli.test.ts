@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import type Database from 'better-sqlite3';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { addUrl, loadUrls } from '../src/cli';
+import { addUrl, insertRunAndUrlRuns, loadUrls, runStart } from '../src/cli';
 import { migrate, openDb } from '../src/db';
 
 describe('addUrl / loadUrls', () => {
@@ -81,6 +81,95 @@ describe('addUrl / loadUrls', () => {
 
       expect(() => loadUrls(db, filePath)).toThrow(/not-a-url/);
       expect(urlCount()).toBe(0);
+    });
+  });
+});
+
+describe('run lifecycle', () => {
+  let db: Database.Database;
+
+  beforeEach(() => {
+    db = openDb(':memory:');
+    migrate(db);
+  });
+
+  afterEach(() => {
+    db.close();
+  });
+
+  function runStatus(runId: string): string {
+    return (db.prepare('SELECT status FROM runs WHERE id = ?').get(runId) as { status: string })
+      .status;
+  }
+
+  function urlRunCount(runId: string): number {
+    return (
+      db.prepare('SELECT COUNT(*) AS c FROM url_runs WHERE run_id = ?').get(runId) as {
+        c: number;
+      }
+    ).c;
+  }
+
+  describe('runStart', () => {
+    it("throws 'no URLs registered' when urls is empty", () => {
+      expect(() => runStart(db)).toThrow('no URLs registered');
+    });
+
+    it('throws when a run is already open', () => {
+      addUrl(db, 'https://example.com/a');
+      runStart(db, () => ({ pid: 4242 }));
+
+      expect(() => runStart(db, () => ({ pid: 4343 }))).toThrow('run 1 is still open');
+    });
+
+    it('creates run+url_runs, spawns the worker, saves pid, returns version+pid', () => {
+      addUrl(db, 'https://example.com/a');
+      addUrl(db, 'https://example.com/b');
+
+      const result = runStart(db, () => ({ pid: 4242 }));
+
+      expect(result).toEqual({ version: 1, pid: 4242 });
+      const run = db.prepare('SELECT version, pid, status FROM runs').get() as {
+        version: number;
+        pid: number;
+        status: string;
+      };
+      expect(run).toEqual({ version: 1, pid: 4242, status: 'open' });
+      expect((db.prepare('SELECT COUNT(*) AS c FROM url_runs').get() as { c: number }).c).toBe(2);
+    });
+
+    it('deletes url_runs and the run, then rethrows, when spawnWorker throws', () => {
+      addUrl(db, 'https://example.com/a');
+
+      expect(() =>
+        runStart(db, () => {
+          throw new Error('spawn failed');
+        }),
+      ).toThrow('spawn failed');
+
+      expect((db.prepare('SELECT COUNT(*) AS c FROM runs').get() as { c: number }).c).toBe(0);
+      expect((db.prepare('SELECT COUNT(*) AS c FROM url_runs').get() as { c: number }).c).toBe(0);
+    });
+  });
+
+  describe('insertRunAndUrlRuns', () => {
+    it('inserts a run row and one url_runs row per registered url', () => {
+      addUrl(db, 'https://example.com/a');
+      addUrl(db, 'https://example.com/b');
+
+      const runId = insertRunAndUrlRuns(db, 1);
+
+      expect(runStatus(runId)).toBe('open');
+      expect(urlRunCount(runId)).toBe(2);
+    });
+
+    it('rolls back the whole transaction on a version conflict (no orphan url_runs rows)', () => {
+      addUrl(db, 'https://example.com/a');
+      insertRunAndUrlRuns(db, 1);
+
+      expect(() => insertRunAndUrlRuns(db, 1)).toThrow();
+      expect((db.prepare('SELECT COUNT(*) AS c FROM runs').get() as { c: number }).c).toBe(1);
+      expect((db.prepare('SELECT COUNT(*) AS c FROM url_runs').get() as { c: number }).c).toBe(1);
     });
   });
 });
