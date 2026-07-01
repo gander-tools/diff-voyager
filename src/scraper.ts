@@ -50,23 +50,6 @@ interface DomExtract {
   links: { href: string; text: string }[];
 }
 
-function extractDom(): DomExtract {
-  const attr = (selector: string, name: string): string =>
-    document.querySelector(selector)?.getAttribute(name) ?? '';
-
-  return {
-    title: document.title ?? '',
-    lang: document.documentElement.getAttribute('lang') ?? '',
-    canonical: attr('link[rel="canonical"]', 'href'),
-    description: attr('meta[name="description"]', 'content'),
-    ogDescription: attr('meta[property="og:description"]', 'content'),
-    links: Array.from(document.querySelectorAll('a[href]')).map((a) => ({
-      href: a.getAttribute('href') ?? '',
-      text: a.textContent?.trim() ?? '',
-    })),
-  };
-}
-
 export interface ScrapeOptions {
   url: string;
   version: number;
@@ -116,7 +99,21 @@ export async function scrape(browser: Browser, options: ScrapeOptions): Promise<
       await page.waitForSelector(resolved.wait_for, { timeout: resolved.timeout_ms });
     }
 
-    const extract = (await page.evaluate(extractDom)) as DomExtract;
+    const extract = (await page.evaluate(
+      (): DomExtract => ({
+        title: document.title ?? '',
+        lang: document.documentElement.getAttribute('lang') ?? '',
+        canonical: document.querySelector('link[rel="canonical"]')?.getAttribute('href') ?? '',
+        description:
+          document.querySelector('meta[name="description"]')?.getAttribute('content') ?? '',
+        ogDescription:
+          document.querySelector('meta[property="og:description"]')?.getAttribute('content') ?? '',
+        links: Array.from(document.querySelectorAll('a[href]')).map((a) => ({
+          href: a.getAttribute('href') ?? '',
+          text: a.textContent?.trim() ?? '',
+        })),
+      }),
+    )) as DomExtract;
 
     const links: Link[] = extract.links.map((link) => ({
       href: link.href,
