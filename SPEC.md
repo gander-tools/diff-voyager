@@ -74,6 +74,7 @@ PoC versioned web scraper. CLI stages URLs → `run start` creates version and l
   all fields optional; defaults: full_page=true, format=png, timeout_ms=30000, wait_for=load, viewport=1280x800; quality applies to jpeg only (ignored for png); wait_for CSS selector → page.waitForSelector(timeout_ms) → timeout throws → V15
 - env: `DB_PATH` (default `./data/voyager.db`), `SNAPSHOT_DIR` (default `./snapshots`), `CONFIG_PATH` (default `./config.json`), `LOG_DIR` (default `./logs`)
 - worker log: `<LOG_DIR>/worker-v<N>.log`; pino streams to file; dir created before spawn
+- `src/cli.ts` CLI wiring: `runCommand(fn)` — sole open/migrate/error-format/close point; ∀ command `.action()` → `runCommand((db) => …)`; ⊥ inline open/migrate/try/catch/finally per command
 - db schema (`unixepoch()` requires SQLite ≥ 3.38.0; alternative: `strftime('%s','now')`):
 
 ```sqlite
@@ -142,6 +143,7 @@ CREATE TABLE url_runs
 - V15: scraper throws → catch, mark url_run `failed`, save error msg to `url_runs.error`, log via pino, continue next URL; ⊥ worker crash on single URL failure; context.close() in `finally` per URL → HAR always written; browser.close() in worker `finally` before exit → ⊥ zombie Chrome
 - V16: `run stop` SIGTERM → ESRCH → exit w/ error "process not found, use run reset"; ⊥ silent continue; `UPDATE runs SET status='abandoned' WHERE status='open'` — ⊥ overwrite `done` (symmetric with V9)
 - V17: config load order → `dotenv.config({path:'.env'})` → `dotenv.config({path:'.env.local', override:true})` → per-var `process.env` fallback (last resort); missing `.env`/`.env.local` files ⊥ fail, fallback still works; `loadEnvFiles()` called automatically on `config.ts` module top-level — importing `config.ts` alone is enough, ⊥ requires any entrypoint to call it explicitly
+- V19: ∀ CLI command action → wired via single `runCommand(fn)`: `openDb` → `migrate` → invoke `fn(db)` → catch → `console.error` + `exitCode=1` → finally `db.close()`; ⊥ inline open/migrate/try/catch/finally duplicated per command (prevents re-shallowing, cf. B1/B2 drift pattern)
 - ? HAR format: Playwright v1.46+ may write `.zip` instead of flat `.har` — verify actual output format before T7
 
 ## §T TASKS
@@ -167,10 +169,12 @@ CREATE TABLE url_runs
 | T16 | x      | `src/worker.ts` — poll loop, atomic claim, invoke scraper, write meta.json, cleanup+exit                                                                                                       | V2,V9         |
 | T17 | x      | integration test: e2e — add url → run start → worker processes → verify artifacts+db state (wires cli+worker+db+scraper)                                                                       | V2,V8,V9,V15  |
 | T18 | x      | setup `lefthook` — devDependency, `lefthook.yml` (lint→typecheck→test), `package.json` `prepare` script                                                                                        | §C            |
+| T19 | .      | tests: characterize `cli.ts` `isMainModule` wiring (stdout + exit code) for `add`, `run start`, error path — currently 0% covered; red before refactor                                         | V19           |
+| T20 | .      | `src/cli.ts` — extract `runCommand(fn)`; rewire all 8 `.action()` callbacks through it; pure refactor, ⊥ behavior change                                                                       | V19           |
 
 ## §B BUGS
 
-| id | date       | cause                                                                                                                                                          | fix                                                         |
-|----|------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------|
-| B1 | 2026-07-01 | deepen pass hid `config.ts` env loading behind explicit `loadEnvFiles()` call (V18) that nothing invoked yet ∴ dotenv dead — ⊥ working until far-future T8/T16 | revert V18; V17 restored to auto-load on `config.ts` import |
+| id | date       | cause                                                                                                                                                                           | fix                                                                                      |
+|----|------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
+| B1 | 2026-07-01 | deepen pass hid `config.ts` env loading behind explicit `loadEnvFiles()` call (V18) that nothing invoked yet ∴ dotenv dead — ⊥ working until far-future T8/T16                  | revert V18; V17 restored to auto-load on `config.ts` import                              |
 | B2 | 2026-07-01 | `loadUrls` (cli.ts:47-74) insert loop ⊥ wrapped in `db.transaction(...)` ∴ V13 "single tx" ! literally satisfied — rollback-on-invalid works only via pre-validation, ⊥ real tx | wrap insert loop (cli.ts:64-71) in `db.transaction(...)`; V13 unchanged, already correct |
