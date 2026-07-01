@@ -209,6 +209,20 @@ export function urlClear(db: Database.Database): number {
 
 const isMainModule = process.argv[1] === fileURLToPath(import.meta.url);
 
+function runCommand<T>(fn: (db: Database.Database) => T): T | undefined {
+  const db = openDb(DB_PATH);
+  try {
+    migrate(db);
+    return fn(db);
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exitCode = 1;
+    return undefined;
+  } finally {
+    db.close();
+  }
+}
+
 if (isMainModule) {
   const program = new Command();
 
@@ -216,33 +230,19 @@ if (isMainModule) {
     .command('add <url>')
     .description('register a URL to scrape')
     .action((url: string) => {
-      const db = openDb(DB_PATH);
-      try {
-        migrate(db);
+      runCommand((db) => {
         console.log(addUrl(db, url) === 'added' ? 'ok' : 'already exists');
-      } catch (error) {
-        console.error(error instanceof Error ? error.message : String(error));
-        process.exitCode = 1;
-      } finally {
-        db.close();
-      }
+      });
     });
 
   program
     .command('load <file>')
     .description('register URLs from a file, one per line')
     .action((file: string) => {
-      const db = openDb(DB_PATH);
-      try {
-        migrate(db);
+      runCommand((db) => {
         const { added, skipped } = loadUrls(db, file);
         console.log(`added ${added}, skipped ${skipped}`);
-      } catch (error) {
-        console.error(error instanceof Error ? error.message : String(error));
-        process.exitCode = 1;
-      } finally {
-        db.close();
-      }
+      });
     });
 
   const run = program.command('run');
@@ -251,51 +251,30 @@ if (isMainModule) {
     .command('start')
     .description('create a new run and spawn the worker')
     .action(() => {
-      const db = openDb(DB_PATH);
-      try {
-        migrate(db);
+      runCommand((db) => {
         const { version, pid } = runStart(db);
         console.log(`run ${version} started, PID: ${pid}`);
-      } catch (error) {
-        console.error(error instanceof Error ? error.message : String(error));
-        process.exitCode = 1;
-      } finally {
-        db.close();
-      }
+      });
     });
 
   run
     .command('stop')
     .description('stop the open run')
     .action(() => {
-      const db = openDb(DB_PATH);
-      try {
-        migrate(db);
+      runCommand((db) => {
         runStop(db);
         console.log('stopped');
-      } catch (error) {
-        console.error(error instanceof Error ? error.message : String(error));
-        process.exitCode = 1;
-      } finally {
-        db.close();
-      }
+      });
     });
 
   run
     .command('reset')
     .description('abandon the open run without signalling the worker')
     .action(() => {
-      const db = openDb(DB_PATH);
-      try {
-        migrate(db);
+      runCommand((db) => {
         runReset(db);
         console.log('reset ok');
-      } catch (error) {
-        console.error(error instanceof Error ? error.message : String(error));
-        process.exitCode = 1;
-      } finally {
-        db.close();
-      }
+      });
     });
 
   const url = program.command('url');
@@ -304,9 +283,7 @@ if (isMainModule) {
     .command('list')
     .description('list registered urls')
     .action(() => {
-      const db = openDb(DB_PATH);
-      try {
-        migrate(db);
+      runCommand((db) => {
         const rows = urlList(db);
         const urlWidth = Math.max(3, ...rows.map((row) => row.url.length));
         for (const row of rows) {
@@ -314,45 +291,26 @@ if (isMainModule) {
             `${row.url.padEnd(urlWidth)}  ${new Date(row.createdAt * 1000).toISOString()}`,
           );
         }
-      } catch (error) {
-        console.error(error instanceof Error ? error.message : String(error));
-        process.exitCode = 1;
-      } finally {
-        db.close();
-      }
+      });
     });
 
   url
     .command('remove <url>')
     .description('remove a registered url')
     .action((urlArg: string) => {
-      const db = openDb(DB_PATH);
-      try {
-        migrate(db);
+      runCommand((db) => {
         console.log(urlRemove(db, urlArg) === 'removed' ? 'removed' : 'not found');
-      } catch (error) {
-        console.error(error instanceof Error ? error.message : String(error));
-        process.exitCode = 1;
-      } finally {
-        db.close();
-      }
+      });
     });
 
   url
     .command('clear')
     .description('remove all registered urls')
     .action(() => {
-      const db = openDb(DB_PATH);
-      try {
-        migrate(db);
+      runCommand((db) => {
         const n = urlClear(db);
         console.log(`cleared ${n} urls`);
-      } catch (error) {
-        console.error(error instanceof Error ? error.message : String(error));
-        process.exitCode = 1;
-      } finally {
-        db.close();
-      }
+      });
     });
 
   program.parse();

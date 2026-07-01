@@ -169,8 +169,8 @@ CREATE TABLE url_runs
 | T16 | x      | `src/worker.ts` — poll loop, atomic claim, invoke scraper, write meta.json, cleanup+exit                                                                                                       | V2,V9         |
 | T17 | x      | integration test: e2e — add url → run start → worker processes → verify artifacts+db state (wires cli+worker+db+scraper)                                                                       | V2,V8,V9,V15  |
 | T18 | x      | setup `lefthook` — devDependency, `lefthook.yml` (lint→typecheck→test), `package.json` `prepare` script                                                                                        | §C            |
-| T19 | .      | tests: characterize `cli.ts` `isMainModule` wiring (stdout + exit code) for `add`, `run start`, error path — currently 0% covered; red before refactor                                         | V19           |
-| T20 | .      | `src/cli.ts` — extract `runCommand(fn)`; rewire all 8 `.action()` callbacks through it; pure refactor, ⊥ behavior change                                                                       | V19           |
+| T19 | x      | tests: characterize `cli.ts` `isMainModule` wiring (stdout + exit code) for `add`, `run start`, error path — currently 0% covered; red before refactor                                         | V19           |
+| T20 | x      | `src/cli.ts` — extract `runCommand(fn)`; rewire all 8 `.action()` callbacks through it; pure refactor, ⊥ behavior change                                                                       | V19           |
 
 ## §B BUGS
 
