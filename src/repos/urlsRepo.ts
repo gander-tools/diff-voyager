@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { count, eq } from 'drizzle-orm';
 import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 import { urls } from '../schema';
+import { pageSlug } from '../slug';
 import type { UrlRecord } from '../types';
 
 export interface UrlsRepo {
@@ -18,7 +19,10 @@ function toUrlRecord(row: typeof urls.$inferSelect): UrlRecord {
   return {
     id: row.id,
     url: row.url,
+    host: row.host,
     path: row.path,
+    query_string: row.queryString,
+    page_slug: row.pageSlug,
     created_at: row.createdAt as number,
   };
 }
@@ -31,8 +35,16 @@ export class DrizzleUrlsRepo implements UrlsRepo {
       return 'exists';
     }
 
-    const path = new URL(url).pathname;
-    this.db.insert(urls).values({ id: randomUUID(), url, path }).run();
+    const parsed = new URL(url);
+    const path = parsed.pathname;
+    const host = parsed.host;
+    const queryString = parsed.search.replace(/^\?/, '');
+    const slug = pageSlug(path, queryString);
+
+    this.db
+      .insert(urls)
+      .values({ id: randomUUID(), url, host, path, queryString, pageSlug: slug })
+      .run();
     return 'added';
   }
 

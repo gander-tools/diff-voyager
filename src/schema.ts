@@ -4,7 +4,10 @@ import { integer, sqliteTable, text, unique } from 'drizzle-orm/sqlite-core';
 export const urls = sqliteTable('urls', {
   id: text('id').primaryKey(),
   url: text('url').notNull().unique(),
+  host: text('host').notNull(),
   path: text('path').notNull(),
+  queryString: text('query_string').notNull().default(''),
+  pageSlug: text('page_slug').notNull(),
   createdAt: integer('created_at').default(sql`(unixepoch('now'))`),
 });
 

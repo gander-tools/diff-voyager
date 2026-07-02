@@ -28,7 +28,10 @@ export interface RunRecord {
 export interface UrlRecord {
   id: string;
   url: string;
+  host: string;
   path: string;
+  query_string: string;
+  page_slug: string;
   created_at: number;
 }
 
