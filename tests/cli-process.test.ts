@@ -541,7 +541,9 @@ describe('cli `diff <v1> <v2> [url-or-path]` (subprocess, T65/T66)', () => {
 
       expect(result.status).toBe(0);
       expect(result.stdout).toContain('slug-a');
-      expect(fs.existsSync(path.join(resultDir, 'diff-v1-v2', 'slug-a', 'meta.json'))).toBe(true);
+      expect(
+        fs.existsSync(path.join(resultDir, 'diff-v1-v2', 'matched', 'slug-a', 'meta.json')),
+      ).toBe(true);
     },
     10000,
   );
