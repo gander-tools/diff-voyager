@@ -13,6 +13,7 @@ export interface UrlsRepo {
   remove(url: string): 'removed' | 'not-found';
   clear(): number;
   count(): number;
+  backfillLegacyPageSlugs(): number;
 }
 
 function toUrlRecord(row: typeof urls.$inferSelect): UrlRecord {
@@ -72,5 +73,32 @@ export class DrizzleUrlsRepo implements UrlsRepo {
 
   count(): number {
     return this.db.select({ c: count() }).from(urls).get()?.c ?? 0;
+  }
+
+  // migration.sql adds host/query_string/page_slug w/ DEFAULT '' (SQLite ALTER TABLE ADD
+  // COLUMN NOT NULL requires a constant default on a non-empty table); recompute real values
+  // here for any pre-existing row left with the placeholder, same derivation as insert().
+  backfillLegacyPageSlugs(): number {
+    const rows = this.db
+      .select({ id: urls.id, url: urls.url })
+      .from(urls)
+      .where(eq(urls.pageSlug, ''))
+      .all();
+
+    for (const row of rows) {
+      const parsed = new URL(row.url);
+      const path = parsed.pathname;
+      const host = parsed.host;
+      const queryString = parsed.search.replace(/^\?/, '');
+      const slug = pageSlug(path, queryString);
+
+      this.db
+        .update(urls)
+        .set({ host, path, queryString, pageSlug: slug })
+        .where(eq(urls.id, row.id))
+        .run();
+    }
+
+    return rows.length;
   }
 }
