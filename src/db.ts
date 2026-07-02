@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type Database from 'better-sqlite3';
 import BetterSqlite3 from 'better-sqlite3';
-import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { type BetterSQLite3Database, drizzle } from 'drizzle-orm/better-sqlite3';
 import { migrate as drizzleMigrate } from 'drizzle-orm/better-sqlite3/migrator';
 
 const migrationsFolder = fileURLToPath(new URL('../migrations', import.meta.url));
@@ -22,4 +22,8 @@ export function openDb(dbPath: string): Database.Database {
 
 export function migrate(db: Database.Database): void {
   drizzleMigrate(drizzle({ client: db }), { migrationsFolder });
+}
+
+export function toDrizzle(db: Database.Database): BetterSQLite3Database {
+  return drizzle({ client: db });
 }
