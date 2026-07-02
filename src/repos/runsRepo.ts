@@ -6,6 +6,7 @@ import type { RunRecord } from '../types';
 
 export interface RunsRepo {
   findOpenRun(): RunRecord | undefined;
+  findByVersion(version: number): RunRecord | undefined;
   insertRunWithUrlRuns(): { id: string; version: number };
   updatePid(runId: string, pid: number): void;
   deleteRun(runId: string): void;
@@ -29,6 +30,11 @@ export class DrizzleRunsRepo implements RunsRepo {
 
   findOpenRun(): RunRecord | undefined {
     const row = this.db.select().from(runs).where(eq(runs.status, 'open')).get();
+    return row ? toRunRecord(row) : undefined;
+  }
+
+  findByVersion(version: number): RunRecord | undefined {
+    const row = this.db.select().from(runs).where(eq(runs.version, version)).get();
     return row ? toRunRecord(row) : undefined;
   }
 

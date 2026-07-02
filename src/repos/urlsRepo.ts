@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { count, eq } from 'drizzle-orm';
+import { and, count, eq } from 'drizzle-orm';
 import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 import { urls } from '../schema';
 import { pageSlug } from '../slug';
@@ -10,6 +10,7 @@ export interface UrlsRepo {
   exists(url: string): boolean;
   findById(id: string): UrlRecord | undefined;
   list(): UrlRecord[];
+  findByPathAndQuery(path: string, queryString: string): UrlRecord[];
   remove(url: string): 'removed' | 'not-found';
   clear(): number;
   count(): number;
@@ -60,6 +61,15 @@ export class DrizzleUrlsRepo implements UrlsRepo {
 
   list(): UrlRecord[] {
     return this.db.select().from(urls).all().map(toUrlRecord);
+  }
+
+  findByPathAndQuery(path: string, queryString: string): UrlRecord[] {
+    return this.db
+      .select()
+      .from(urls)
+      .where(and(eq(urls.path, path), eq(urls.queryString, queryString)))
+      .all()
+      .map(toUrlRecord);
   }
 
   remove(url: string): 'removed' | 'not-found' {

@@ -140,6 +140,30 @@ describe('UrlsRepo', () => {
     });
   });
 
+  describe('findByPathAndQuery', () => {
+    it('returns an empty array when no url matches', () => {
+      expect(repo.findByPathAndQuery('/a', '')).toEqual([]);
+    });
+
+    it('returns matching urls across different hosts sharing path+query (V42)', () => {
+      repo.insert('https://example.com/a/b?x=1');
+      repo.insert('https://other.com/a/b?x=1');
+      repo.insert('https://example.com/a/b?x=2');
+
+      const rows = repo.findByPathAndQuery('/a/b', 'x=1');
+      expect(rows.map((row) => row.url).sort()).toEqual([
+        'https://example.com/a/b?x=1',
+        'https://other.com/a/b?x=1',
+      ]);
+    });
+
+    it('matches an empty query_string', () => {
+      repo.insert('https://example.com/a');
+      const rows = repo.findByPathAndQuery('/a', '');
+      expect(rows).toHaveLength(1);
+    });
+  });
+
   describe('count', () => {
     it('returns 0 when there are no urls', () => {
       expect(repo.count()).toBe(0);

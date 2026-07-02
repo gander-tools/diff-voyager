@@ -78,6 +78,23 @@ describe('RunsRepo', () => {
     });
   });
 
+  describe('findByVersion', () => {
+    it('returns undefined when no run has that version', () => {
+      expect(repo.findByVersion(1)).toBeUndefined();
+    });
+
+    it('returns the RunRecord for a matching version', () => {
+      const id = insertRun(db, 'done', 3);
+      expect(repo.findByVersion(3)).toEqual({
+        id,
+        version: 3,
+        status: 'done',
+        pid: null,
+        created_at: expect.any(Number),
+      });
+    });
+  });
+
   describe('insertRunWithUrlRuns', () => {
     it('creates a run row with version 1 and status open when no runs exist', () => {
       insertUrl(db);
