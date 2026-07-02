@@ -1,8 +1,11 @@
 import { createHash } from 'node:crypto';
 
-export function slug(url: string, path: string): string {
-  const slugifiedPath = path.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-  const hash = createHash('sha256').update(url).digest('hex').slice(0, 8);
+function slugify(value: string): string {
+  return value.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
 
-  return `${slugifiedPath}-${hash}`;
+export function pageSlug(path: string, queryString: string): string {
+  const hash = createHash('md5').update(`${path}?${queryString}`).digest('hex');
+
+  return [slugify(path), slugify(queryString), hash].filter(Boolean).join('___');
 }
