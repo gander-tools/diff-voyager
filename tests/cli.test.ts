@@ -197,6 +197,48 @@ describe('run lifecycle / url management', () => {
       expect((db.prepare('SELECT COUNT(*) AS c FROM runs').get() as { c: number }).c).toBe(0);
       expect((db.prepare('SELECT COUNT(*) AS c FROM url_runs').get() as { c: number }).c).toBe(0);
     });
+
+    it('forwards the parsed base-url origin to spawnWorker when given (V34)', () => {
+      addUrl(urlsRepo, 'https://example.com/a');
+      const spawnWorker = vi.fn().mockReturnValue({ pid: 4242 });
+
+      runStart(runsRepo, urlsRepo, urlRunsRepo, spawnWorker, 'https://cdn.example.com/ignored');
+
+      expect(spawnWorker).toHaveBeenCalledWith('https://cdn.example.com');
+    });
+
+    it('omits the base-url arg to spawnWorker when not given', () => {
+      addUrl(urlsRepo, 'https://example.com/a');
+      const spawnWorker = vi.fn().mockReturnValue({ pid: 4242 });
+
+      runStart(runsRepo, urlsRepo, urlRunsRepo, spawnWorker);
+
+      expect(spawnWorker).toHaveBeenCalledWith(undefined);
+    });
+
+    it('throws for a malformed base-url before creating run/url_runs or spawning (V35,V36)', () => {
+      addUrl(urlsRepo, 'https://example.com/a');
+      const spawnWorker = vi.fn().mockReturnValue({ pid: 4242 });
+
+      expect(() => runStart(runsRepo, urlsRepo, urlRunsRepo, spawnWorker, 'not-a-url')).toThrow();
+
+      expect(spawnWorker).not.toHaveBeenCalled();
+      expect((db.prepare('SELECT COUNT(*) AS c FROM runs').get() as { c: number }).c).toBe(0);
+      expect((db.prepare('SELECT COUNT(*) AS c FROM url_runs').get() as { c: number }).c).toBe(0);
+    });
+
+    it('throws for a base-url with an unsupported scheme before creating run/url_runs or spawning (V35,V36)', () => {
+      addUrl(urlsRepo, 'https://example.com/a');
+      const spawnWorker = vi.fn().mockReturnValue({ pid: 4242 });
+
+      expect(() =>
+        runStart(runsRepo, urlsRepo, urlRunsRepo, spawnWorker, 'ftp://example.com'),
+      ).toThrow();
+
+      expect(spawnWorker).not.toHaveBeenCalled();
+      expect((db.prepare('SELECT COUNT(*) AS c FROM runs').get() as { c: number }).c).toBe(0);
+      expect((db.prepare('SELECT COUNT(*) AS c FROM url_runs').get() as { c: number }).c).toBe(0);
+    });
   });
 
   describe('urlRemove', () => {
