@@ -55,13 +55,11 @@ function resolveDiffTolerance(
     return 0;
   }
 
-  for (const [glob, tolerance] of Object.entries(toleranceMap)) {
-    if (glob === '*' || candidateUrls.some((url) => micromatch.isMatch(url, glob))) {
-      return tolerance;
-    }
-  }
+  const matches = Object.entries(toleranceMap)
+    .filter(([glob]) => glob === '*' || candidateUrls.some((url) => micromatch.isMatch(url, glob)))
+    .map(([, tolerance]) => tolerance);
 
-  return 0;
+  return matches.length > 0 ? Math.min(...matches) : 0;
 }
 
 function diffMeta(
