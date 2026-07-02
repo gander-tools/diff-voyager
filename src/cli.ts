@@ -6,12 +6,14 @@ import { Command } from 'commander';
 import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 import { z } from 'zod';
 import { parseBaseUrl } from './baseUrl';
-import { DB_PATH, LOG_DIR, SNAPSHOT_DIR } from './config';
+import { CONFIG_PATH, DB_PATH, LOG_DIR, RESULT_DIR, SNAPSHOT_DIR } from './config';
 import { migrate, openDb, toDrizzle } from './db';
+import { diffVersions } from './diff';
 import { DrizzleRunsRepo, type RunsRepo } from './repos/runsRepo';
 import { DrizzleUrlRunsRepo, type UrlRunsRepo } from './repos/urlRunsRepo';
 import { DrizzleUrlsRepo, type UrlsRepo } from './repos/urlsRepo';
 import type { RunRecord } from './types';
+import { loadWorkerConfig } from './worker';
 
 const urlSchema = z.url();
 
@@ -319,6 +321,35 @@ if (isMainModule) {
       runCommand(({ runsRepo, urlsRepo }) => {
         const n = urlClear(runsRepo, urlsRepo);
         console.log(`cleared ${n} urls`);
+      });
+    });
+
+  program
+    .command('diff <v1> <v2> [urlOrPath]')
+    .description('compare screenshots and meta.json between two versions')
+    .action((v1: string, v2: string, urlOrPath?: string) => {
+      runCommand(({ runsRepo, urlsRepo }) => {
+        const config = loadWorkerConfig(CONFIG_PATH);
+        const outcomes = diffVersions(
+          Number(v1),
+          Number(v2),
+          urlOrPath,
+          runsRepo,
+          urlsRepo,
+          SNAPSHOT_DIR,
+          RESULT_DIR,
+          config,
+        );
+
+        for (const outcome of outcomes) {
+          if (outcome.skipped) {
+            console.log(`${outcome.page_slug}: skipped (${outcome.skipped})`);
+          } else if (outcome.screenshot?.kind === 'dimension-mismatch') {
+            console.log(`${outcome.page_slug}: dimension mismatch`);
+          } else {
+            console.log(`${outcome.page_slug}: ${outcome.screenshot?.kind}`);
+          }
+        }
       });
     });
 

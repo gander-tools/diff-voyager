@@ -45,6 +45,7 @@ Artifacts land in `SNAPSHOT_DIR` once the worker finishes.
 | `url list`           | List staged URLs with their creation date.                                                                                                         |
 | `url remove <url>`   | Remove a single staged URL. Fails while a run is open.                                                                                             |
 | `url clear`          | Remove all staged URLs. Fails while a run is open.                                                                                                 |
+| `diff <v1> <v2> [url-or-path]` | Compare screenshots (pixelmatch) and `meta.json` between two versions. `url-or-path` omitted diffs every page_slug present in both versions; a full URL diffs exactly one; a path(+query) diffs every URL sharing that path+query across domains. Fails if either version's run is still open. Results land in `RESULT_DIR`. |
 
 ## Configuration
 

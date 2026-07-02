@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import BetterSqlite3 from 'better-sqlite3';
+import { PNG } from 'pngjs';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { migrate, openDb } from '../src/db';
 
@@ -464,6 +465,101 @@ describe('cli `url clear` (subprocess, T25)', () => {
       const result = runCli(['url', 'clear'], dbPath);
 
       expect(result.stderr).toContain('is still open');
+      expect(result.status).toBe(1);
+    },
+    10000,
+  );
+});
+
+describe('cli `diff <v1> <v2> [url-or-path]` (subprocess, T65/T66)', () => {
+  let tmpDir: string;
+  let dbPath: string;
+  let snapshotDir: string;
+  let resultDir: string;
+
+  function runDiff(args: string[], env: Record<string, string> = {}) {
+    return spawnSync(tsxBin, [cliPath, 'diff', ...args], {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        DB_PATH: dbPath,
+        SNAPSHOT_DIR: snapshotDir,
+        RESULT_DIR: resultDir,
+        ...env,
+      },
+      encoding: 'utf-8',
+    });
+  }
+
+  function writeSnapshot(version: number, slug: string): void {
+    const dir = path.join(snapshotDir, `version-${version}`, slug);
+    fs.mkdirSync(dir, { recursive: true });
+    const png = new PNG({ width: 2, height: 2 });
+    fs.writeFileSync(path.join(dir, 'screenshot.png'), PNG.sync.write(png));
+    fs.writeFileSync(
+      path.join(dir, 'meta.json'),
+      JSON.stringify({
+        url: 'https://example.com/a',
+        version,
+        scraped_at: new Date().toISOString(),
+        title: 'Title',
+        lang: 'en',
+        canonical: '',
+        description: '',
+        og_description: '',
+        links: [],
+        js_errors: [],
+      }),
+    );
+  }
+
+  function seedDb(): void {
+    const db = openDb(dbPath);
+    migrate(db);
+    db.close();
+  }
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'voyager-cli-proc-'));
+    dbPath = path.join(tmpDir, 'test.db');
+    snapshotDir = path.join(tmpDir, 'snapshots');
+    resultDir = path.join(tmpDir, 'results');
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it(
+    'diffs matching page_slugs and exits 0 (happy path)',
+    () => {
+      seedDb();
+      writeSnapshot(1, 'slug-a');
+      writeSnapshot(2, 'slug-a');
+
+      const result = runDiff(['1', '2']);
+
+      expect(result.status).toBe(0);
+      expect(result.stdout).toContain('slug-a');
+      expect(fs.existsSync(path.join(resultDir, 'diff-v1-v2', 'slug-a', 'meta.json'))).toBe(true);
+    },
+    10000,
+  );
+
+  it(
+    'prints "still open" to stderr and exits 1 when the run for v1 or v2 is open (V43)',
+    () => {
+      seedDb();
+      writeSnapshot(1, 'slug-a');
+      writeSnapshot(2, 'slug-a');
+      seedOpenRun(dbPath, freePid());
+      const db = new BetterSqlite3(dbPath);
+      db.prepare("UPDATE runs SET version = 1 WHERE status = 'open'").run();
+      db.close();
+
+      const result = runDiff(['1', '2']);
+
+      expect(result.stderr).toContain('still open');
       expect(result.status).toBe(1);
     },
     10000,
