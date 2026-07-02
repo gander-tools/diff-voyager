@@ -210,6 +210,7 @@ CREATE TABLE url_runs
 - V52: `DEFAULT_CONFIG` (cli.ts) ! untyped — annotate `const DEFAULT_CONFIG: Config = {...}`; tsc ! silently accept a field typo/rename vs `Config` (types.ts)
 - V53: `config init` ! mkdir CONFIG_PATH's parent dir (`fs.mkdirSync(path.dirname(configPath),{recursive:true})`) before write — same "mkdir at write call site" tier as V21 (db.ts)/V24 (scraper.ts/worker.ts); custom CONFIG_PATH w/ nonexistent nested dir ⊥ raw ENOENT crash
 - V54: `claimNextPending` loses races per-row (SELECT-then-conditional-UPDATE, `urlRunsRepo.ts`), ⊥ single atomic statement; `runWorker` poll loop (`worker.ts:116-138`) MUST treat a lost claim as retry-signal via `countPending()>0`, ⊥ terminal; T40 race test extended to ≥2 pending rows / 2 concurrent connections racing the same oldest candidate → loser's next `claimNextPending()` call succeeds on the remaining row
+- V55: `screenshot.rules.diff.tolerance` (V45/V49) multi-glob match → ∃ >1 matching glob → tolerance = MIN of ∀ matching values (stricter wins, ⊥ key-order-dependent first-match); single-match/no-match unchanged; `resolveDiffTolerance` (`diff.ts`) rewritten to reduce over all matching globs, ⊥ early-return-on-first-match
 
 ## §T TASKS
 
@@ -297,6 +298,8 @@ CREATE TABLE url_runs
 | T79 | x      | tests: `cli.ts` `configInit` — DEFAULT_CONFIG typed as `Config` (compile-time check, no runtime test needed beyond existing T77 coverage); CONFIG_PATH parent dir missing → `config init` creates it and writes config.json (V53 regression)                                                                                                    | V52,V53                     |
 | T80 | x      | `src/cli.ts` — annotate `DEFAULT_CONFIG: Config`, import `Config` from `./types`; `configInit` mkdirs `path.dirname(configPath)` before `writeFileSync`                                                                                                                                                                                          | V52,V53                     |
 | T81 | x      | tests: `urlRunsRepo` claim race — widen T40's single-row race case to ≥2 pending rows w/ 2 concurrent connections racing same oldest candidate; loser's `claimNextPending()` returns undefined on the raced row but succeeds on retry against the remaining pending row (⊥ permanently starved)                                                | V54                          |
+| T82 | .      | tests: `diff.ts` `resolveDiffTolerance` — ≥2 tolerance globs match same candidate url w/ different values → deterministic MIN chosen, ⊥ dependent on `config.json` key order; single-match/no-match cases unchanged (regression)                                                                                                                | V55                          |
+| T83 | .      | `src/diff.ts` — `resolveDiffTolerance` rewritten to reduce over all matching globs (MIN), ⊥ early-return on first match                                                                                                                                                                                                                           | V55                          |
 
 ## §B BUGS
 
