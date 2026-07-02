@@ -56,7 +56,11 @@ interface FakePage {
   evaluate: ReturnType<typeof vi.fn>;
   screenshot: ReturnType<typeof vi.fn>;
   locator: ReturnType<typeof vi.fn>;
+  mainFrame: ReturnType<typeof vi.fn>;
 }
+
+const MAIN_FRAME = { __brand: 'main-frame' };
+const OTHER_FRAME = { __brand: 'other-frame' };
 
 interface DomExtract {
   title: string;
@@ -101,18 +105,28 @@ function createFakePage(extract: DomExtract = DEFAULT_EXTRACT): {
     evaluate: vi.fn(async () => extract),
     screenshot: vi.fn(async () => {}),
     locator: vi.fn(() => ({ screenshot: vi.fn(async () => {}) })),
+    mainFrame: vi.fn(() => MAIN_FRAME),
   };
 
   return { page, callOrder, responseHandlers };
 }
 
-function createFakeResponse(url: string, body = 'raw body'): {
+function createFakeResponse(
+  url: string,
+  body = 'raw body',
+  options: { isNavigationRequest?: boolean; frame?: unknown } = {},
+): {
   url: ReturnType<typeof vi.fn>;
   text: ReturnType<typeof vi.fn>;
+  request: ReturnType<typeof vi.fn>;
+  frame: ReturnType<typeof vi.fn>;
 } {
+  const { isNavigationRequest = true, frame = MAIN_FRAME } = options;
   return {
     url: vi.fn(() => url),
     text: vi.fn(async () => body),
+    request: vi.fn(() => ({ isNavigationRequest: vi.fn(() => isNavigationRequest) })),
+    frame: vi.fn(() => frame),
   };
 }
 
@@ -275,6 +289,65 @@ describe('scrape', () => {
     const meta = JSON.parse(fs.readFileSync(path.join(snapshotDir, 'meta.json'), 'utf-8'));
     expect(meta.url).toBe('https://example.com/page');
     expect(meta.version).toBe(1);
+  });
+
+  it('captures page.source.html from the main-frame navigation response even after a redirect (V33)', async () => {
+    const { page, responseHandlers } = createFakePage();
+    const context = createFakeContext(page);
+    const browser = createFakeBrowser(context);
+    // response URL differs from the requested url (redirect target) but is still
+    // the main-frame navigation response — must be captured despite the URL mismatch.
+    const redirected = createFakeResponse('https://example.com/', 'redirected raw source');
+
+    page.goto.mockImplementation(async () => {
+      for (const handler of responseHandlers) {
+        handler(redirected);
+      }
+    });
+
+    await scrape(browser as never, baseOptions());
+
+    expect(fs.readFileSync(path.join(snapshotDir, 'page.source.html'), 'utf-8')).toBe(
+      'redirected raw source',
+    );
+  });
+
+  it('ignores non-navigation responses (e.g. XHR) even when the URL matches (V33)', async () => {
+    const { page, responseHandlers } = createFakePage();
+    const context = createFakeContext(page);
+    const browser = createFakeBrowser(context);
+    const xhrResponse = createFakeResponse('https://example.com/page', 'xhr body', {
+      isNavigationRequest: false,
+    });
+
+    page.goto.mockImplementation(async () => {
+      for (const handler of responseHandlers) {
+        handler(xhrResponse);
+      }
+    });
+
+    await scrape(browser as never, baseOptions());
+
+    expect(fs.readFileSync(path.join(snapshotDir, 'page.source.html'), 'utf-8')).toBe('');
+  });
+
+  it('ignores navigation responses from a non-main frame (V33)', async () => {
+    const { page, responseHandlers } = createFakePage();
+    const context = createFakeContext(page);
+    const browser = createFakeBrowser(context);
+    const iframeResponse = createFakeResponse('https://example.com/page', 'iframe body', {
+      frame: OTHER_FRAME,
+    });
+
+    page.goto.mockImplementation(async () => {
+      for (const handler of responseHandlers) {
+        handler(iframeResponse);
+      }
+    });
+
+    await scrape(browser as never, baseOptions());
+
+    expect(fs.readFileSync(path.join(snapshotDir, 'page.source.html'), 'utf-8')).toBe('');
   });
 
   it('returns ScrapedPage with extracted meta fields', async () => {

@@ -84,7 +84,11 @@ export async function scrape(browser: Browser, options: ScrapeOptions): Promise<
 
     let navigationResponse: Response | undefined;
     page.on('response', (response) => {
-      if (!navigationResponse && response.url() === url) {
+      if (
+        !navigationResponse &&
+        response.request().isNavigationRequest() &&
+        response.frame() === page.mainFrame()
+      ) {
         navigationResponse = response;
       }
     });
