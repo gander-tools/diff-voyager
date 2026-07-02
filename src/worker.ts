@@ -10,7 +10,6 @@ import { DrizzleRunsRepo, type RunsRepo } from './repos/runsRepo';
 import { DrizzleUrlRunsRepo, type UrlRunsRepo } from './repos/urlRunsRepo';
 import { DrizzleUrlsRepo, type UrlsRepo } from './repos/urlsRepo';
 import { scrape } from './scraper';
-import { slug } from './slug';
 import type { Config, RunRecord, UrlRun } from './types';
 
 type Logger = { error: (obj: unknown, msg: string) => void };
@@ -77,11 +76,7 @@ export async function processUrlRun(
   if (!urlRow) {
     throw new Error(`url ${urlRun.url_id} not found`);
   }
-  const snapshotDir = path.join(
-    snapshotBaseDir,
-    `version-${version}`,
-    slug(urlRow.url, urlRow.path),
-  );
+  const snapshotDir = path.join(snapshotBaseDir, `version-${version}`, urlRow.page_slug);
   const fetchUrl = baseUrl !== undefined ? effectiveUrl(baseUrl, urlRow.url) : urlRow.url;
 
   try {
