@@ -207,6 +207,8 @@ CREATE TABLE url_runs
 - V49: `screenshot.rules.diff.tolerance.<glob>` match @ diff time = match if `urls.url` (source, DB) ∨ v1's `meta.json.url` ∨ v2's `meta.json.url` matches glob — union of all three candidates (v1/v2 effective urls may differ per base-url V34, so both checked); consistent w/ V39 "any match wins"
 - V50: `renderedHtml` capture (`page.content()`) ! happen before hide-selector DOM mutation (`display:none`) applied; capture order: dom extract → `page.content()` → apply hide → screenshot; `page.html`/`page.source.html` ⊥ reflect `screenshot.rules.hide` mutations (hardens V37, closes B9 gap)
 - V51: `config init` ⊥ overwrites existing CONFIG_PATH file (same guard family as V10 add-duplicate) → error "config.json already exists", exit 1; file absent → write valid JSON parseable by `loadWorkerConfig` (V4), matching §I config.json schema exactly (no unknown/extra top-level keys)
+- V52: `DEFAULT_CONFIG` (cli.ts) ! untyped — annotate `const DEFAULT_CONFIG: Config = {...}`; tsc ! silently accept a field typo/rename vs `Config` (types.ts)
+- V53: `config init` ! mkdir CONFIG_PATH's parent dir (`fs.mkdirSync(path.dirname(configPath),{recursive:true})`) before write — same "mkdir at write call site" tier as V21 (db.ts)/V24 (scraper.ts/worker.ts); custom CONFIG_PATH w/ nonexistent nested dir ⊥ raw ENOENT crash
 
 ## §T TASKS
 
@@ -291,6 +293,8 @@ CREATE TABLE url_runs
 | T76 | x      | `package.json` — add `"dev:diff": "tsx src/cli.ts diff"` script; convenience shortcut, `dev:cli -- diff` unchanged/still works                                                                                                                                                                                                                     | §I                          |
 | T77 | x      | tests: `cli.ts` `config init` — CONFIG_PATH missing → writes valid JSON matching schema, exit 0; CONFIG_PATH exists → error "config.json already exists", file untouched, exit 1                                                                                                                                                                | V51                         |
 | T78 | x      | `src/cli.ts` — impl `config init` cmd wired thru `runCommand`, guard + write default config.json per V51                                                                                                                                                                                                                                          | V51                         |
+| T79 | .      | tests: `cli.ts` `configInit` — DEFAULT_CONFIG typed as `Config` (compile-time check, no runtime test needed beyond existing T77 coverage); CONFIG_PATH parent dir missing → `config init` creates it and writes config.json (V53 regression)                                                                                                    | V52,V53                     |
+| T80 | .      | `src/cli.ts` — annotate `DEFAULT_CONFIG: Config`, import `Config` from `./types`; `configInit` mkdirs `path.dirname(configPath)` before `writeFileSync`                                                                                                                                                                                          | V52,V53                     |
 
 ## §B BUGS
 
