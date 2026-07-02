@@ -628,4 +628,18 @@ describe('cli `config init` (subprocess, T77)', () => {
     },
     10000,
   );
+
+  it(
+    'creates missing CONFIG_PATH parent dir before writing config.json (V53)',
+    () => {
+      configPath = path.join(tmpDir, 'nested', 'dir', 'config.json');
+
+      const result = runConfigInit();
+
+      expect(result.status).toBe(0);
+      expect(result.stdout).toContain('config.json written');
+      expect(fs.existsSync(configPath)).toBe(true);
+    },
+    10000,
+  );
 });
