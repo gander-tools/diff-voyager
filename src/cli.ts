@@ -90,6 +90,16 @@ export function runStart(
     throw new Error(`run ${open.version} is still open`);
   }
 
+  const bySlug = new Map<string, string[]>();
+  for (const u of urlsRepo.list()) {
+    bySlug.set(u.page_slug, [...(bySlug.get(u.page_slug) ?? []), u.url]);
+  }
+  for (const [slug, urls] of bySlug) {
+    if (urls.length >= 2) {
+      throw new Error(`duplicate page_slug: ${slug} (urls: ${urls.join(', ')})`);
+    }
+  }
+
   const origin = baseUrl !== undefined ? parseBaseUrl(baseUrl) : undefined;
 
   const { id: runId, version } = runsRepo.insertRunWithUrlRuns();
