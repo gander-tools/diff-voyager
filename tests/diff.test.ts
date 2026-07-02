@@ -317,6 +317,107 @@ describe('diffPageSlug', () => {
     expect(fs.existsSync(path.join(changedDir, 'screenshot.png'))).toBe(false);
   });
 
+  it('writes a README.md into matched/ on first entry (V57)', () => {
+    writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 2, 2, 0);
+    writePng(path.join(snapshotDir, 'version-2', 'slug-a', 'screenshot.png'), 2, 2, 0);
+    writeMeta(
+      path.join(snapshotDir, 'version-1', 'slug-a', 'meta.json'),
+      baseMeta('https://example.com/a'),
+    );
+    writeMeta(
+      path.join(snapshotDir, 'version-2', 'slug-a', 'meta.json'),
+      baseMeta('https://example.com/a'),
+    );
+
+    diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
+
+    const readme = fs.readFileSync(
+      path.join(resultDir, 'diff-v1-v2', 'matched', 'README.md'),
+      'utf-8',
+    );
+    expect(readme.length).toBeGreaterThan(0);
+    expect(readme).toContain('screenshot.png');
+    expect(readme).toContain('meta.json');
+  });
+
+  it('writes a README.md into changed/ on first entry (V57)', () => {
+    writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 4, 4, 0);
+    writePng(path.join(snapshotDir, 'version-2', 'slug-a', 'screenshot.png'), 4, 4, 255);
+    writeMeta(
+      path.join(snapshotDir, 'version-1', 'slug-a', 'meta.json'),
+      baseMeta('https://example.com/a'),
+    );
+    writeMeta(
+      path.join(snapshotDir, 'version-2', 'slug-a', 'meta.json'),
+      baseMeta('https://example.com/a'),
+    );
+
+    diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
+
+    const readme = fs.readFileSync(
+      path.join(resultDir, 'diff-v1-v2', 'changed', 'README.md'),
+      'utf-8',
+    );
+    expect(readme.length).toBeGreaterThan(0);
+    expect(readme).toContain('screenshot.png');
+    expect(readme).toContain('meta.json');
+  });
+
+  it('writes a README.md into skipped/ on first entry, mentioning reason.json (V57)', () => {
+    writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 2, 2, 0);
+    writeMeta(
+      path.join(snapshotDir, 'version-1', 'slug-a', 'meta.json'),
+      baseMeta('https://example.com/a'),
+    );
+
+    diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
+
+    const readme = fs.readFileSync(
+      path.join(resultDir, 'diff-v1-v2', 'skipped', 'README.md'),
+      'utf-8',
+    );
+    expect(readme.length).toBeGreaterThan(0);
+    expect(readme).toContain('reason.json');
+  });
+
+  it('does not write a README.md for a bucket that never gets an entry (V57)', () => {
+    writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 2, 2, 0);
+    writePng(path.join(snapshotDir, 'version-2', 'slug-a', 'screenshot.png'), 2, 2, 0);
+    writeMeta(
+      path.join(snapshotDir, 'version-1', 'slug-a', 'meta.json'),
+      baseMeta('https://example.com/a'),
+    );
+    writeMeta(
+      path.join(snapshotDir, 'version-2', 'slug-a', 'meta.json'),
+      baseMeta('https://example.com/a'),
+    );
+
+    diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
+
+    expect(fs.existsSync(path.join(resultDir, 'diff-v1-v2', 'changed'))).toBe(false);
+    expect(fs.existsSync(path.join(resultDir, 'diff-v1-v2', 'skipped'))).toBe(false);
+  });
+
+  it('re-running diff into an already-existing bucket dir does not throw (idempotent, V57)', () => {
+    writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 2, 2, 0);
+    writePng(path.join(snapshotDir, 'version-2', 'slug-a', 'screenshot.png'), 2, 2, 0);
+    writeMeta(
+      path.join(snapshotDir, 'version-1', 'slug-a', 'meta.json'),
+      baseMeta('https://example.com/a'),
+    );
+    writeMeta(
+      path.join(snapshotDir, 'version-2', 'slug-a', 'meta.json'),
+      baseMeta('https://example.com/a'),
+    );
+
+    diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
+    expect(() =>
+      diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo),
+    ).not.toThrow();
+
+    expect(fs.existsSync(path.join(resultDir, 'diff-v1-v2', 'matched', 'README.md'))).toBe(true);
+  });
+
   it('writes skipped/<slug>/reason.json with no screenshot.png or meta.json (V56)', () => {
     writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 2, 2, 0);
     writeMeta(
