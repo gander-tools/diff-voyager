@@ -239,6 +239,20 @@ describe('run lifecycle / url management', () => {
       expect((db.prepare('SELECT COUNT(*) AS c FROM runs').get() as { c: number }).c).toBe(0);
       expect((db.prepare('SELECT COUNT(*) AS c FROM url_runs').get() as { c: number }).c).toBe(0);
     });
+
+    it('throws when two urls share a page_slug, before creating run/url_runs or spawning (V48)', () => {
+      addUrl(urlsRepo, 'https://a.example.com/foo');
+      addUrl(urlsRepo, 'https://b.example.com/foo');
+      const spawnWorker = vi.fn().mockReturnValue({ pid: 4242 });
+
+      expect(() => runStart(runsRepo, urlsRepo, urlRunsRepo, spawnWorker)).toThrow(
+        /duplicate page_slug/,
+      );
+
+      expect(spawnWorker).not.toHaveBeenCalled();
+      expect((db.prepare('SELECT COUNT(*) AS c FROM runs').get() as { c: number }).c).toBe(0);
+      expect((db.prepare('SELECT COUNT(*) AS c FROM url_runs').get() as { c: number }).c).toBe(0);
+    });
   });
 
   describe('urlRemove', () => {
