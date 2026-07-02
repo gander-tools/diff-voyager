@@ -104,6 +104,50 @@ describe('UrlRunsRepo', () => {
         dbB.close();
       }
     });
+
+    it(
+      'a connection whose selected candidate is claimed out from under it still succeeds on retry against the remaining pending row (V54)',
+      () => {
+        const dbPath = path.join(tmpDir, 'race-multi.db');
+        const dbA = openDb(dbPath);
+        migrate(dbA);
+        const runId = insertRun(dbA);
+        const urlIdA = insertUrl(dbA, 'https://example.com/a');
+        const urlIdB = insertUrl(dbA, 'https://example.com/b');
+        const urlRunIdA = insertUrlRun(dbA, urlIdA, runId, 'pending');
+        const urlRunIdB = insertUrlRun(dbA, urlIdB, runId, 'pending');
+
+        const dbB = openDb(dbPath);
+        const repoA = new DrizzleUrlRunsRepo(toDrizzle(dbA));
+        const repoB = new DrizzleUrlRunsRepo(toDrizzle(dbB));
+
+        try {
+          // B "selects" the oldest pending row (A) — mirrors claimNextPending's
+          // internal SELECT step, before A's UPDATE below wins the row.
+          const staleCandidateId = urlRunIdA;
+
+          const claimedByA = repoA.claimNextPending(runId);
+          expect(claimedByA?.id).toBe(urlRunIdA);
+
+          // B's conditional UPDATE against its now-stale candidate must affect
+          // 0 rows — this is what claimNextPending's internal update.get()
+          // returns undefined for.
+          const staleUpdate = dbB
+            .prepare("UPDATE url_runs SET status = 'processing' WHERE id = ? AND status = 'pending'")
+            .run(staleCandidateId);
+          expect(staleUpdate.changes).toBe(0);
+
+          // The public retry (what runWorker's loop does on a lost claim)
+          // must make progress on the remaining pending row, not stay stuck.
+          const claimedByBRetry = repoB.claimNextPending(runId);
+          expect(claimedByBRetry?.id).toBe(urlRunIdB);
+          expect(claimedByBRetry?.status).toBe('processing');
+        } finally {
+          dbA.close();
+          dbB.close();
+        }
+      },
+    );
   });
 
   describe('countPending', () => {
