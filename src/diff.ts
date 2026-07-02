@@ -104,54 +104,62 @@ export function diffPageSlug(
   const meta1Path = path.join(dir1, 'meta.json');
   const meta2Path = path.join(dir2, 'meta.json');
 
+  const diffBaseDir = path.join(resultDir, `diff-v${v1}-v${v2}`);
+
   if (
     !fs.existsSync(shot1) ||
     !fs.existsSync(shot2) ||
     !fs.existsSync(meta1Path) ||
     !fs.existsSync(meta2Path)
   ) {
-    return {
-      page_slug: slug,
-      skipped: `missing artifacts for ${slug} in version-${v1} or version-${v2}`,
-    };
+    const reason = `missing artifacts for ${slug} in version-${v1} or version-${v2}`;
+    const skippedDir = path.join(diffBaseDir, 'skipped', slug);
+    fs.mkdirSync(skippedDir, { recursive: true });
+    fs.writeFileSync(path.join(skippedDir, 'reason.json'), JSON.stringify({ reason }, null, 2));
+    return { page_slug: slug, skipped: reason };
   }
 
   const meta1 = JSON.parse(fs.readFileSync(meta1Path, 'utf-8')) as ScrapedPage;
   const meta2 = JSON.parse(fs.readFileSync(meta2Path, 'utf-8')) as ScrapedPage;
   const meta = diffMeta(meta1, meta2);
 
-  const outDir = path.join(resultDir, `diff-v${v1}-v${v2}`, slug);
-  fs.mkdirSync(outDir, { recursive: true });
-  fs.writeFileSync(path.join(outDir, 'meta.json'), JSON.stringify(meta, null, 2));
-
   const img1 = PNG.sync.read(fs.readFileSync(shot1));
   const img2 = PNG.sync.read(fs.readFileSync(shot2));
 
+  let screenshot: ScreenshotDiffOutcome;
+  let diffPng: Buffer | undefined;
+
   if (img1.width !== img2.width || img1.height !== img2.height) {
-    return { page_slug: slug, screenshot: { kind: 'dimension-mismatch' }, meta };
+    screenshot = { kind: 'dimension-mismatch' };
+  } else {
+    const { width, height } = img1;
+    const output = new PNG({ width, height });
+    const numDiffPixels = pixelmatch(img1.data, img2.data, output.data, width, height, {
+      threshold: 0.1,
+    });
+
+    const dbUrl = urlsRepo.list().find((row) => row.page_slug === slug)?.url;
+    const tolerance = resolveDiffTolerance(
+      config.screenshot?.rules?.diff?.tolerance,
+      [dbUrl, meta1.url, meta2.url].filter((u): u is string => u !== undefined),
+    );
+
+    const diffPixelFraction = numDiffPixels / (width * height);
+    const changed = diffPixelFraction > tolerance;
+    screenshot = { kind: changed ? 'changed' : 'match', diffPixelFraction };
+    diffPng = PNG.sync.write(output);
   }
 
-  const { width, height } = img1;
-  const output = new PNG({ width, height });
-  const numDiffPixels = pixelmatch(img1.data, img2.data, output.data, width, height, {
-    threshold: 0.1,
-  });
-  fs.writeFileSync(path.join(outDir, 'screenshot.png'), PNG.sync.write(output));
+  const bucket =
+    screenshot.kind === 'match' && Object.keys(meta).length === 0 ? 'matched' : 'changed';
+  const outDir = path.join(diffBaseDir, bucket, slug);
+  fs.mkdirSync(outDir, { recursive: true });
+  fs.writeFileSync(path.join(outDir, 'meta.json'), JSON.stringify(meta, null, 2));
+  if (diffPng) {
+    fs.writeFileSync(path.join(outDir, 'screenshot.png'), diffPng);
+  }
 
-  const dbUrl = urlsRepo.list().find((row) => row.page_slug === slug)?.url;
-  const tolerance = resolveDiffTolerance(
-    config.screenshot?.rules?.diff?.tolerance,
-    [dbUrl, meta1.url, meta2.url].filter((u): u is string => u !== undefined),
-  );
-
-  const diffPixelFraction = numDiffPixels / (width * height);
-  const changed = diffPixelFraction > tolerance;
-
-  return {
-    page_slug: slug,
-    screenshot: { kind: changed ? 'changed' : 'match', diffPixelFraction },
-    meta,
-  };
+  return { page_slug: slug, screenshot, meta };
 }
 
 export function diffVersions(
