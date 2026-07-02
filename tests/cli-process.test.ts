@@ -565,3 +565,67 @@ describe('cli `diff <v1> <v2> [url-or-path]` (subprocess, T65/T66)', () => {
     10000,
   );
 });
+
+describe('cli `config init` (subprocess, T77)', () => {
+  let tmpDir: string;
+  let dbPath: string;
+  let configPath: string;
+
+  function runConfigInit() {
+    return spawnSync(tsxBin, [cliPath, 'config', 'init'], {
+      cwd: repoRoot,
+      env: { ...process.env, DB_PATH: dbPath, CONFIG_PATH: configPath },
+      encoding: 'utf-8',
+    });
+  }
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'voyager-cli-proc-'));
+    dbPath = path.join(tmpDir, 'data', 'test.db');
+    configPath = path.join(tmpDir, 'config.json');
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it(
+    'writes a config.json matching the schema and exits 0 when CONFIG_PATH is absent (V51)',
+    () => {
+      const result = runConfigInit();
+
+      expect(result.status).toBe(0);
+      expect(result.stdout).toContain('config.json written');
+      expect(fs.existsSync(configPath)).toBe(true);
+
+      const written = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+      expect(written.screenshot.rules.hide['*']).toEqual([
+        '.ad',
+        '.ads',
+        '.cookie-banner',
+        '.cookie-consent',
+      ]);
+      expect(written.screenshot.full_page).toBe(true);
+      expect(written.screenshot.format).toBe('png');
+      expect(written.timeout_ms).toBe(30000);
+      expect(written.wait_for).toBe('load');
+      expect(written.viewport).toEqual({ width: 1280, height: 800 });
+      expect(written.headless).toBe(true);
+    },
+    10000,
+  );
+
+  it(
+    'errors "config.json already exists", leaves the file untouched, and exits 1 when CONFIG_PATH exists (V51)',
+    () => {
+      fs.writeFileSync(configPath, '{"custom":true}');
+
+      const result = runConfigInit();
+
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain('config.json already exists');
+      expect(fs.readFileSync(configPath, 'utf-8')).toBe('{"custom":true}');
+    },
+    10000,
+  );
+});
