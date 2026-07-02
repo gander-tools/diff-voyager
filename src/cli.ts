@@ -198,6 +198,28 @@ export function cleanProject(
   return removed;
 }
 
+const DEFAULT_CONFIG = {
+  screenshot: {
+    rules: {
+      hide: { '*': ['.ad', '.ads', '.cookie-banner', '.cookie-consent'] },
+    },
+    full_page: true,
+    format: 'png',
+  },
+  timeout_ms: 30000,
+  wait_for: 'load',
+  viewport: { width: 1280, height: 800 },
+  headless: true,
+};
+
+export function configInit(configPath: string): void {
+  if (fs.existsSync(configPath)) {
+    throw new Error('config.json already exists');
+  }
+
+  fs.writeFileSync(configPath, JSON.stringify(DEFAULT_CONFIG, null, 2));
+}
+
 const isMainModule = process.argv[1] === fileURLToPath(import.meta.url);
 
 interface Repos {
@@ -350,6 +372,18 @@ if (isMainModule) {
             console.log(`${outcome.page_slug}: ${outcome.screenshot?.kind}`);
           }
         }
+      });
+    });
+
+  const config = program.command('config');
+
+  config
+    .command('init')
+    .description('write an example config.json with sensible defaults')
+    .action(() => {
+      runCommand(() => {
+        configInit(CONFIG_PATH);
+        console.log(`config.json written: ${CONFIG_PATH}`);
       });
     });
 
