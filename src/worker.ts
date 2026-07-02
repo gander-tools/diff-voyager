@@ -15,18 +15,6 @@ import type { Config, RunRecord, UrlRun } from './types';
 type Logger = { error: (obj: unknown, msg: string) => void };
 type ScrapeFn = typeof scrape;
 
-export function findOpenRun(runsRepo: RunsRepo): RunRecord | undefined {
-  return runsRepo.findOpenRun();
-}
-
-export function claimNextPending(urlRunsRepo: UrlRunsRepo, runId: string): UrlRun | undefined {
-  return urlRunsRepo.claimNextPending(runId);
-}
-
-export function countPending(urlRunsRepo: UrlRunsRepo, runId: string): number {
-  return urlRunsRepo.countPending(runId);
-}
-
 export function finalizeRun(
   runsRepo: RunsRepo,
   urlRunsRepo: UrlRunsRepo,
@@ -166,7 +154,7 @@ if (isMainModule) {
     const urlsRepo = new DrizzleUrlsRepo(drizzleDb);
     const urlRunsRepo = new DrizzleUrlRunsRepo(drizzleDb);
 
-    const run = findOpenRun(runsRepo);
+    const run = runsRepo.findOpenRun();
     if (!run) {
       console.error('no open run');
       db.close();

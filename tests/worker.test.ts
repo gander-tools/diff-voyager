@@ -10,14 +10,7 @@ import { DrizzleUrlRunsRepo, type UrlRunsRepo } from '../src/repos/urlRunsRepo';
 import { DrizzleUrlsRepo, type UrlsRepo } from '../src/repos/urlsRepo';
 import { pageSlug } from '../src/slug';
 import type { RunRecord, UrlRun } from '../src/types';
-import {
-  claimNextPending,
-  findOpenRun,
-  finalizeRun,
-  loadWorkerConfig,
-  processUrlRun,
-  runWorker,
-} from '../src/worker';
+import { finalizeRun, loadWorkerConfig, processUrlRun, runWorker } from '../src/worker';
 
 function insertUrl(db: Database.Database, url = 'https://example.com/a'): string {
   const id = randomUUID();
@@ -59,90 +52,6 @@ function getUrlRun(db: Database.Database, id: string): UrlRun {
   return db.prepare('SELECT * FROM url_runs WHERE id = ?').get(id) as UrlRun;
 }
 
-describe('findOpenRun', () => {
-  let db: Database.Database;
-  let runsRepo: RunsRepo;
-
-  beforeEach(() => {
-    db = openDb(':memory:');
-    migrate(db);
-    runsRepo = new DrizzleRunsRepo(toDrizzle(db));
-  });
-
-  afterEach(() => {
-    db.close();
-  });
-
-  it('returns undefined when no open run exists', () => {
-    expect(findOpenRun(runsRepo)).toBeUndefined();
-  });
-
-  it('returns the open run when one exists', () => {
-    const run = insertRun(db, 'open');
-
-    expect(findOpenRun(runsRepo)).toEqual(run);
-  });
-});
-
-describe('claimNextPending', () => {
-  let db: Database.Database;
-  let urlRunsRepo: UrlRunsRepo;
-
-  beforeEach(() => {
-    db = openDb(':memory:');
-    migrate(db);
-    urlRunsRepo = new DrizzleUrlRunsRepo(toDrizzle(db));
-  });
-
-  afterEach(() => {
-    db.close();
-  });
-
-  it('claims a pending row, sets status to processing, and returns it', () => {
-    const run = insertRun(db);
-    const urlId = insertUrl(db);
-    const urlRunId = insertUrlRun(db, urlId, run.id, 'pending');
-
-    const claimed = claimNextPending(urlRunsRepo, run.id);
-
-    expect(claimed?.id).toBe(urlRunId);
-    expect(claimed?.status).toBe('processing');
-    expect(getUrlRun(db, urlRunId).status).toBe('processing');
-  });
-
-  it('returns undefined when no pending rows remain for the run', () => {
-    const run = insertRun(db);
-
-    expect(claimNextPending(urlRunsRepo, run.id)).toBeUndefined();
-  });
-
-  it('only one connection can claim a given pending row (atomic claim race)', () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'voyager-worker-'));
-    const dbPath = path.join(tmpDir, 'voyager.db');
-
-    const dbA = openDb(dbPath);
-    migrate(dbA);
-    const run = insertRun(dbA);
-    const urlId = insertUrl(dbA);
-    const urlRunId = insertUrlRun(dbA, urlId, run.id, 'pending');
-
-    const dbB = openDb(dbPath);
-    const urlRunsRepoA = new DrizzleUrlRunsRepo(toDrizzle(dbA));
-    const urlRunsRepoB = new DrizzleUrlRunsRepo(toDrizzle(dbB));
-
-    try {
-      const claimedByA = claimNextPending(urlRunsRepoA, run.id);
-      const claimedByB = claimNextPending(urlRunsRepoB, run.id);
-
-      expect(claimedByA?.id).toBe(urlRunId);
-      expect(claimedByB).toBeUndefined();
-    } finally {
-      dbA.close();
-      dbB.close();
-      fs.rmSync(tmpDir, { recursive: true, force: true });
-    }
-  });
-});
 
 describe('finalizeRun', () => {
   let db: Database.Database;

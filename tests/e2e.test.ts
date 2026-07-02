@@ -11,7 +11,7 @@ import { migrate, openDb, toDrizzle } from '../src/db';
 import { DrizzleRunsRepo, type RunsRepo } from '../src/repos/runsRepo';
 import { DrizzleUrlRunsRepo, type UrlRunsRepo } from '../src/repos/urlRunsRepo';
 import { DrizzleUrlsRepo, type UrlsRepo } from '../src/repos/urlsRepo';
-import { findOpenRun, runWorker } from '../src/worker';
+import { runWorker } from '../src/worker';
 
 describe('e2e: add url -> run start -> worker processes', () => {
   let server: http.Server;
@@ -66,7 +66,7 @@ describe('e2e: add url -> run start -> worker processes', () => {
     expect(addUrl(urlsRepo, baseUrl)).toBe('added');
 
     const { version } = runStart(runsRepo, urlsRepo, urlRunsRepo, () => ({ pid: 4242 }));
-    const run = findOpenRun(runsRepo);
+    const run = runsRepo.findOpenRun();
     if (!run) {
       throw new Error('expected an open run after runStart');
     }
@@ -111,7 +111,7 @@ describe('e2e: add url -> run start -> worker processes', () => {
     addUrl(urlsRepo, badUrl);
 
     const runResult = runStart(runsRepo, urlsRepo, urlRunsRepo, () => ({ pid: 4343 }));
-    const run = findOpenRun(runsRepo);
+    const run = runsRepo.findOpenRun();
     if (!run) {
       throw new Error('expected an open run after runStart');
     }
