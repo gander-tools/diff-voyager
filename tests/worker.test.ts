@@ -8,6 +8,8 @@ import { migrate, openDb, toDrizzle } from '../src/db';
 import { DrizzleRunsRepo, type RunsRepo } from '../src/repos/runsRepo';
 import { DrizzleUrlRunsRepo, type UrlRunsRepo } from '../src/repos/urlRunsRepo';
 import { DrizzleUrlsRepo, type UrlsRepo } from '../src/repos/urlsRepo';
+import { slug } from '../src/slug';
+import type { RunRecord, UrlRun } from '../src/types';
 import {
   claimNextPending,
   findOpenRun,
@@ -16,7 +18,6 @@ import {
   processUrlRun,
   runWorker,
 } from '../src/worker';
-import type { RunRecord, UrlRun } from '../src/types';
 
 function insertUrl(db: Database.Database, url = 'https://example.com/a'): string {
   const id = randomUUID();
@@ -302,6 +303,65 @@ describe('processUrlRun', () => {
     expect(updated.status).toBe('failed');
     expect(updated.error).toBe('boom');
     expect(logger.error).toHaveBeenCalledOnce();
+  });
+
+  it('calls scrapeFn with the effective url (base-url origin + original path) when baseUrl is given (V34)', async () => {
+    const run = insertRun(db);
+    const urlId = insertUrl(db, 'https://example.com/a');
+    const urlRunId = insertUrlRun(db, urlId, run.id, 'processing');
+    const urlRow = db.prepare('SELECT path FROM urls WHERE id = ?').get(urlId) as {
+      path: string;
+    };
+    const urlRun = getUrlRun(db, urlRunId);
+    const scrapeFn = vi.fn().mockResolvedValue({});
+    const logger = { error: vi.fn() };
+
+    await processUrlRun(
+      urlsRepo,
+      urlRunsRepo,
+      {} as never,
+      urlRun,
+      run.version,
+      tmpDir,
+      {},
+      scrapeFn,
+      logger,
+      'https://cdn.example.com',
+    );
+
+    expect(scrapeFn).toHaveBeenCalledWith(
+      {},
+      expect.objectContaining({ url: 'https://cdn.example.com/a' }),
+    );
+    expect(scrapeFn.mock.calls[0][1].snapshotDir).toBe(
+      path.join(tmpDir, `version-${run.version}`, slug('https://example.com/a', urlRow.path)),
+    );
+  });
+
+  it('calls scrapeFn with the original url unchanged when baseUrl is not given', async () => {
+    const run = insertRun(db);
+    const urlId = insertUrl(db, 'https://example.com/a');
+    const urlRunId = insertUrlRun(db, urlId, run.id, 'processing');
+    const urlRun = getUrlRun(db, urlRunId);
+    const scrapeFn = vi.fn().mockResolvedValue({});
+    const logger = { error: vi.fn() };
+
+    await processUrlRun(
+      urlsRepo,
+      urlRunsRepo,
+      {} as never,
+      urlRun,
+      run.version,
+      tmpDir,
+      {},
+      scrapeFn,
+      logger,
+    );
+
+    expect(scrapeFn).toHaveBeenCalledWith(
+      {},
+      expect.objectContaining({ url: 'https://example.com/a' }),
+    );
   });
 });
 
