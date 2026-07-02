@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
 import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 import { z } from 'zod';
+import { parseBaseUrl } from './baseUrl';
 import { DB_PATH, LOG_DIR, SNAPSHOT_DIR } from './config';
 import { migrate, openDb, toDrizzle } from './db';
 import { DrizzleRunsRepo, type RunsRepo } from './repos/runsRepo';
@@ -57,12 +58,13 @@ export function loadUrls(
   return { added, skipped };
 }
 
-type SpawnWorker = () => { pid: number };
+type SpawnWorker = (baseUrl?: string) => { pid: number };
 
-function defaultSpawnWorker(): { pid: number } {
+function defaultSpawnWorker(baseUrl?: string): { pid: number } {
   const tsxBin = fileURLToPath(new URL('../node_modules/.bin/tsx', import.meta.url));
   const workerPath = fileURLToPath(new URL('./worker.ts', import.meta.url));
-  const child = spawn(tsxBin, [workerPath], { detached: true, stdio: 'ignore' });
+  const args = baseUrl !== undefined ? [workerPath, baseUrl] : [workerPath];
+  const child = spawn(tsxBin, args, { detached: true, stdio: 'ignore' });
   child.unref();
 
   if (!child.pid) {
@@ -77,6 +79,7 @@ export function runStart(
   urlsRepo: UrlsRepo,
   urlRunsRepo: UrlRunsRepo,
   spawnWorker: SpawnWorker = defaultSpawnWorker,
+  baseUrl?: string,
 ): { version: number; pid: number } {
   if (urlsRepo.count() === 0) {
     throw new Error('no URLs registered');
@@ -87,10 +90,12 @@ export function runStart(
     throw new Error(`run ${open.version} is still open`);
   }
 
+  const origin = baseUrl !== undefined ? parseBaseUrl(baseUrl) : undefined;
+
   const { id: runId, version } = runsRepo.insertRunWithUrlRuns();
 
   try {
-    const { pid } = spawnWorker();
+    const { pid } = spawnWorker(origin);
     runsRepo.updatePid(runId, pid);
     return { version, pid };
   } catch (error) {
@@ -236,11 +241,17 @@ if (isMainModule) {
   const run = program.command('run');
 
   run
-    .command('start')
+    .command('start [base-url]')
     .description('create a new run and spawn the worker')
-    .action(() => {
+    .action((baseUrl?: string) => {
       runCommand(({ runsRepo, urlsRepo, urlRunsRepo }) => {
-        const { version, pid } = runStart(runsRepo, urlsRepo, urlRunsRepo);
+        const { version, pid } = runStart(
+          runsRepo,
+          urlsRepo,
+          urlRunsRepo,
+          defaultSpawnWorker,
+          baseUrl,
+        );
         console.log(`run ${version} started, PID: ${pid}`);
       });
     });
