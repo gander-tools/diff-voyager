@@ -80,7 +80,7 @@ export async function processUrlRun(
   const fetchUrl = baseUrl !== undefined ? effectiveUrl(baseUrl, urlRow.url) : urlRow.url;
 
   try {
-    await scrapeFn(browser, { url: fetchUrl, version, snapshotDir, config });
+    await scrapeFn(browser, { url: fetchUrl, sourceUrl: urlRow.url, version, snapshotDir, config });
     urlRunsRepo.markDone(urlRun.id);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

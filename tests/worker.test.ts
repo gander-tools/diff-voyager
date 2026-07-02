@@ -339,6 +339,36 @@ describe('processUrlRun', () => {
     );
   });
 
+  it('passes sourceUrl as the original url when baseUrl is given, distinct from the effective url', async () => {
+    const run = insertRun(db);
+    const urlId = insertUrl(db, 'https://example.com/a');
+    const urlRunId = insertUrlRun(db, urlId, run.id, 'processing');
+    const urlRun = getUrlRun(db, urlRunId);
+    const scrapeFn = vi.fn().mockResolvedValue({});
+    const logger = { error: vi.fn() };
+
+    await processUrlRun(
+      urlsRepo,
+      urlRunsRepo,
+      {} as never,
+      urlRun,
+      run.version,
+      tmpDir,
+      {},
+      scrapeFn,
+      logger,
+      'https://cdn.example.com',
+    );
+
+    expect(scrapeFn).toHaveBeenCalledWith(
+      {},
+      expect.objectContaining({
+        url: 'https://cdn.example.com/a',
+        sourceUrl: 'https://example.com/a',
+      }),
+    );
+  });
+
   it('builds the snapshot dir from the persisted page_slug, not a runtime slug computation (V14, V41)', async () => {
     const run = insertRun(db);
     const urlId = insertUrl(db, 'https://example.com/a/b?x=1');
@@ -387,6 +417,35 @@ describe('processUrlRun', () => {
     expect(scrapeFn).toHaveBeenCalledWith(
       {},
       expect.objectContaining({ url: 'https://example.com/a' }),
+    );
+  });
+
+  it('passes sourceUrl equal to url when baseUrl is not given', async () => {
+    const run = insertRun(db);
+    const urlId = insertUrl(db, 'https://example.com/a');
+    const urlRunId = insertUrlRun(db, urlId, run.id, 'processing');
+    const urlRun = getUrlRun(db, urlRunId);
+    const scrapeFn = vi.fn().mockResolvedValue({});
+    const logger = { error: vi.fn() };
+
+    await processUrlRun(
+      urlsRepo,
+      urlRunsRepo,
+      {} as never,
+      urlRun,
+      run.version,
+      tmpDir,
+      {},
+      scrapeFn,
+      logger,
+    );
+
+    expect(scrapeFn).toHaveBeenCalledWith(
+      {},
+      expect.objectContaining({
+        url: 'https://example.com/a',
+        sourceUrl: 'https://example.com/a',
+      }),
     );
   });
 });

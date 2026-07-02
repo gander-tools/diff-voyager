@@ -52,6 +52,7 @@ interface DomExtract {
 
 export interface ScrapeOptions {
   url: string;
+  sourceUrl: string;
   version: number;
   snapshotDir: string;
   config: Config;
