@@ -39,6 +39,11 @@ export interface Config {
   screenshot?: {
     selector?: string;
     exclude?: string[];
+    rules?: {
+      hide?: Record<string, string[]>;
+      mark?: Record<string, string[]>;
+      diff?: { tolerance?: Record<string, number> };
+    };
     full_page?: boolean;
     format?: 'png' | 'jpeg';
     quality?: number;
