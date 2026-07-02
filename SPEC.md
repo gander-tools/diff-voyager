@@ -75,6 +75,7 @@ PoC versioned web scraper. CLI stages URLs → `run start` creates version and l
 - worker: on start → query DB for single `open` run (exit 1 if none); launch chromium browser; poll pending `url_runs` WHERE run_id=? 500 ms idle; atomic claim; scrape; write all artifacts + `meta.json` to snapshot_dir; update url_runs status; when 0 pending → if ∃ `failed` url_runs: write `errors.json` (V9); DELETE url_runs WHERE run_id=?, mark run `done` | `done_with_errors`; close browser; exit 0 if ∀ done, exit 1 if ∃ failed
 - cmd: `clean` → ⊥ if ∃ run `open`; delete `DB_PATH` dir (`data/`, incl. WAL/SHM sidecars), `SNAPSHOT_DIR`, `LOG_DIR` → print "cleaned: <paths removed>"; resets project to fresh-install state (no urls/runs/artifacts/logs)
 - cmd: `diff <v1> <v2> [url-or-path]` → ⊥ if run `open` for version v1 | v2 (V43); resolve `page_slug`(s) per `url-or-path` (V42); ∀ resolved `page_slug` present in both `version-<v1>`/`version-<v2>` → pixelmatch diff screenshot + shallow meta.json diff (V45,V46) → write `<RESULT_DIR>/diff-v<v1>-v<v2>/<page_slug>/{screenshot.png,meta.json}`; `page_slug` missing in either version → skip w/ warning (V44); `version-<N>/` dir missing entirely → error, exit 1 (V47)
+- cmd: `config init` → CONFIG_PATH file exists → error "config.json already exists"; else write example config.json w/ sensible defaults (screenshot.rules.hide.* = [".ad",".ads",".cookie-banner",".cookie-consent"], full_page=true, format=png, timeout_ms=30000, wait_for=load, viewport 1280x800, headless=true) → print "config.json written: <CONFIG_PATH>"
 - file: `config.json` schema:
   ```json
   {
@@ -205,6 +206,7 @@ CREATE TABLE url_runs
 - V48: `run start` ⊥ if ∃ ≥2 `urls` rows sharing same `page_slug` (guard checked before INSERT tx, same fail-fast tier as V35/V36) → error "duplicate page_slug: <slug> (urls: <u1>, <u2>)"; prevents scrape-phase silent overwrite of one page's artifacts by another's within same `version-N/<page_slug>/` dir
 - V49: `screenshot.rules.diff.tolerance.<glob>` match @ diff time = match if `urls.url` (source, DB) ∨ v1's `meta.json.url` ∨ v2's `meta.json.url` matches glob — union of all three candidates (v1/v2 effective urls may differ per base-url V34, so both checked); consistent w/ V39 "any match wins"
 - V50: `renderedHtml` capture (`page.content()`) ! happen before hide-selector DOM mutation (`display:none`) applied; capture order: dom extract → `page.content()` → apply hide → screenshot; `page.html`/`page.source.html` ⊥ reflect `screenshot.rules.hide` mutations (hardens V37, closes B9 gap)
+- V51: `config init` ⊥ overwrites existing CONFIG_PATH file (same guard family as V10 add-duplicate) → error "config.json already exists", exit 1; file absent → write valid JSON parseable by `loadWorkerConfig` (V4), matching §I config.json schema exactly (no unknown/extra top-level keys)
 
 ## §T TASKS
 
@@ -287,6 +289,8 @@ CREATE TABLE url_runs
 | T74 | x      | tests: `scraper.ts` regression — `page.html` content unaffected by `screenshot.rules.hide` selectors even when hide matches (assert rendered html has no injected `display:none`/hidden markup); reorder assertion for capture-before-hide                                                                                                                                                            | V37,V50                     |
 | T75 | x      | `src/scraper.ts` — move `renderedHtml = await page.content()` capture to before hide DOM-mutation block (currently lines 129-159); `page.html` write unaffected by hide rules                                                                                                                                                                                                                          | V37,V50                     |
 | T76 | x      | `package.json` — add `"dev:diff": "tsx src/cli.ts diff"` script; convenience shortcut, `dev:cli -- diff` unchanged/still works                                                                                                                                                                                                                     | §I                          |
+| T77 | .      | tests: `cli.ts` `config init` — CONFIG_PATH missing → writes valid JSON matching schema, exit 0; CONFIG_PATH exists → error "config.json already exists", file untouched, exit 1                                                                                                                                                                | V51                         |
+| T78 | .      | `src/cli.ts` — impl `config init` cmd wired thru `runCommand`, guard + write default config.json per V51                                                                                                                                                                                                                                          | V51                         |
 
 ## §B BUGS
 
