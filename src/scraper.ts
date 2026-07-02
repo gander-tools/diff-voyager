@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { Browser, Response } from 'playwright';
+import { resolveScreenshotRules } from './screenshotRules';
 import type { Config, Link, ScrapedPage } from './types';
 
 type ResolvedConfig = {
@@ -11,7 +12,6 @@ type ResolvedConfig = {
   viewport: { width: number; height: number };
   quality?: number;
   selector?: string;
-  exclude: string[];
   user_agent?: string;
 };
 
@@ -28,7 +28,6 @@ export function resolveConfig(config: Config): ResolvedConfig {
     viewport: config.viewport ?? { width: 1280, height: 800 },
     quality: format === 'jpeg' ? config.screenshot?.quality : undefined,
     selector: config.screenshot?.selector,
-    exclude: config.screenshot?.exclude ?? [],
     user_agent: config.user_agent,
   };
 }
@@ -59,8 +58,9 @@ export interface ScrapeOptions {
 }
 
 export async function scrape(browser: Browser, options: ScrapeOptions): Promise<ScrapedPage> {
-  const { url, version, snapshotDir } = options;
+  const { url, sourceUrl, version, snapshotDir } = options;
   const resolved = resolveConfig(options.config);
+  const { hide, mark } = resolveScreenshotRules(options.config.screenshot?.rules, [sourceUrl, url]);
 
   fs.mkdirSync(snapshotDir, { recursive: true });
 
@@ -126,7 +126,17 @@ export async function scrape(browser: Browser, options: ScrapeOptions): Promise<
       internal: isInternalLink(link.href, url),
     }));
 
-    const maskLocators = resolved.exclude.map((selector) => page.locator(selector));
+    if (hide.length > 0) {
+      await page.evaluate((selectors: string[]) => {
+        for (const sel of selectors) {
+          for (const el of Array.from(document.querySelectorAll(sel))) {
+            (el as HTMLElement).style.display = 'none';
+          }
+        }
+      }, hide);
+    }
+
+    const maskLocators = mark.map((selector) => page.locator(selector));
     const screenshotOptions = {
       type: resolved.format,
       quality: resolved.quality,

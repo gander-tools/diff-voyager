@@ -172,6 +172,7 @@ describe('scrape', () => {
   function baseOptions(config: Config = {}) {
     return {
       url: 'https://example.com/page',
+      sourceUrl: 'https://example.com/page',
       version: 1,
       snapshotDir,
       config,
@@ -516,18 +517,65 @@ describe('scrape', () => {
     );
   });
 
-  it('passes exclude selectors as the mask option', async () => {
+  it('passes rules.mark selectors as the mask option (V38)', async () => {
     const { page } = createFakePage();
     const context = createFakeContext(page);
     const browser = createFakeBrowser(context);
 
-    await scrape(browser as never, baseOptions({ screenshot: { exclude: ['.ad', '.banner'] } }));
+    await scrape(
+      browser as never,
+      baseOptions({ screenshot: { rules: { mark: { '*': ['.ad', '.banner'] } } } }),
+    );
 
     expect(page.screenshot).toHaveBeenCalledWith(
       expect.objectContaining({ mask: [expect.anything(), expect.anything()] }),
     );
     expect(page.locator).toHaveBeenCalledWith('.ad');
     expect(page.locator).toHaveBeenCalledWith('.banner');
+  });
+
+  it('hides rules.hide selectors via page.evaluate before the screenshot (V37)', async () => {
+    const { page } = createFakePage();
+    const context = createFakeContext(page);
+    const browser = createFakeBrowser(context);
+
+    await scrape(
+      browser as never,
+      baseOptions({ screenshot: { rules: { hide: { '*': ['.cookie-banner'] } } } }),
+    );
+
+    const hideCall = page.evaluate.mock.calls.find((call) => Array.isArray(call[1]));
+    expect(hideCall?.[1]).toEqual(['.cookie-banner']);
+    expect(page.screenshot).toHaveBeenCalled();
+  });
+
+  it('matches rules against sourceUrl when url (effective, base-url) differs (V39)', async () => {
+    const { page } = createFakePage();
+    const context = createFakeContext(page);
+    const browser = createFakeBrowser(context);
+
+    await scrape(browser as never, {
+      ...baseOptions({
+        screenshot: { rules: { mark: { 'https://example.com/*': ['.price'] } } },
+      }),
+      url: 'https://cdn.example.com/page',
+      sourceUrl: 'https://example.com/page',
+    });
+
+    expect(page.locator).toHaveBeenCalledWith('.price');
+  });
+
+  it('does not throw when a configured rule selector matches nothing (V40 no-op)', async () => {
+    const { page } = createFakePage();
+    const context = createFakeContext(page);
+    const browser = createFakeBrowser(context);
+
+    await expect(
+      scrape(
+        browser as never,
+        baseOptions({ screenshot: { rules: { hide: { '*': ['.does-not-exist'] } } } }),
+      ),
+    ).resolves.toBeDefined();
   });
 
   it('propagates navigation errors and still closes the context', async () => {

@@ -54,7 +54,11 @@ Scraping behavior is controlled by an optional `config.json` file (path via `CON
 {
   "screenshot": {
     "selector": "string (CSS)",
-    "exclude": ["string (CSS)"],
+    "rules": {
+      "hide": { "<glob>": ["string (CSS)"] },
+      "mark": { "<glob>": ["string (CSS)"] },
+      "diff": { "tolerance": { "<glob>": "number 0-1" } }
+    },
     "full_page": true,
     "format": "png | jpeg",
     "quality": 80
@@ -68,7 +72,9 @@ Scraping behavior is controlled by an optional `config.json` file (path via `CON
 ```
 
 - `screenshot.selector` — screenshot a single element instead of the full page.
-- `screenshot.exclude` — CSS selectors to mask (colored overlay) in the screenshot.
+- `screenshot.rules.hide` — glob-matched (source or effective url) CSS selectors hidden (`display:none`) before the screenshot.
+- `screenshot.rules.mark` — glob-matched CSS selectors masked (colored overlay) via Playwright's `mask` option.
+- `screenshot.rules.diff.tolerance` — glob-matched fraction (0-1) of differing pixels allowed by `diff` before flagging a screenshot as changed; unmatched urls default to `0`.
 - `screenshot.full_page` — default `true`; ignored if `selector` is set.
 - `screenshot.format` / `screenshot.quality` — `quality` applies to `jpeg` only.
 - `timeout_ms` — default `30000`.

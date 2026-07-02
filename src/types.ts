@@ -38,7 +38,6 @@ export interface UrlRecord {
 export interface Config {
   screenshot?: {
     selector?: string;
-    exclude?: string[];
     rules?: {
       hide?: Record<string, string[]>;
       mark?: Record<string, string[]>;
