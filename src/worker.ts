@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import pino from 'pino';
 import { type Browser, chromium } from 'playwright';
+import { effectiveUrl } from './baseUrl';
 import { CONFIG_PATH, DB_PATH, LOG_DIR, SNAPSHOT_DIR } from './config';
 import { migrate, openDb, toDrizzle } from './db';
 import { DrizzleRunsRepo, type RunsRepo } from './repos/runsRepo';
@@ -70,6 +71,7 @@ export async function processUrlRun(
   config: Config,
   scrapeFn: ScrapeFn,
   logger: Logger,
+  baseUrl?: string,
 ): Promise<void> {
   const urlRow = urlsRepo.findById(urlRun.url_id);
   if (!urlRow) {
@@ -80,9 +82,10 @@ export async function processUrlRun(
     `version-${version}`,
     slug(urlRow.url, urlRow.path),
   );
+  const fetchUrl = baseUrl !== undefined ? effectiveUrl(baseUrl, urlRow.url) : urlRow.url;
 
   try {
-    await scrapeFn(browser, { url: urlRow.url, version, snapshotDir, config });
+    await scrapeFn(browser, { url: fetchUrl, version, snapshotDir, config });
     urlRunsRepo.markDone(urlRun.id);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -109,6 +112,7 @@ export async function runWorker(
   snapshotBaseDir: string,
   config: Config,
   deps: WorkerDeps = {},
+  baseUrl?: string,
 ): Promise<0 | 1> {
   const scrapeFn = deps.scrapeFn ?? scrape;
   const sleepFn = deps.sleepFn ?? defaultSleep;
@@ -127,6 +131,7 @@ export async function runWorker(
         config,
         scrapeFn,
         logger,
+        baseUrl,
       );
       continue;
     }
@@ -188,6 +193,7 @@ if (isMainModule) {
     const logger = pino(pino.destination(path.join(LOG_DIR, `worker-v${run.version}.log`)));
 
     const browser = await chromium.launch({ headless: config.headless ?? true });
+    const baseUrlArg = process.argv[2];
 
     try {
       process.exitCode = await runWorker(
@@ -199,6 +205,7 @@ if (isMainModule) {
         SNAPSHOT_DIR,
         config,
         { logger },
+        baseUrlArg,
       );
     } finally {
       await browser.close();
