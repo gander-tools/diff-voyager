@@ -4,7 +4,10 @@ import os from 'node:os';
 import path from 'node:path';
 import type Database from 'better-sqlite3';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { migrate, openDb } from '../src/db';
+import { migrate, openDb, toDrizzle } from '../src/db';
+import { DrizzleRunsRepo, type RunsRepo } from '../src/repos/runsRepo';
+import { DrizzleUrlRunsRepo, type UrlRunsRepo } from '../src/repos/urlRunsRepo';
+import { DrizzleUrlsRepo, type UrlsRepo } from '../src/repos/urlsRepo';
 import {
   claimNextPending,
   findOpenRun,
@@ -13,21 +16,25 @@ import {
   processUrlRun,
   runWorker,
 } from '../src/worker';
-import type { UrlRun } from '../src/types';
+import type { RunRecord, UrlRun } from '../src/types';
 
 function insertUrl(db: Database.Database, url = 'https://example.com/a'): string {
   const id = randomUUID();
-  db.prepare('INSERT INTO urls (id, url, path) VALUES (?, ?, ?)').run(id, url, new URL(url).pathname);
+  db.prepare('INSERT INTO urls (id, url, path) VALUES (?, ?, ?)').run(
+    id,
+    url,
+    new URL(url).pathname,
+  );
   return id;
 }
 
-function insertRun(db: Database.Database, status: 'open' | 'done' | 'abandoned' = 'open'): {
-  id: string;
-  version: number;
-} {
+function insertRun(
+  db: Database.Database,
+  status: 'open' | 'done' | 'abandoned' = 'open',
+): RunRecord {
   const id = randomUUID();
   db.prepare('INSERT INTO runs (id, version, status) VALUES (?, 1, ?)').run(id, status);
-  return { id, version: 1 };
+  return db.prepare('SELECT * FROM runs WHERE id = ?').get(id) as RunRecord;
 }
 
 function insertUrlRun(
@@ -52,10 +59,12 @@ function getUrlRun(db: Database.Database, id: string): UrlRun {
 
 describe('findOpenRun', () => {
   let db: Database.Database;
+  let runsRepo: RunsRepo;
 
   beforeEach(() => {
     db = openDb(':memory:');
     migrate(db);
+    runsRepo = new DrizzleRunsRepo(toDrizzle(db));
   });
 
   afterEach(() => {
@@ -63,22 +72,24 @@ describe('findOpenRun', () => {
   });
 
   it('returns undefined when no open run exists', () => {
-    expect(findOpenRun(db)).toBeUndefined();
+    expect(findOpenRun(runsRepo)).toBeUndefined();
   });
 
-  it('returns the open run id and version when one exists', () => {
+  it('returns the open run when one exists', () => {
     const run = insertRun(db, 'open');
 
-    expect(findOpenRun(db)).toEqual({ id: run.id, version: run.version });
+    expect(findOpenRun(runsRepo)).toEqual(run);
   });
 });
 
 describe('claimNextPending', () => {
   let db: Database.Database;
+  let urlRunsRepo: UrlRunsRepo;
 
   beforeEach(() => {
     db = openDb(':memory:');
     migrate(db);
+    urlRunsRepo = new DrizzleUrlRunsRepo(toDrizzle(db));
   });
 
   afterEach(() => {
@@ -90,7 +101,7 @@ describe('claimNextPending', () => {
     const urlId = insertUrl(db);
     const urlRunId = insertUrlRun(db, urlId, run.id, 'pending');
 
-    const claimed = claimNextPending(db, run.id);
+    const claimed = claimNextPending(urlRunsRepo, run.id);
 
     expect(claimed?.id).toBe(urlRunId);
     expect(claimed?.status).toBe('processing');
@@ -100,7 +111,7 @@ describe('claimNextPending', () => {
   it('returns undefined when no pending rows remain for the run', () => {
     const run = insertRun(db);
 
-    expect(claimNextPending(db, run.id)).toBeUndefined();
+    expect(claimNextPending(urlRunsRepo, run.id)).toBeUndefined();
   });
 
   it('only one connection can claim a given pending row (atomic claim race)', () => {
@@ -114,10 +125,12 @@ describe('claimNextPending', () => {
     const urlRunId = insertUrlRun(dbA, urlId, run.id, 'pending');
 
     const dbB = openDb(dbPath);
+    const urlRunsRepoA = new DrizzleUrlRunsRepo(toDrizzle(dbA));
+    const urlRunsRepoB = new DrizzleUrlRunsRepo(toDrizzle(dbB));
 
     try {
-      const claimedByA = claimNextPending(dbA, run.id);
-      const claimedByB = claimNextPending(dbB, run.id);
+      const claimedByA = claimNextPending(urlRunsRepoA, run.id);
+      const claimedByB = claimNextPending(urlRunsRepoB, run.id);
 
       expect(claimedByA?.id).toBe(urlRunId);
       expect(claimedByB).toBeUndefined();
@@ -131,11 +144,16 @@ describe('claimNextPending', () => {
 
 describe('finalizeRun', () => {
   let db: Database.Database;
+  let runsRepo: RunsRepo;
+  let urlRunsRepo: UrlRunsRepo;
   let tmpDir: string;
 
   beforeEach(() => {
     db = openDb(':memory:');
     migrate(db);
+    const drizzleDb = toDrizzle(db);
+    runsRepo = new DrizzleRunsRepo(drizzleDb);
+    urlRunsRepo = new DrizzleUrlRunsRepo(drizzleDb);
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'voyager-worker-finalize-'));
   });
 
@@ -149,7 +167,7 @@ describe('finalizeRun', () => {
     const urlId = insertUrl(db);
     insertUrlRun(db, urlId, run.id, 'done');
 
-    const exitCode = finalizeRun(db, run.id, run.version, tmpDir);
+    const exitCode = finalizeRun(runsRepo, urlRunsRepo, run.id, run.version, tmpDir);
 
     expect(exitCode).toBe(0);
     expect(db.prepare('SELECT COUNT(*) c FROM url_runs WHERE run_id = ?').get(run.id)).toEqual({
@@ -166,7 +184,7 @@ describe('finalizeRun', () => {
     const urlId = insertUrl(db);
     insertUrlRun(db, urlId, run.id, 'failed');
 
-    expect(finalizeRun(db, run.id, run.version, tmpDir)).toBe(1);
+    expect(finalizeRun(runsRepo, urlRunsRepo, run.id, run.version, tmpDir)).toBe(1);
   });
 
   it('does not overwrite an abandoned run back to done', () => {
@@ -174,7 +192,7 @@ describe('finalizeRun', () => {
     const urlId = insertUrl(db);
     insertUrlRun(db, urlId, run.id, 'done');
 
-    finalizeRun(db, run.id, run.version, tmpDir);
+    finalizeRun(runsRepo, urlRunsRepo, run.id, run.version, tmpDir);
 
     expect(
       (db.prepare('SELECT status FROM runs WHERE id = ?').get(run.id) as { status: string })
@@ -188,7 +206,7 @@ describe('finalizeRun', () => {
     insertUrlRun(db, urlId, run.id, 'failed');
     db.prepare("UPDATE url_runs SET error = 'boom' WHERE run_id = ?").run(run.id);
 
-    const exitCode = finalizeRun(db, run.id, run.version, tmpDir);
+    const exitCode = finalizeRun(runsRepo, urlRunsRepo, run.id, run.version, tmpDir);
 
     expect(exitCode).toBe(1);
     expect(
@@ -205,7 +223,7 @@ describe('finalizeRun', () => {
     const urlId = insertUrl(db);
     insertUrlRun(db, urlId, run.id, 'done');
 
-    finalizeRun(db, run.id, run.version, tmpDir);
+    finalizeRun(runsRepo, urlRunsRepo, run.id, run.version, tmpDir);
 
     expect(
       (db.prepare('SELECT status FROM runs WHERE id = ?').get(run.id) as { status: string })
@@ -217,11 +235,16 @@ describe('finalizeRun', () => {
 
 describe('processUrlRun', () => {
   let db: Database.Database;
+  let urlsRepo: UrlsRepo;
+  let urlRunsRepo: UrlRunsRepo;
   let tmpDir: string;
 
   beforeEach(() => {
     db = openDb(':memory:');
     migrate(db);
+    const drizzleDb = toDrizzle(db);
+    urlsRepo = new DrizzleUrlsRepo(drizzleDb);
+    urlRunsRepo = new DrizzleUrlRunsRepo(drizzleDb);
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'voyager-worker-snap-'));
   });
 
@@ -238,7 +261,17 @@ describe('processUrlRun', () => {
     const scrapeFn = vi.fn().mockResolvedValue({});
     const logger = { error: vi.fn() };
 
-    await processUrlRun(db, {} as never, urlRun, run.version, tmpDir, {}, scrapeFn, logger);
+    await processUrlRun(
+      urlsRepo,
+      urlRunsRepo,
+      {} as never,
+      urlRun,
+      run.version,
+      tmpDir,
+      {},
+      scrapeFn,
+      logger,
+    );
 
     expect(getUrlRun(db, urlRunId).status).toBe('done');
     expect(scrapeFn).toHaveBeenCalledOnce();
@@ -253,7 +286,17 @@ describe('processUrlRun', () => {
     const scrapeFn = vi.fn().mockRejectedValue(new Error('boom'));
     const logger = { error: vi.fn() };
 
-    await processUrlRun(db, {} as never, urlRun, run.version, tmpDir, {}, scrapeFn, logger);
+    await processUrlRun(
+      urlsRepo,
+      urlRunsRepo,
+      {} as never,
+      urlRun,
+      run.version,
+      tmpDir,
+      {},
+      scrapeFn,
+      logger,
+    );
 
     const updated = getUrlRun(db, urlRunId);
     expect(updated.status).toBe('failed');
@@ -264,11 +307,18 @@ describe('processUrlRun', () => {
 
 describe('runWorker', () => {
   let db: Database.Database;
+  let runsRepo: RunsRepo;
+  let urlsRepo: UrlsRepo;
+  let urlRunsRepo: UrlRunsRepo;
   let tmpDir: string;
 
   beforeEach(() => {
     db = openDb(':memory:');
     migrate(db);
+    const drizzleDb = toDrizzle(db);
+    runsRepo = new DrizzleRunsRepo(drizzleDb);
+    urlsRepo = new DrizzleUrlsRepo(drizzleDb);
+    urlRunsRepo = new DrizzleUrlRunsRepo(drizzleDb);
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'voyager-worker-run-'));
   });
 
@@ -287,11 +337,16 @@ describe('runWorker', () => {
     const sleepFn = vi.fn().mockResolvedValue(undefined);
     const logger = { error: vi.fn() };
 
-    const exitCode = await runWorker(db, {} as never, run, tmpDir, {}, {
-      scrapeFn,
-      sleepFn,
-      logger,
-    });
+    const exitCode = await runWorker(
+      runsRepo,
+      urlsRepo,
+      urlRunsRepo,
+      {} as never,
+      run,
+      tmpDir,
+      {},
+      { scrapeFn, sleepFn, logger },
+    );
 
     expect(exitCode).toBe(0);
     expect(scrapeFn).toHaveBeenCalledTimes(2);
@@ -313,11 +368,16 @@ describe('runWorker', () => {
     const sleepFn = vi.fn().mockResolvedValue(undefined);
     const logger = { error: vi.fn() };
 
-    const exitCode = await runWorker(db, {} as never, run, tmpDir, {}, {
-      scrapeFn,
-      sleepFn,
-      logger,
-    });
+    const exitCode = await runWorker(
+      runsRepo,
+      urlsRepo,
+      urlRunsRepo,
+      {} as never,
+      run,
+      tmpDir,
+      {},
+      { scrapeFn, sleepFn, logger },
+    );
 
     expect(exitCode).toBe(1);
   });
@@ -330,7 +390,16 @@ describe('runWorker', () => {
     const sleepFn = vi.fn().mockResolvedValue(undefined);
     const logger = { error: vi.fn() };
 
-    await runWorker(db, {} as never, run, tmpDir, {}, { scrapeFn, sleepFn, logger });
+    await runWorker(
+      runsRepo,
+      urlsRepo,
+      urlRunsRepo,
+      {} as never,
+      run,
+      tmpDir,
+      {},
+      { scrapeFn, sleepFn, logger },
+    );
 
     expect(sleepFn).not.toHaveBeenCalled();
   });

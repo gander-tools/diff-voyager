@@ -1,69 +1,40 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type Database from 'better-sqlite3';
 import pino from 'pino';
 import { type Browser, chromium } from 'playwright';
 import { CONFIG_PATH, DB_PATH, LOG_DIR, SNAPSHOT_DIR } from './config';
-import { migrate, openDb } from './db';
+import { migrate, openDb, toDrizzle } from './db';
+import { DrizzleRunsRepo, type RunsRepo } from './repos/runsRepo';
+import { DrizzleUrlRunsRepo, type UrlRunsRepo } from './repos/urlRunsRepo';
+import { DrizzleUrlsRepo, type UrlsRepo } from './repos/urlsRepo';
 import { scrape } from './scraper';
 import { slug } from './slug';
-import type { Config, UrlRun } from './types';
+import type { Config, RunRecord, UrlRun } from './types';
 
 type Logger = { error: (obj: unknown, msg: string) => void };
 type ScrapeFn = typeof scrape;
 
-export interface OpenRun {
-  id: string;
-  version: number;
+export function findOpenRun(runsRepo: RunsRepo): RunRecord | undefined {
+  return runsRepo.findOpenRun();
 }
 
-export function findOpenRun(db: Database.Database): OpenRun | undefined {
-  return db.prepare("SELECT id, version FROM runs WHERE status = 'open'").get() as
-    | OpenRun
-    | undefined;
+export function claimNextPending(urlRunsRepo: UrlRunsRepo, runId: string): UrlRun | undefined {
+  return urlRunsRepo.claimNextPending(runId);
 }
 
-export function claimNextPending(db: Database.Database, runId: string): UrlRun | undefined {
-  const candidate = db
-    .prepare(
-      "SELECT id FROM url_runs WHERE run_id = ? AND status = 'pending' ORDER BY created_at LIMIT 1",
-    )
-    .get(runId) as { id: string } | undefined;
-
-  if (!candidate) {
-    return undefined;
-  }
-
-  return db
-    .prepare(
-      "UPDATE url_runs SET status = 'processing' WHERE id = ? AND status = 'pending' RETURNING *",
-    )
-    .get(candidate.id) as UrlRun | undefined;
-}
-
-export function countPending(db: Database.Database, runId: string): number {
-  return (
-    db
-      .prepare("SELECT COUNT(*) AS c FROM url_runs WHERE run_id = ? AND status = 'pending'")
-      .get(runId) as { c: number }
-  ).c;
+export function countPending(urlRunsRepo: UrlRunsRepo, runId: string): number {
+  return urlRunsRepo.countPending(runId);
 }
 
 export function finalizeRun(
-  db: Database.Database,
+  runsRepo: RunsRepo,
+  urlRunsRepo: UrlRunsRepo,
   runId: string,
   version: number,
   snapshotBaseDir: string,
 ): 0 | 1 {
-  const failedRows = db
-    .prepare(
-      `SELECT urls.url AS url, url_runs.error AS error
-       FROM url_runs
-       JOIN urls ON urls.id = url_runs.url_id
-       WHERE url_runs.run_id = ? AND url_runs.status = 'failed'`,
-    )
-    .all(runId) as { url: string; error: string | null }[];
+  const failedRows = urlRunsRepo.listFailed(runId);
 
   if (failedRows.length > 0) {
     const versionDir = path.join(snapshotBaseDir, `version-${version}`);
@@ -78,17 +49,20 @@ export function finalizeRun(
     );
   }
 
-  db.prepare('DELETE FROM url_runs WHERE run_id = ?').run(runId);
-  db.prepare("UPDATE runs SET status = ? WHERE id = ? AND status = 'open'").run(
-    failedRows.length > 0 ? 'done_with_errors' : 'done',
-    runId,
-  );
+  urlRunsRepo.deleteByRun(runId);
 
-  return failedRows.length > 0 ? 1 : 0;
+  if (failedRows.length > 0) {
+    runsRepo.markDoneWithErrors(runId);
+    return 1;
+  }
+
+  runsRepo.markDone(runId);
+  return 0;
 }
 
 export async function processUrlRun(
-  db: Database.Database,
+  urlsRepo: UrlsRepo,
+  urlRunsRepo: UrlRunsRepo,
   browser: Browser,
   urlRun: UrlRun,
   version: number,
@@ -97,10 +71,10 @@ export async function processUrlRun(
   scrapeFn: ScrapeFn,
   logger: Logger,
 ): Promise<void> {
-  const urlRow = db.prepare('SELECT url, path FROM urls WHERE id = ?').get(urlRun.url_id) as {
-    url: string;
-    path: string;
-  };
+  const urlRow = urlsRepo.findById(urlRun.url_id);
+  if (!urlRow) {
+    throw new Error(`url ${urlRun.url_id} not found`);
+  }
   const snapshotDir = path.join(
     snapshotBaseDir,
     `version-${version}`,
@@ -109,13 +83,10 @@ export async function processUrlRun(
 
   try {
     await scrapeFn(browser, { url: urlRow.url, version, snapshotDir, config });
-    db.prepare("UPDATE url_runs SET status = 'done' WHERE id = ?").run(urlRun.id);
+    urlRunsRepo.markDone(urlRun.id);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    db.prepare("UPDATE url_runs SET status = 'failed', error = ? WHERE id = ?").run(
-      message,
-      urlRun.id,
-    );
+    urlRunsRepo.markFailed(urlRun.id, message);
     logger.error({ url: urlRow.url, error: message }, 'scrape failed');
   }
 }
@@ -130,9 +101,11 @@ const defaultSleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
 export async function runWorker(
-  db: Database.Database,
+  runsRepo: RunsRepo,
+  urlsRepo: UrlsRepo,
+  urlRunsRepo: UrlRunsRepo,
   browser: Browser,
-  run: OpenRun,
+  run: RunRecord,
   snapshotBaseDir: string,
   config: Config,
   deps: WorkerDeps = {},
@@ -142,10 +115,11 @@ export async function runWorker(
   const logger = deps.logger ?? { error: () => {} };
 
   for (;;) {
-    const claimed = claimNextPending(db, run.id);
+    const claimed = urlRunsRepo.claimNextPending(run.id);
     if (claimed) {
       await processUrlRun(
-        db,
+        urlsRepo,
+        urlRunsRepo,
         browser,
         claimed,
         run.version,
@@ -157,14 +131,14 @@ export async function runWorker(
       continue;
     }
 
-    if (countPending(db, run.id) === 0) {
+    if (urlRunsRepo.countPending(run.id) === 0) {
       break;
     }
 
     await sleepFn(500);
   }
 
-  return finalizeRun(db, run.id, run.version, snapshotBaseDir);
+  return finalizeRun(runsRepo, urlRunsRepo, run.id, run.version, snapshotBaseDir);
 }
 
 export function loadWorkerConfig(configPath: string): Config {
@@ -187,8 +161,12 @@ if (isMainModule) {
   void (async () => {
     const db = openDb(DB_PATH);
     migrate(db);
+    const drizzleDb = toDrizzle(db);
+    const runsRepo = new DrizzleRunsRepo(drizzleDb);
+    const urlsRepo = new DrizzleUrlsRepo(drizzleDb);
+    const urlRunsRepo = new DrizzleUrlRunsRepo(drizzleDb);
 
-    const run = findOpenRun(db);
+    const run = findOpenRun(runsRepo);
     if (!run) {
       console.error('no open run');
       db.close();
@@ -212,7 +190,16 @@ if (isMainModule) {
     const browser = await chromium.launch({ headless: config.headless ?? true });
 
     try {
-      process.exitCode = await runWorker(db, browser, run, SNAPSHOT_DIR, config, { logger });
+      process.exitCode = await runWorker(
+        runsRepo,
+        urlsRepo,
+        urlRunsRepo,
+        browser,
+        run,
+        SNAPSHOT_DIR,
+        config,
+        { logger },
+      );
     } finally {
       await browser.close();
       db.close();
