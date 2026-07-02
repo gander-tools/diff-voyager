@@ -126,6 +126,8 @@ export async function scrape(browser: Browser, options: ScrapeOptions): Promise<
       internal: isInternalLink(link.href, url),
     }));
 
+    const renderedHtml = await page.content();
+
     if (hide.length > 0) {
       await page.evaluate((selectors: string[]) => {
         for (const sel of selectors) {
@@ -156,7 +158,6 @@ export async function scrape(browser: Browser, options: ScrapeOptions): Promise<
       });
     }
 
-    const renderedHtml = await page.content();
     const rawHtml = navigationResponse ? await navigationResponse.text() : '';
 
     fs.writeFileSync(path.join(snapshotDir, 'page.html'), renderedHtml);
