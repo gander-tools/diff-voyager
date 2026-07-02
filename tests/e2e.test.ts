@@ -11,7 +11,6 @@ import { migrate, openDb, toDrizzle } from '../src/db';
 import { DrizzleRunsRepo, type RunsRepo } from '../src/repos/runsRepo';
 import { DrizzleUrlRunsRepo, type UrlRunsRepo } from '../src/repos/urlRunsRepo';
 import { DrizzleUrlsRepo, type UrlsRepo } from '../src/repos/urlsRepo';
-import { slug } from '../src/slug';
 import { findOpenRun, runWorker } from '../src/worker';
 
 describe('e2e: add url -> run start -> worker processes', () => {
@@ -83,10 +82,10 @@ describe('e2e: add url -> run start -> worker processes', () => {
         .status,
     ).toBe('done');
 
-    const urlRow = db.prepare('SELECT path FROM urls WHERE url = ?').get(baseUrl) as {
-      path: string;
+    const urlRow = db.prepare('SELECT page_slug FROM urls WHERE url = ?').get(baseUrl) as {
+      page_slug: string;
     };
-    const snapshotDir = path.join(tmpDir, `version-${version}`, slug(baseUrl, urlRow.path));
+    const snapshotDir = path.join(tmpDir, `version-${version}`, urlRow.page_slug);
 
     const meta = JSON.parse(fs.readFileSync(path.join(snapshotDir, 'meta.json'), 'utf-8'));
     expect(meta).toMatchObject({
