@@ -201,7 +201,8 @@ export function cleanProject(
 const DEFAULT_CONFIG: Config = {
   screenshot: {
     rules: {
-      hide: { '*': ['.ad', '.ads', '.cookie-banner', '.cookie-consent'] },
+      hide: { '*': ['.ad', '#consent'] },
+      diff: { tolerance: { '*': 0 } },
     },
     full_page: true,
     format: 'png',
