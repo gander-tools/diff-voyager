@@ -599,12 +599,8 @@ describe('cli `config init` (subprocess, T77)', () => {
       expect(fs.existsSync(configPath)).toBe(true);
 
       const written = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-      expect(written.screenshot.rules.hide['*']).toEqual([
-        '.ad',
-        '.ads',
-        '.cookie-banner',
-        '.cookie-consent',
-      ]);
+      expect(written.screenshot.rules.hide['*']).toEqual(['.ad', '#consent']);
+      expect(written.screenshot.rules.diff.tolerance['*']).toBe(0);
       expect(written.screenshot.full_page).toBe(true);
       expect(written.screenshot.format).toBe('png');
       expect(written.timeout_ms).toBe(30000);
