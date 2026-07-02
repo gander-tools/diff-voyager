@@ -12,7 +12,7 @@ import { diffVersions } from './diff';
 import { DrizzleRunsRepo, type RunsRepo } from './repos/runsRepo';
 import { DrizzleUrlRunsRepo, type UrlRunsRepo } from './repos/urlRunsRepo';
 import { DrizzleUrlsRepo, type UrlsRepo } from './repos/urlsRepo';
-import type { RunRecord } from './types';
+import type { Config, RunRecord } from './types';
 import { loadWorkerConfig } from './worker';
 
 const urlSchema = z.url();
@@ -198,7 +198,7 @@ export function cleanProject(
   return removed;
 }
 
-const DEFAULT_CONFIG = {
+const DEFAULT_CONFIG: Config = {
   screenshot: {
     rules: {
       hide: { '*': ['.ad', '.ads', '.cookie-banner', '.cookie-consent'] },
@@ -217,6 +217,7 @@ export function configInit(configPath: string): void {
     throw new Error('config.json already exists');
   }
 
+  fs.mkdirSync(path.dirname(configPath), { recursive: true });
   fs.writeFileSync(configPath, JSON.stringify(DEFAULT_CONFIG, null, 2));
 }
 
