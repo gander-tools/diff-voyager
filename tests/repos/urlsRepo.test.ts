@@ -5,6 +5,7 @@ import type Database from 'better-sqlite3';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { migrate, openDb, toDrizzle } from '../../src/db';
 import { DrizzleUrlsRepo, type UrlsRepo } from '../../src/repos/urlsRepo';
+import { pageSlug } from '../../src/slug';
 
 describe('UrlsRepo', () => {
   let tmpDir: string;
@@ -38,6 +39,30 @@ describe('UrlsRepo', () => {
       const count = (db.prepare('SELECT COUNT(*) AS c FROM urls').get() as { c: number }).c;
       expect(count).toBe(1);
     });
+
+    it('derives and persists host, query_string, and page_slug', () => {
+      repo.insert('https://example.com/a/b?x=1');
+      const row = db
+        .prepare('SELECT host, query_string, page_slug FROM urls WHERE url = ?')
+        .get('https://example.com/a/b?x=1') as {
+        host: string;
+        query_string: string;
+        page_slug: string;
+      };
+      expect(row).toEqual({
+        host: 'example.com',
+        query_string: 'x=1',
+        page_slug: pageSlug('/a/b', 'x=1'),
+      });
+    });
+
+    it('persists an empty query_string and a page_slug with the query segment dropped', () => {
+      repo.insert('https://example.com/a/b');
+      const row = db
+        .prepare('SELECT query_string, page_slug FROM urls WHERE url = ?')
+        .get('https://example.com/a/b') as { query_string: string; page_slug: string };
+      expect(row).toEqual({ query_string: '', page_slug: pageSlug('/a/b', '') });
+    });
   });
 
   describe('exists', () => {
@@ -65,6 +90,9 @@ describe('UrlsRepo', () => {
         id,
         url: 'https://example.com/a',
         path: '/a',
+        host: 'example.com',
+        query_string: '',
+        page_slug: pageSlug('/a', ''),
         created_at: expect.any(Number),
       });
     });
