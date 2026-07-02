@@ -230,6 +230,35 @@ describe('diffPageSlug', () => {
     const outcome = diffPageSlug(1, 2, slug, snapshotDir, resultDir, config, urlsRepo);
     expect(outcome.screenshot).toMatchObject({ kind: 'match' });
   });
+
+  it('resolves multiple matching tolerance globs to the MIN value, regardless of config.json key order (V55)', () => {
+    writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 4, 4, 0);
+    writePng(path.join(snapshotDir, 'version-2', 'slug-a', 'screenshot.png'), 4, 4, 255);
+    writeMeta(
+      path.join(snapshotDir, 'version-1', 'slug-a', 'meta.json'),
+      baseMeta('https://example.com/a'),
+    );
+    writeMeta(
+      path.join(snapshotDir, 'version-2', 'slug-a', 'meta.json'),
+      baseMeta('https://example.com/a'),
+    );
+
+    // Loose glob written first, strict glob written second — a naive
+    // first-match implementation would pick the loose value (1) and report
+    // "match"; MIN precedence must pick the strict value (0) and flag it.
+    const looseFirst: Config = {
+      screenshot: { rules: { diff: { tolerance: { '*': 1, 'https://example.com/*': 0 } } } },
+    };
+    const outcomeLooseFirst = diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, looseFirst, urlsRepo);
+    expect(outcomeLooseFirst.screenshot).toMatchObject({ kind: 'changed' });
+
+    // Same two globs, reverse key order — result must be identical.
+    const strictFirst: Config = {
+      screenshot: { rules: { diff: { tolerance: { 'https://example.com/*': 0, '*': 1 } } } },
+    };
+    const outcomeStrictFirst = diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, strictFirst, urlsRepo);
+    expect(outcomeStrictFirst.screenshot).toMatchObject({ kind: 'changed' });
+  });
 });
 
 describe('diffVersions', () => {
