@@ -28,7 +28,8 @@ const BUCKET_README: Record<'matched' | 'changed' | 'skipped', string> = {
 Pages whose screenshot pixel-diff was within tolerance AND whose meta.json
 diff was empty — no observable change between the two versions.
 
-Files per <page_slug>/: screenshot.png (diff image), meta.json (diff object, always {}).
+Files per <page_slug>/: screenshot.png (diff image), meta.json (diff object, always {}),
+reason.json ({"reason": "<why this page was classified as matched>"}).
 `,
   changed: `# changed
 
@@ -36,7 +37,8 @@ Pages where the screenshot pixel-diff exceeded tolerance, OR the screenshots
 had mismatched dimensions, OR the meta.json diff was non-empty.
 
 Files per <page_slug>/: meta.json (diff object) always; screenshot.png (diff image)
-present unless the screenshot dimensions mismatched between versions.
+present unless the screenshot dimensions mismatched between versions; reason.json
+({"reason": "<why this page was classified as changed>"}).
 `,
   skipped: `# skipped
 
@@ -104,6 +106,19 @@ function diffMeta(
     }
   }
   return diff;
+}
+
+function bucketReason(
+  screenshotKind: 'match' | 'changed' | 'dimension-mismatch',
+  metaChanged: boolean,
+): string {
+  if (screenshotKind === 'match') {
+    return metaChanged ? 'meta diff non-empty' : 'screenshot match, meta diff empty';
+  }
+  if (screenshotKind === 'dimension-mismatch') {
+    return 'screenshot dimension mismatch';
+  }
+  return metaChanged ? 'screenshot changed, meta diff non-empty' : 'screenshot changed';
 }
 
 export type ScreenshotDiffOutcome =
@@ -180,14 +195,18 @@ export function diffPageSlug(
     diffPng = PNG.sync.write(output);
   }
 
-  const bucket =
-    screenshot.kind === 'match' && Object.keys(meta).length === 0 ? 'matched' : 'changed';
+  const metaChanged = Object.keys(meta).length > 0;
+  const bucket = screenshot.kind === 'match' && !metaChanged ? 'matched' : 'changed';
   const outDir = path.join(diffBaseDir, bucket, slug);
   fs.mkdirSync(outDir, { recursive: true });
   fs.writeFileSync(path.join(outDir, 'meta.json'), JSON.stringify(meta, null, 2));
   if (diffPng) {
     fs.writeFileSync(path.join(outDir, 'screenshot.png'), diffPng);
   }
+  fs.writeFileSync(
+    path.join(outDir, 'reason.json'),
+    JSON.stringify({ reason: bucketReason(screenshot.kind, metaChanged) }, null, 2),
+  );
   writeBucketReadme(diffBaseDir, bucket);
 
   return { page_slug: slug, screenshot, meta };
