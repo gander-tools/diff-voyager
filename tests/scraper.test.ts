@@ -549,6 +549,24 @@ describe('scrape', () => {
     expect(page.screenshot).toHaveBeenCalled();
   });
 
+  it('captures page.content() before applying rules.hide DOM mutations (V37, V50)', async () => {
+    const { page } = createFakePage();
+    const context = createFakeContext(page);
+    const browser = createFakeBrowser(context);
+
+    await scrape(
+      browser as never,
+      baseOptions({ screenshot: { rules: { hide: { '*': ['.cookie-banner'] } } } }),
+    );
+
+    const hideCallIndex = page.evaluate.mock.calls.findIndex((call) => Array.isArray(call[1]));
+    expect(hideCallIndex).toBeGreaterThan(-1);
+    const hideCallOrder = page.evaluate.mock.invocationCallOrder[hideCallIndex];
+    const contentCallOrder = page.content.mock.invocationCallOrder[0];
+
+    expect(contentCallOrder).toBeLessThan(hideCallOrder);
+  });
+
   it('matches rules against sourceUrl when url (effective, base-url) differs (V39)', async () => {
     const { page } = createFakePage();
     const context = createFakeContext(page);
