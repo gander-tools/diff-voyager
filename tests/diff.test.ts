@@ -317,6 +317,106 @@ describe('diffPageSlug', () => {
     expect(fs.existsSync(path.join(changedDir, 'screenshot.png'))).toBe(false);
   });
 
+  it('writes reason.json into matched/ with the match text (V60)', () => {
+    writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 2, 2, 0);
+    writePng(path.join(snapshotDir, 'version-2', 'slug-a', 'screenshot.png'), 2, 2, 0);
+    writeMeta(
+      path.join(snapshotDir, 'version-1', 'slug-a', 'meta.json'),
+      baseMeta('https://example.com/a'),
+    );
+    writeMeta(
+      path.join(snapshotDir, 'version-2', 'slug-a', 'meta.json'),
+      baseMeta('https://example.com/a'),
+    );
+
+    diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
+
+    const written = JSON.parse(
+      fs.readFileSync(path.join(resultDir, 'diff-v1-v2', 'matched', 'slug-a', 'reason.json'), 'utf-8'),
+    );
+    expect(written.reason).toBe('screenshot match, meta diff empty');
+  });
+
+  it('writes reason.json into changed/ with "screenshot changed" when only the screenshot differs (V60)', () => {
+    writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 4, 4, 0);
+    writePng(path.join(snapshotDir, 'version-2', 'slug-a', 'screenshot.png'), 4, 4, 255);
+    writeMeta(
+      path.join(snapshotDir, 'version-1', 'slug-a', 'meta.json'),
+      baseMeta('https://example.com/a'),
+    );
+    writeMeta(
+      path.join(snapshotDir, 'version-2', 'slug-a', 'meta.json'),
+      baseMeta('https://example.com/a'),
+    );
+
+    diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
+
+    const written = JSON.parse(
+      fs.readFileSync(path.join(resultDir, 'diff-v1-v2', 'changed', 'slug-a', 'reason.json'), 'utf-8'),
+    );
+    expect(written.reason).toBe('screenshot changed');
+  });
+
+  it('writes reason.json into changed/ with "meta diff non-empty" when only meta differs (V60)', () => {
+    writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 2, 2, 0);
+    writePng(path.join(snapshotDir, 'version-2', 'slug-a', 'screenshot.png'), 2, 2, 0);
+    writeMeta(
+      path.join(snapshotDir, 'version-1', 'slug-a', 'meta.json'),
+      baseMeta('https://example.com/a'),
+    );
+    writeMeta(path.join(snapshotDir, 'version-2', 'slug-a', 'meta.json'), {
+      ...baseMeta('https://example.com/a'),
+      title: 'New',
+    });
+
+    diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
+
+    const written = JSON.parse(
+      fs.readFileSync(path.join(resultDir, 'diff-v1-v2', 'changed', 'slug-a', 'reason.json'), 'utf-8'),
+    );
+    expect(written.reason).toBe('meta diff non-empty');
+  });
+
+  it('writes reason.json into changed/ with both-changed text when screenshot and meta both differ (V60)', () => {
+    writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 4, 4, 0);
+    writePng(path.join(snapshotDir, 'version-2', 'slug-a', 'screenshot.png'), 4, 4, 255);
+    writeMeta(
+      path.join(snapshotDir, 'version-1', 'slug-a', 'meta.json'),
+      baseMeta('https://example.com/a'),
+    );
+    writeMeta(path.join(snapshotDir, 'version-2', 'slug-a', 'meta.json'), {
+      ...baseMeta('https://example.com/a'),
+      title: 'New',
+    });
+
+    diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
+
+    const written = JSON.parse(
+      fs.readFileSync(path.join(resultDir, 'diff-v1-v2', 'changed', 'slug-a', 'reason.json'), 'utf-8'),
+    );
+    expect(written.reason).toBe('screenshot changed, meta diff non-empty');
+  });
+
+  it('writes reason.json into changed/ with dimension-mismatch text (V60)', () => {
+    writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 2, 2, 0);
+    writePng(path.join(snapshotDir, 'version-2', 'slug-a', 'screenshot.png'), 3, 3, 0);
+    writeMeta(
+      path.join(snapshotDir, 'version-1', 'slug-a', 'meta.json'),
+      baseMeta('https://example.com/a'),
+    );
+    writeMeta(
+      path.join(snapshotDir, 'version-2', 'slug-a', 'meta.json'),
+      baseMeta('https://example.com/a'),
+    );
+
+    diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
+
+    const written = JSON.parse(
+      fs.readFileSync(path.join(resultDir, 'diff-v1-v2', 'changed', 'slug-a', 'reason.json'), 'utf-8'),
+    );
+    expect(written.reason).toBe('screenshot dimension mismatch');
+  });
+
   it('writes a README.md into matched/ on first entry (V57)', () => {
     writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 2, 2, 0);
     writePng(path.join(snapshotDir, 'version-2', 'slug-a', 'screenshot.png'), 2, 2, 0);
@@ -338,6 +438,7 @@ describe('diffPageSlug', () => {
     expect(readme.length).toBeGreaterThan(0);
     expect(readme).toContain('screenshot.png');
     expect(readme).toContain('meta.json');
+    expect(readme).toContain('reason.json');
   });
 
   it('writes a README.md into changed/ on first entry (V57)', () => {
@@ -361,6 +462,7 @@ describe('diffPageSlug', () => {
     expect(readme.length).toBeGreaterThan(0);
     expect(readme).toContain('screenshot.png');
     expect(readme).toContain('meta.json');
+    expect(readme).toContain('reason.json');
   });
 
   it('writes a README.md into skipped/ on first entry, mentioning reason.json (V57)', () => {
