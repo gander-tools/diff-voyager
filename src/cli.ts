@@ -1,53 +1,35 @@
 import { spawn } from 'node:child_process';
-import { randomUUID } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type Database from 'better-sqlite3';
 import { Command } from 'commander';
+import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 import { z } from 'zod';
 import { DB_PATH, LOG_DIR, SNAPSHOT_DIR } from './config';
-import { migrate, openDb } from './db';
+import { migrate, openDb, toDrizzle } from './db';
+import { DrizzleRunsRepo, type RunsRepo } from './repos/runsRepo';
+import { DrizzleUrlRunsRepo, type UrlRunsRepo } from './repos/urlRunsRepo';
+import { DrizzleUrlsRepo, type UrlsRepo } from './repos/urlsRepo';
+import type { RunRecord } from './types';
 
 const urlSchema = z.url();
 
-interface OpenRun {
-  id: string;
-  version: number;
-  pid: number | null;
+export function findOpenRun(runsRepo: RunsRepo): RunRecord | undefined {
+  return runsRepo.findOpenRun();
 }
 
-function findOpenRun(db: Database.Database): OpenRun | undefined {
-  return db.prepare("SELECT id, version, pid FROM runs WHERE status = 'open'").get() as
-    | OpenRun
-    | undefined;
-}
-
-function insertUrl(db: Database.Database, url: string): void {
-  const path = new URL(url).pathname;
-  db.prepare('INSERT INTO urls (id, url, path) VALUES (?, ?, ?)').run(randomUUID(), url, path);
-}
-
-function urlExists(db: Database.Database, url: string): boolean {
-  return db.prepare('SELECT id FROM urls WHERE url = ?').get(url) !== undefined;
-}
-
-export function addUrl(db: Database.Database, url: string): 'added' | 'exists' {
+export function addUrl(urlsRepo: UrlsRepo, url: string): 'added' | 'exists' {
   if (!urlSchema.safeParse(url).success) {
     throw new Error(`Invalid URL: ${url}`);
   }
 
-  if (urlExists(db, url)) {
-    return 'exists';
-  }
-
-  insertUrl(db, url);
-  return 'added';
+  return urlsRepo.insert(url);
 }
 
 export function loadUrls(
-  db: Database.Database,
+  urlsRepo: UrlsRepo,
   filePath: string,
+  drizzleDb: BetterSQLite3Database,
 ): { added: number; skipped: number } {
   const lines = fs.readFileSync(filePath, 'utf-8').split('\n');
   const candidates = lines
@@ -62,18 +44,15 @@ export function loadUrls(
   let added = 0;
   let skipped = 0;
 
-  const insertAll = db.transaction(() => {
+  drizzleDb.transaction(() => {
     for (const url of candidates) {
-      if (urlExists(db, url)) {
+      if (urlsRepo.insert(url) === 'added') {
+        added++;
+      } else {
         skipped++;
-        continue;
       }
-      insertUrl(db, url);
-      added++;
     }
   });
-
-  insertAll();
 
   return { added, skipped };
 }
@@ -93,70 +72,45 @@ function defaultSpawnWorker(): { pid: number } {
   return { pid: child.pid };
 }
 
-export function insertRunAndUrlRuns(db: Database.Database, version: number): string {
-  const runId = randomUUID();
-
-  const insert = db.transaction(() => {
-    db.prepare('INSERT INTO runs (id, version) VALUES (?, ?)').run(runId, version);
-
-    const urls = db.prepare('SELECT id FROM urls').all() as { id: string }[];
-    for (const { id: urlId } of urls) {
-      db.prepare('INSERT INTO url_runs (id, url_id, run_id) VALUES (?, ?, ?)').run(
-        randomUUID(),
-        urlId,
-        runId,
-      );
-    }
-  });
-
-  insert();
-
-  return runId;
-}
-
 export function runStart(
-  db: Database.Database,
+  runsRepo: RunsRepo,
+  urlsRepo: UrlsRepo,
+  urlRunsRepo: UrlRunsRepo,
   spawnWorker: SpawnWorker = defaultSpawnWorker,
 ): { version: number; pid: number } {
-  const urlCount = (db.prepare('SELECT COUNT(*) AS c FROM urls').get() as { c: number }).c;
-  if (urlCount === 0) {
+  if (urlsRepo.count() === 0) {
     throw new Error('no URLs registered');
   }
 
-  const open = findOpenRun(db);
+  const open = runsRepo.findOpenRun();
   if (open) {
     throw new Error(`run ${open.version} is still open`);
   }
 
-  const version =
-    (db.prepare('SELECT COALESCE(MAX(version),0) AS v FROM runs').get() as { v: number }).v + 1;
-  const runId = insertRunAndUrlRuns(db, version);
+  const { id: runId, version } = runsRepo.insertRunWithUrlRuns();
 
   try {
     const { pid } = spawnWorker();
-    db.prepare('UPDATE runs SET pid = ? WHERE id = ?').run(pid, runId);
+    runsRepo.updatePid(runId, pid);
     return { version, pid };
   } catch (error) {
-    db.prepare('DELETE FROM url_runs WHERE run_id = ?').run(runId);
-    db.prepare('DELETE FROM runs WHERE id = ?').run(runId);
+    urlRunsRepo.deleteByRun(runId);
+    runsRepo.deleteRun(runId);
     throw error;
   }
 }
 
-export function abandonRun(db: Database.Database, runId: string): void {
-  const abandon = db.transaction(() => {
-    db.prepare('DELETE FROM url_runs WHERE run_id = ?').run(runId);
-    db.prepare("UPDATE runs SET status = 'abandoned' WHERE id = ? AND status = 'open'").run(runId);
-  });
-
-  abandon();
+export function abandonRun(runsRepo: RunsRepo, urlRunsRepo: UrlRunsRepo, runId: string): void {
+  urlRunsRepo.deleteByRun(runId);
+  runsRepo.markAbandoned(runId);
 }
 
 export function runStop(
-  db: Database.Database,
+  runsRepo: RunsRepo,
+  urlRunsRepo: UrlRunsRepo,
   kill: (pid: number) => void = (pid) => process.kill(pid, 'SIGTERM'),
 ): void {
-  const open = findOpenRun(db);
+  const open = runsRepo.findOpenRun();
   if (!open) {
     throw new Error('no open run');
   }
@@ -170,49 +124,52 @@ export function runStop(
     throw error;
   }
 
-  abandonRun(db, open.id);
+  abandonRun(runsRepo, urlRunsRepo, open.id);
 }
 
-export function runReset(db: Database.Database): void {
-  const open = findOpenRun(db);
+export function runReset(runsRepo: RunsRepo, urlRunsRepo: UrlRunsRepo): void {
+  const open = runsRepo.findOpenRun();
   if (!open) {
     throw new Error('no open run');
   }
 
-  abandonRun(db, open.id);
+  abandonRun(runsRepo, urlRunsRepo, open.id);
 }
 
-export function urlList(db: Database.Database): { url: string; createdAt: number }[] {
-  return db.prepare('SELECT url, created_at AS createdAt FROM urls ORDER BY created_at').all() as {
-    url: string;
-    createdAt: number;
-  }[];
+export function urlList(urlsRepo: UrlsRepo): { url: string; createdAt: number }[] {
+  return urlsRepo
+    .list()
+    .sort((a, b) => a.created_at - b.created_at)
+    .map((row) => ({ url: row.url, createdAt: row.created_at }));
 }
 
-export function urlRemove(db: Database.Database, url: string): 'removed' | 'not-found' {
-  const open = findOpenRun(db);
+export function urlRemove(
+  runsRepo: RunsRepo,
+  urlsRepo: UrlsRepo,
+  url: string,
+): 'removed' | 'not-found' {
+  const open = runsRepo.findOpenRun();
   if (open) {
     throw new Error(`run ${open.version} is still open`);
   }
 
-  const result = db.prepare('DELETE FROM urls WHERE url = ?').run(url);
-  return result.changes > 0 ? 'removed' : 'not-found';
+  return urlsRepo.remove(url);
 }
 
-export function urlClear(db: Database.Database): number {
-  const open = findOpenRun(db);
+export function urlClear(runsRepo: RunsRepo, urlsRepo: UrlsRepo): number {
+  const open = runsRepo.findOpenRun();
   if (open) {
     throw new Error(`run ${open.version} is still open`);
   }
 
-  return db.prepare('DELETE FROM urls').run().changes;
+  return urlsRepo.clear();
 }
 
 export function cleanProject(
-  db: Database.Database,
+  runsRepo: RunsRepo,
   paths: { dbDir: string; snapshotDir: string; logDir: string },
 ): string[] {
-  const open = findOpenRun(db);
+  const open = runsRepo.findOpenRun();
   if (open) {
     throw new Error(`run ${open.version} is still open`);
   }
@@ -226,11 +183,25 @@ export function cleanProject(
 
 const isMainModule = process.argv[1] === fileURLToPath(import.meta.url);
 
-function runCommand<T>(fn: (db: Database.Database) => T): T | undefined {
+interface Repos {
+  runsRepo: RunsRepo;
+  urlsRepo: UrlsRepo;
+  urlRunsRepo: UrlRunsRepo;
+  drizzleDb: BetterSQLite3Database;
+}
+
+function runCommand<T>(fn: (repos: Repos) => T): T | undefined {
   const db = openDb(DB_PATH);
   try {
     migrate(db);
-    return fn(db);
+    const drizzleDb = toDrizzle(db);
+    const repos: Repos = {
+      runsRepo: new DrizzleRunsRepo(drizzleDb),
+      urlsRepo: new DrizzleUrlsRepo(drizzleDb),
+      urlRunsRepo: new DrizzleUrlRunsRepo(drizzleDb),
+      drizzleDb,
+    };
+    return fn(repos);
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));
     process.exitCode = 1;
@@ -247,8 +218,8 @@ if (isMainModule) {
     .command('add <url>')
     .description('register a URL to scrape')
     .action((url: string) => {
-      runCommand((db) => {
-        console.log(addUrl(db, url) === 'added' ? 'ok' : 'already exists');
+      runCommand(({ urlsRepo }) => {
+        console.log(addUrl(urlsRepo, url) === 'added' ? 'ok' : 'already exists');
       });
     });
 
@@ -256,8 +227,8 @@ if (isMainModule) {
     .command('load <file>')
     .description('register URLs from a file, one per line')
     .action((file: string) => {
-      runCommand((db) => {
-        const { added, skipped } = loadUrls(db, file);
+      runCommand(({ urlsRepo, drizzleDb }) => {
+        const { added, skipped } = loadUrls(urlsRepo, file, drizzleDb);
         console.log(`added ${added}, skipped ${skipped}`);
       });
     });
@@ -268,8 +239,8 @@ if (isMainModule) {
     .command('start')
     .description('create a new run and spawn the worker')
     .action(() => {
-      runCommand((db) => {
-        const { version, pid } = runStart(db);
+      runCommand(({ runsRepo, urlsRepo, urlRunsRepo }) => {
+        const { version, pid } = runStart(runsRepo, urlsRepo, urlRunsRepo);
         console.log(`run ${version} started, PID: ${pid}`);
       });
     });
@@ -278,8 +249,8 @@ if (isMainModule) {
     .command('stop')
     .description('stop the open run')
     .action(() => {
-      runCommand((db) => {
-        runStop(db);
+      runCommand(({ runsRepo, urlRunsRepo }) => {
+        runStop(runsRepo, urlRunsRepo);
         console.log('stopped');
       });
     });
@@ -288,8 +259,8 @@ if (isMainModule) {
     .command('reset')
     .description('abandon the open run without signalling the worker')
     .action(() => {
-      runCommand((db) => {
-        runReset(db);
+      runCommand(({ runsRepo, urlRunsRepo }) => {
+        runReset(runsRepo, urlRunsRepo);
         console.log('reset ok');
       });
     });
@@ -300,8 +271,8 @@ if (isMainModule) {
     .command('list')
     .description('list registered urls')
     .action(() => {
-      runCommand((db) => {
-        const rows = urlList(db);
+      runCommand(({ urlsRepo }) => {
+        const rows = urlList(urlsRepo);
         const urlWidth = Math.max(3, ...rows.map((row) => row.url.length));
         for (const row of rows) {
           console.log(
@@ -315,8 +286,8 @@ if (isMainModule) {
     .command('remove <url>')
     .description('remove a registered url')
     .action((urlArg: string) => {
-      runCommand((db) => {
-        console.log(urlRemove(db, urlArg) === 'removed' ? 'removed' : 'not found');
+      runCommand(({ runsRepo, urlsRepo }) => {
+        console.log(urlRemove(runsRepo, urlsRepo, urlArg) === 'removed' ? 'removed' : 'not found');
       });
     });
 
@@ -324,8 +295,8 @@ if (isMainModule) {
     .command('clear')
     .description('remove all registered urls')
     .action(() => {
-      runCommand((db) => {
-        const n = urlClear(db);
+      runCommand(({ runsRepo, urlsRepo }) => {
+        const n = urlClear(runsRepo, urlsRepo);
         console.log(`cleared ${n} urls`);
       });
     });
@@ -334,8 +305,8 @@ if (isMainModule) {
     .command('clean')
     .description('delete DB, snapshots, and logs, resetting to a fresh install')
     .action(() => {
-      runCommand((db) => {
-        const removed = cleanProject(db, {
+      runCommand(({ runsRepo }) => {
+        const removed = cleanProject(runsRepo, {
           dbDir: path.dirname(DB_PATH),
           snapshotDir: SNAPSHOT_DIR,
           logDir: LOG_DIR,

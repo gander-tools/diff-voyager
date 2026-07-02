@@ -7,7 +7,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   abandonRun,
   addUrl,
-  insertRunAndUrlRuns,
   loadUrls,
   runReset,
   runStart,
@@ -16,15 +15,20 @@ import {
   urlList,
   urlRemove,
 } from '../src/cli';
-import { migrate, openDb } from '../src/db';
+import { migrate, openDb, toDrizzle } from '../src/db';
+import { DrizzleRunsRepo, type RunsRepo } from '../src/repos/runsRepo';
+import { DrizzleUrlRunsRepo, type UrlRunsRepo } from '../src/repos/urlRunsRepo';
+import { DrizzleUrlsRepo, type UrlsRepo } from '../src/repos/urlsRepo';
 
 describe('addUrl / loadUrls', () => {
   let db: Database.Database;
+  let urlsRepo: UrlsRepo;
   let tmpDir: string;
 
   beforeEach(() => {
     db = openDb(':memory:');
     migrate(db);
+    urlsRepo = new DrizzleUrlsRepo(toDrizzle(db));
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'voyager-cli-'));
   });
 
@@ -39,19 +43,19 @@ describe('addUrl / loadUrls', () => {
 
   describe('addUrl', () => {
     it('inserts a row for a valid url', () => {
-      expect(addUrl(db, 'https://example.com/a')).toBe('added');
+      expect(addUrl(urlsRepo, 'https://example.com/a')).toBe('added');
       expect(urlCount()).toBe(1);
     });
 
     it('throws and does not insert for an invalid url', () => {
-      expect(() => addUrl(db, 'not-a-url')).toThrow();
+      expect(() => addUrl(urlsRepo, 'not-a-url')).toThrow();
       expect(urlCount()).toBe(0);
     });
 
     it("returns 'exists' and does not insert a duplicate url", () => {
-      addUrl(db, 'https://example.com/a');
+      addUrl(urlsRepo, 'https://example.com/a');
 
-      expect(addUrl(db, 'https://example.com/a')).toBe('exists');
+      expect(addUrl(urlsRepo, 'https://example.com/a')).toBe('exists');
       expect(urlCount()).toBe(1);
     });
   });
@@ -68,19 +72,19 @@ describe('addUrl / loadUrls', () => {
         ['https://example.com/a', '# a comment', '', 'https://example.com/b'].join('\n'),
       );
 
-      const result = loadUrls(db, filePath);
+      const result = loadUrls(urlsRepo, filePath, toDrizzle(db));
 
       expect(result).toEqual({ added: 2, skipped: 0 });
       expect(urlCount()).toBe(2);
     });
 
     it('skips urls already present in the urls table, counts them as skipped', () => {
-      addUrl(db, 'https://example.com/a');
+      addUrl(urlsRepo, 'https://example.com/a');
       const filePath = writeUrlsFile(
         ['https://example.com/a', 'https://example.com/b'].join('\n'),
       );
 
-      const result = loadUrls(db, filePath);
+      const result = loadUrls(urlsRepo, filePath, toDrizzle(db));
 
       expect(result).toEqual({ added: 1, skipped: 1 });
       expect(urlCount()).toBe(2);
@@ -91,31 +95,27 @@ describe('addUrl / loadUrls', () => {
         ['https://example.com/a', 'not-a-url', 'https://example.com/b'].join('\n'),
       );
 
-      expect(() => loadUrls(db, filePath)).toThrow(/not-a-url/);
+      expect(() => loadUrls(urlsRepo, filePath, toDrizzle(db))).toThrow(/not-a-url/);
       expect(urlCount()).toBe(0);
     });
 
     it('rolls back all inserts from this call when a write fails mid-loop (real transaction, V13)', () => {
-      addUrl(db, 'https://example.com/existing');
+      addUrl(urlsRepo, 'https://example.com/existing');
       const filePath = writeUrlsFile(
         ['https://example.com/b', 'https://example.com/c'].join('\n'),
       );
 
-      const originalPrepare = db.prepare.bind(db);
       let insertCalls = 0;
-      vi.spyOn(db, 'prepare').mockImplementation(((sql: string) => {
-        if (sql.startsWith('INSERT INTO urls')) {
-          insertCalls++;
-          if (insertCalls === 2) {
-            return { run: () => {
-              throw new Error('disk full');
-            } } as unknown as ReturnType<Database.Database['prepare']>;
-          }
+      const originalInsert = urlsRepo.insert.bind(urlsRepo);
+      vi.spyOn(urlsRepo, 'insert').mockImplementation((url: string) => {
+        insertCalls++;
+        if (insertCalls === 2) {
+          throw new Error('disk full');
         }
-        return originalPrepare(sql);
-      }) as Database.Database['prepare']);
+        return originalInsert(url);
+      });
 
-      expect(() => loadUrls(db, filePath)).toThrow('disk full');
+      expect(() => loadUrls(urlsRepo, filePath, toDrizzle(db))).toThrow('disk full');
       expect(urlCount()).toBe(1);
 
       vi.restoreAllMocks();
@@ -125,10 +125,17 @@ describe('addUrl / loadUrls', () => {
 
 describe('run lifecycle / url management', () => {
   let db: Database.Database;
+  let runsRepo: RunsRepo;
+  let urlsRepo: UrlsRepo;
+  let urlRunsRepo: UrlRunsRepo;
 
   beforeEach(() => {
     db = openDb(':memory:');
     migrate(db);
+    const drizzleDb = toDrizzle(db);
+    runsRepo = new DrizzleRunsRepo(drizzleDb);
+    urlsRepo = new DrizzleUrlsRepo(drizzleDb);
+    urlRunsRepo = new DrizzleUrlRunsRepo(drizzleDb);
   });
 
   afterEach(() => {
@@ -149,22 +156,24 @@ describe('run lifecycle / url management', () => {
   }
 
   describe('runStart', () => {
-    it('throws \'no URLs registered\' when urls is empty', () => {
-      expect(() => runStart(db)).toThrow('no URLs registered');
+    it("throws 'no URLs registered' when urls is empty", () => {
+      expect(() => runStart(runsRepo, urlsRepo, urlRunsRepo)).toThrow('no URLs registered');
     });
 
     it('throws when a run is already open', () => {
-      addUrl(db, 'https://example.com/a');
-      runStart(db, () => ({ pid: 4242 }));
+      addUrl(urlsRepo, 'https://example.com/a');
+      runStart(runsRepo, urlsRepo, urlRunsRepo, () => ({ pid: 4242 }));
 
-      expect(() => runStart(db, () => ({ pid: 4343 }))).toThrow('run 1 is still open');
+      expect(() =>
+        runStart(runsRepo, urlsRepo, urlRunsRepo, () => ({ pid: 4343 })),
+      ).toThrow('run 1 is still open');
     });
 
     it('creates run+url_runs, spawns the worker, saves pid, returns version+pid', () => {
-      addUrl(db, 'https://example.com/a');
-      addUrl(db, 'https://example.com/b');
+      addUrl(urlsRepo, 'https://example.com/a');
+      addUrl(urlsRepo, 'https://example.com/b');
 
-      const result = runStart(db, () => ({ pid: 4242 }));
+      const result = runStart(runsRepo, urlsRepo, urlRunsRepo, () => ({ pid: 4242 }));
 
       expect(result).toEqual({ version: 1, pid: 4242 });
       const run = db.prepare('SELECT version, pid, status FROM runs').get() as {
@@ -173,98 +182,67 @@ describe('run lifecycle / url management', () => {
         status: string;
       };
       expect(run).toEqual({ version: 1, pid: 4242, status: 'open' });
-      expect(
-        (db.prepare('SELECT COUNT(*) AS c FROM url_runs').get() as { c: number }).c,
-      ).toBe(2);
+      expect((db.prepare('SELECT COUNT(*) AS c FROM url_runs').get() as { c: number }).c).toBe(2);
     });
 
     it('deletes url_runs and the run, then rethrows, when spawnWorker throws', () => {
-      addUrl(db, 'https://example.com/a');
+      addUrl(urlsRepo, 'https://example.com/a');
 
       expect(() =>
-        runStart(db, () => {
+        runStart(runsRepo, urlsRepo, urlRunsRepo, () => {
           throw new Error('spawn failed');
         }),
       ).toThrow('spawn failed');
 
       expect((db.prepare('SELECT COUNT(*) AS c FROM runs').get() as { c: number }).c).toBe(0);
-      expect(
-        (db.prepare('SELECT COUNT(*) AS c FROM url_runs').get() as { c: number }).c,
-      ).toBe(0);
-    });
-  });
-
-  describe('insertRunAndUrlRuns', () => {
-    it('inserts a run row and one url_runs row per registered url', () => {
-      addUrl(db, 'https://example.com/a');
-      addUrl(db, 'https://example.com/b');
-
-      const runId = insertRunAndUrlRuns(db, 1);
-
-      expect(runStatus(runId)).toBe('open');
-      expect(urlRunCount(runId)).toBe(2);
-    });
-
-    it('rolls back the whole transaction on a version conflict (no orphan url_runs rows)', () => {
-      addUrl(db, 'https://example.com/a');
-      insertRunAndUrlRuns(db, 1);
-
-      expect(() => insertRunAndUrlRuns(db, 1)).toThrow();
-      expect(
-        (db.prepare('SELECT COUNT(*) AS c FROM runs').get() as { c: number }).c,
-      ).toBe(1);
-      expect(
-        (db.prepare('SELECT COUNT(*) AS c FROM url_runs').get() as { c: number }).c,
-      ).toBe(1);
+      expect((db.prepare('SELECT COUNT(*) AS c FROM url_runs').get() as { c: number }).c).toBe(0);
     });
   });
 
   describe('urlRemove', () => {
     it('throws when a run is open', () => {
-      addUrl(db, 'https://example.com/a');
-      runStart(db, () => ({ pid: 4242 }));
+      addUrl(urlsRepo, 'https://example.com/a');
+      runStart(runsRepo, urlsRepo, urlRunsRepo, () => ({ pid: 4242 }));
 
-      expect(() => urlRemove(db, 'https://example.com/a')).toThrow('run 1 is still open');
+      expect(() => urlRemove(runsRepo, urlsRepo, 'https://example.com/a')).toThrow(
+        'run 1 is still open',
+      );
     });
 
     it("removes an existing url and returns 'removed'", () => {
-      addUrl(db, 'https://example.com/a');
+      addUrl(urlsRepo, 'https://example.com/a');
 
-      expect(urlRemove(db, 'https://example.com/a')).toBe('removed');
-      expect(
-        (db.prepare('SELECT COUNT(*) AS c FROM urls').get() as { c: number }).c,
-      ).toBe(0);
+      expect(urlRemove(runsRepo, urlsRepo, 'https://example.com/a')).toBe('removed');
+      expect((db.prepare('SELECT COUNT(*) AS c FROM urls').get() as { c: number }).c).toBe(0);
     });
 
     it("returns 'not-found' for a url that does not exist", () => {
-      expect(urlRemove(db, 'https://example.com/missing')).toBe('not-found');
+      expect(urlRemove(runsRepo, urlsRepo, 'https://example.com/missing')).toBe('not-found');
     });
   });
 
   describe('urlClear', () => {
     it('throws when a run is open', () => {
-      addUrl(db, 'https://example.com/a');
-      runStart(db, () => ({ pid: 4242 }));
+      addUrl(urlsRepo, 'https://example.com/a');
+      runStart(runsRepo, urlsRepo, urlRunsRepo, () => ({ pid: 4242 }));
 
-      expect(() => urlClear(db)).toThrow('run 1 is still open');
+      expect(() => urlClear(runsRepo, urlsRepo)).toThrow('run 1 is still open');
     });
 
     it('deletes all urls and returns the count', () => {
-      addUrl(db, 'https://example.com/a');
-      addUrl(db, 'https://example.com/b');
+      addUrl(urlsRepo, 'https://example.com/a');
+      addUrl(urlsRepo, 'https://example.com/b');
 
-      expect(urlClear(db)).toBe(2);
-      expect(
-        (db.prepare('SELECT COUNT(*) AS c FROM urls').get() as { c: number }).c,
-      ).toBe(0);
+      expect(urlClear(runsRepo, urlsRepo)).toBe(2);
+      expect((db.prepare('SELECT COUNT(*) AS c FROM urls').get() as { c: number }).c).toBe(0);
     });
   });
 
   describe('urlList', () => {
     it('returns registered urls with their created_at timestamp', () => {
-      addUrl(db, 'https://example.com/a');
+      addUrl(urlsRepo, 'https://example.com/a');
 
-      expect(urlList(db)).toEqual([
+      expect(urlList(urlsRepo)).toEqual([
         { url: 'https://example.com/a', createdAt: expect.any(Number) },
       ]);
     });
@@ -272,12 +250,12 @@ describe('run lifecycle / url management', () => {
 
   describe('runStop', () => {
     it('kills the process, deletes url_runs, marks the run abandoned', () => {
-      addUrl(db, 'https://example.com/a');
-      const { pid } = runStart(db, () => ({ pid: 4242 }));
+      addUrl(urlsRepo, 'https://example.com/a');
+      const { pid } = runStart(runsRepo, urlsRepo, urlRunsRepo, () => ({ pid: 4242 }));
       const run = db.prepare('SELECT id FROM runs').get() as { id: string };
       const killed: number[] = [];
 
-      runStop(db, (killPid) => {
+      runStop(runsRepo, urlRunsRepo, (killPid) => {
         killed.push(killPid);
       });
 
@@ -287,35 +265,35 @@ describe('run lifecycle / url management', () => {
     });
 
     it("throws 'process not found, use run reset' when kill fails with ESRCH", () => {
-      addUrl(db, 'https://example.com/a');
-      runStart(db, () => ({ pid: 4242 }));
+      addUrl(urlsRepo, 'https://example.com/a');
+      runStart(runsRepo, urlsRepo, urlRunsRepo, () => ({ pid: 4242 }));
 
       expect(() =>
-        runStop(db, () => {
+        runStop(runsRepo, urlRunsRepo, () => {
           throw Object.assign(new Error('kill ESRCH'), { code: 'ESRCH' });
         }),
       ).toThrow('process not found, use run reset');
     });
 
     it("throws 'no open run' when there is no open run", () => {
-      expect(() => runStop(db, () => {})).toThrow('no open run');
+      expect(() => runStop(runsRepo, urlRunsRepo, () => {})).toThrow('no open run');
     });
   });
 
   describe('runReset', () => {
     it('deletes url_runs and marks the run abandoned, without killing anything', () => {
-      addUrl(db, 'https://example.com/a');
-      runStart(db, () => ({ pid: 4242 }));
+      addUrl(urlsRepo, 'https://example.com/a');
+      runStart(runsRepo, urlsRepo, urlRunsRepo, () => ({ pid: 4242 }));
       const openRun = db.prepare('SELECT id FROM runs').get() as { id: string };
 
-      runReset(db);
+      runReset(runsRepo, urlRunsRepo);
 
       expect(runStatus(openRun.id)).toBe('abandoned');
       expect(urlRunCount(openRun.id)).toBe(0);
     });
 
     it("throws 'no open run' when there is no open run", () => {
-      expect(() => runReset(db)).toThrow('no open run');
+      expect(() => runReset(runsRepo, urlRunsRepo)).toThrow('no open run');
     });
   });
 
@@ -324,7 +302,7 @@ describe('run lifecycle / url management', () => {
       const runId = randomUUID();
       db.prepare("INSERT INTO runs (id, version, status) VALUES (?, ?, 'done')").run(runId, 1);
 
-      abandonRun(db, runId);
+      abandonRun(runsRepo, urlRunsRepo, runId);
 
       expect(runStatus(runId)).toBe('done');
     });

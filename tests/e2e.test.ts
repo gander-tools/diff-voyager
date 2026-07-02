@@ -7,7 +7,10 @@ import type Database from 'better-sqlite3';
 import { type Browser, chromium } from 'playwright';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { addUrl, runStart } from '../src/cli';
-import { migrate, openDb } from '../src/db';
+import { migrate, openDb, toDrizzle } from '../src/db';
+import { DrizzleRunsRepo, type RunsRepo } from '../src/repos/runsRepo';
+import { DrizzleUrlRunsRepo, type UrlRunsRepo } from '../src/repos/urlRunsRepo';
+import { DrizzleUrlsRepo, type UrlsRepo } from '../src/repos/urlsRepo';
 import { slug } from '../src/slug';
 import { findOpenRun, runWorker } from '../src/worker';
 
@@ -40,11 +43,18 @@ describe('e2e: add url -> run start -> worker processes', () => {
   });
 
   let db: Database.Database;
+  let runsRepo: RunsRepo;
+  let urlsRepo: UrlsRepo;
+  let urlRunsRepo: UrlRunsRepo;
   let tmpDir: string;
 
   beforeEach(() => {
     db = openDb(':memory:');
     migrate(db);
+    const drizzleDb = toDrizzle(db);
+    runsRepo = new DrizzleRunsRepo(drizzleDb);
+    urlsRepo = new DrizzleUrlsRepo(drizzleDb);
+    urlRunsRepo = new DrizzleUrlRunsRepo(drizzleDb);
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'voyager-e2e-'));
   });
 
@@ -54,15 +64,15 @@ describe('e2e: add url -> run start -> worker processes', () => {
   });
 
   it('wires cli+worker+db+scraper: writes snapshot artifacts and clears db state', async () => {
-    expect(addUrl(db, baseUrl)).toBe('added');
+    expect(addUrl(urlsRepo, baseUrl)).toBe('added');
 
-    const { version } = runStart(db, () => ({ pid: 4242 }));
-    const run = findOpenRun(db);
+    const { version } = runStart(runsRepo, urlsRepo, urlRunsRepo, () => ({ pid: 4242 }));
+    const run = findOpenRun(runsRepo);
     if (!run) {
       throw new Error('expected an open run after runStart');
     }
 
-    const exitCode = await runWorker(db, browser, run, tmpDir, {});
+    const exitCode = await runWorker(runsRepo, urlsRepo, urlRunsRepo, browser, run, tmpDir, {});
 
     expect(exitCode).toBe(0);
     expect(
@@ -99,15 +109,15 @@ describe('e2e: add url -> run start -> worker processes', () => {
 
   it('marks the url_run failed and still finalizes the run when navigation fails', async () => {
     const badUrl = 'http://127.0.0.1:1/unreachable';
-    addUrl(db, badUrl);
+    addUrl(urlsRepo, badUrl);
 
-    const runResult = runStart(db, () => ({ pid: 4343 }));
-    const run = findOpenRun(db);
+    const runResult = runStart(runsRepo, urlsRepo, urlRunsRepo, () => ({ pid: 4343 }));
+    const run = findOpenRun(runsRepo);
     if (!run) {
       throw new Error('expected an open run after runStart');
     }
 
-    const exitCode = await runWorker(db, browser, run, tmpDir, {});
+    const exitCode = await runWorker(runsRepo, urlsRepo, urlRunsRepo, browser, run, tmpDir, {});
 
     expect(exitCode).toBe(1);
     expect(
