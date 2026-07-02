@@ -22,6 +22,35 @@ function versionDir(snapshotDir: string, version: number): string {
   return path.join(snapshotDir, `version-${version}`);
 }
 
+const BUCKET_README: Record<'matched' | 'changed' | 'skipped', string> = {
+  matched: `# matched
+
+Pages whose screenshot pixel-diff was within tolerance AND whose meta.json
+diff was empty — no observable change between the two versions.
+
+Files per <page_slug>/: screenshot.png (diff image), meta.json (diff object, always {}).
+`,
+  changed: `# changed
+
+Pages where the screenshot pixel-diff exceeded tolerance, OR the screenshots
+had mismatched dimensions, OR the meta.json diff was non-empty.
+
+Files per <page_slug>/: meta.json (diff object) always; screenshot.png (diff image)
+present unless the screenshot dimensions mismatched between versions.
+`,
+  skipped: `# skipped
+
+Pages whose artifacts (screenshot.png/meta.json) were missing in one of the
+two compared versions, so no diff could be computed.
+
+Files per <page_slug>/: reason.json ({"reason": "<why this page was skipped>"}).
+`,
+};
+
+function writeBucketReadme(diffBaseDir: string, bucket: 'matched' | 'changed' | 'skipped'): void {
+  fs.writeFileSync(path.join(diffBaseDir, bucket, 'README.md'), BUCKET_README[bucket]);
+}
+
 export function resolvePageSlugs(
   v1: number,
   v2: number,
@@ -116,6 +145,7 @@ export function diffPageSlug(
     const skippedDir = path.join(diffBaseDir, 'skipped', slug);
     fs.mkdirSync(skippedDir, { recursive: true });
     fs.writeFileSync(path.join(skippedDir, 'reason.json'), JSON.stringify({ reason }, null, 2));
+    writeBucketReadme(diffBaseDir, 'skipped');
     return { page_slug: slug, skipped: reason };
   }
 
@@ -158,6 +188,7 @@ export function diffPageSlug(
   if (diffPng) {
     fs.writeFileSync(path.join(outDir, 'screenshot.png'), diffPng);
   }
+  writeBucketReadme(diffBaseDir, bucket);
 
   return { page_slug: slug, screenshot, meta };
 }
