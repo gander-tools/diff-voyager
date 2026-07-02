@@ -2,9 +2,11 @@ import { randomUUID } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type Database from 'better-sqlite3';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { migrate, openDb } from '../src/db';
+import { pageSlug } from '../src/slug';
 
 describe('openDb', () => {
   let tmpDir: string;
@@ -142,5 +144,40 @@ describe('migrate', () => {
         .prepare('INSERT INTO url_runs (id, url_id, run_id) VALUES (?, ?, ?)')
         .run(randomUUID(), urlId, randomUUID()),
     ).toThrow();
+  });
+
+  // B8/V28: db.ts must delegate the legacy page_slug backfill to a repo, not
+  // run raw SQL itself. Simulates a pre-existing row left with the migration's
+  // placeholder page_slug='' and re-invokes migrate() to trigger the backfill.
+  it('migrate() backfills host/query_string/page_slug for rows left with the placeholder page_slug', () => {
+    const id = randomUUID();
+    db.prepare(
+      "INSERT INTO urls (id, url, host, path, query_string, page_slug) VALUES (?, ?, '', ?, '', '')",
+    ).run(id, 'https://example.com/a/b?x=1', '/a/b');
+
+    migrate(db);
+
+    const row = db.prepare('SELECT host, query_string, page_slug FROM urls WHERE id = ?').get(id) as {
+      host: string;
+      query_string: string;
+      page_slug: string;
+    };
+    expect(row).toEqual({
+      host: 'example.com',
+      query_string: 'x=1',
+      page_slug: pageSlug('/a/b', 'x=1'),
+    });
+  });
+});
+
+// V28: src/db.ts is connection factory + migration only — no raw query logic.
+// grep -rn "\.prepare(" src/db.ts must return 0 hits (same contract as T44).
+describe('db.ts source — architecture (V28)', () => {
+  it('contains no raw db.prepare()/.exec() calls', () => {
+    const dbTsPath = fileURLToPath(new URL('../src/db.ts', import.meta.url));
+    const source = fs.readFileSync(dbTsPath, 'utf-8');
+
+    expect(source).not.toMatch(/\.prepare\(/);
+    expect(source).not.toMatch(/\.exec\(/);
   });
 });
