@@ -8,4 +8,5 @@ data
 dist
 logs
 node_modules
+results
 snapshots
