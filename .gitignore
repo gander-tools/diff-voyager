@@ -2,6 +2,7 @@
 .ck
 .env.local
 .idea
+.playwright-mcp
 CLAUDE.local.md
 data
 dist
