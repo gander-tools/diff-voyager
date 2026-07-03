@@ -8,6 +8,7 @@ import BetterSqlite3 from 'better-sqlite3';
 import { PNG } from 'pngjs';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { migrate, openDb } from '../src/db';
+import { computePageHash } from '../src/diff';
 
 const repoRoot = fileURLToPath(new URL('..', import.meta.url));
 const tsxBin = path.join(repoRoot, 'node_modules/.bin/tsx');
@@ -540,9 +541,12 @@ describe('cli `diff <v1> <v2> [url-or-path]` (subprocess, T65/T66)', () => {
       const result = runDiff(['1', '2']);
 
       expect(result.status).toBe(0);
-      expect(result.stdout).toContain('slug-a');
+      expect(result.stdout).toContain('slug-a: screenshot=matched, meta=matched');
+      const hash = computePageHash(undefined, 'slug-a');
       expect(
-        fs.existsSync(path.join(resultDir, 'diff-v1-v2', 'matched', 'slug-a', 'meta.json')),
+        fs.existsSync(
+          path.join(resultDir, 'v1-v2', 'matched', 'meta', `slug-a___${hash}.json`),
+        ),
       ).toBe(true);
     },
     10000,
@@ -602,7 +606,7 @@ describe('cli `config init` (subprocess, T77)', () => {
 
       const written = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
       expect(written.screenshot.rules.hide['*']).toEqual(['.ad', '#consent']);
-      expect(written.screenshot.rules.diff.tolerance['*']).toBe(0);
+      expect(written.screenshot.rules.diff.tolerance['*']).toBe(95);
       expect(written.screenshot.full_page).toBe(true);
       expect(written.screenshot.format).toBe('png');
       expect(written.timeout_ms).toBe(30000);

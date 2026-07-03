@@ -487,4 +487,36 @@ describe('loadWorkerConfig', () => {
 
     expect(() => loadWorkerConfig(configPath)).toThrow(configPath);
   });
+
+  it.each([-1, 101])('throws when a tolerance value (%i) is out of range 0-100 (V68)', (bad) => {
+    const configPath = path.join(tmpDir, 'config.json');
+    fs.writeFileSync(
+      configPath,
+      JSON.stringify({ screenshot: { rules: { diff: { tolerance: { '*': bad } } } } }),
+    );
+
+    expect(() => loadWorkerConfig(configPath)).toThrow(configPath);
+  });
+
+  it('throws when a tolerance value is not an integer (V68)', () => {
+    const configPath = path.join(tmpDir, 'config.json');
+    fs.writeFileSync(
+      configPath,
+      JSON.stringify({ screenshot: { rules: { diff: { tolerance: { '*': 1.5 } } } } }),
+    );
+
+    expect(() => loadWorkerConfig(configPath)).toThrow(configPath);
+  });
+
+  it.each([0, 100, 95])('accepts an in-range integer tolerance value (%i) (V68)', (good) => {
+    const configPath = path.join(tmpDir, 'config.json');
+    fs.writeFileSync(
+      configPath,
+      JSON.stringify({ screenshot: { rules: { diff: { tolerance: { '*': good } } } } }),
+    );
+
+    expect(loadWorkerConfig(configPath)).toEqual({
+      screenshot: { rules: { diff: { tolerance: { '*': good } } } },
+    });
+  });
 });

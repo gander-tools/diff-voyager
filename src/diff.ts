@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import micromatch from 'micromatch';
@@ -15,42 +16,111 @@ const META_DIFF_KEYS = [
   'description',
   'og_description',
   'js_errors',
-  'links',
 ] as const;
 
 function versionDir(snapshotDir: string, version: number): string {
   return path.join(snapshotDir, `version-${version}`);
 }
 
-const BUCKET_README: Record<'matched' | 'changed' | 'skipped', string> = {
-  matched: `# matched
+type ClassifiedBucket = 'matched' | 'changed';
+type FileType = 'screenshot' | 'meta';
 
-Pages whose screenshot pixel-diff was within tolerance AND whose meta.json
-diff was empty — no observable change between the two versions.
+const TYPE_EXT: Record<FileType, string> = { screenshot: 'png', meta: 'json' };
 
-Files per <page_slug>/: screenshot.png (diff image), meta.json (diff object, always {}),
-reason.json ({"reason": "<why this page was classified as matched>"}).
+const TYPE_README: Record<`${ClassifiedBucket}/${FileType}`, string> = {
+  'matched/screenshot': `# matched/screenshot
+
+Diff-image screenshot.png for pages whose pixel-diff was within tolerance.
+
+File: <slug>___<hash>.png.
 `,
-  changed: `# changed
+  'matched/meta': `# matched/meta
 
-Pages where the screenshot pixel-diff exceeded tolerance, OR the screenshots
-had mismatched dimensions, OR the meta.json diff was non-empty.
+Merged meta.json for pages whose meta.json classification keys were
+unchanged between the two versions. Unchanged keys are plain values.
 
-Files per <page_slug>/: meta.json (diff object) always; screenshot.png (diff image)
-present unless the screenshot dimensions mismatched between versions; reason.json
-({"reason": "<why this page was classified as changed>"}).
+File: <slug>___<hash>.json.
 `,
-  skipped: `# skipped
+  'changed/screenshot': `# changed/screenshot
 
-Pages whose artifacts (screenshot.png/meta.json) were missing in one of the
-two compared versions, so no diff could be computed.
+Diff-image screenshot.png for pages whose pixel-diff exceeded tolerance, or
+whose screenshots had mismatched dimensions.
 
-Files per <page_slug>/: reason.json ({"reason": "<why this page was skipped>"}).
+File: <slug>___<hash>.png. Absent when dimensions mismatched between versions
+(no valid pixel diff to render).
+`,
+  'changed/meta': `# changed/meta
+
+Merged meta.json for pages whose meta.json classification key differed
+between the two versions. Changed keys are wrapped as
+{"reason":"diff","versions":{"<v1>":...,"<v2>":...}}.
+
+File: <slug>___<hash>.json.
 `,
 };
 
-function writeBucketReadme(diffBaseDir: string, bucket: 'matched' | 'changed' | 'skipped'): void {
-  fs.writeFileSync(path.join(diffBaseDir, bucket, 'README.md'), BUCKET_README[bucket]);
+const SKIPPED_README = `# skipped
+
+skip.json-shaped file ({"reason": "<why this page was skipped>"}) for pages
+whose artifacts (screenshot.png/meta.json) were missing in one of the two
+compared versions, so no diff could be computed. Page-level: any missing
+artifact skips the whole page, not just one file type.
+
+File: <slug>___<hash>.json.
+`;
+
+function diffBaseDir(resultDir: string, v1: number, v2: number): string {
+  return path.join(resultDir, `v${v1}-v${v2}`);
+}
+
+function typeDir(base: string, bucket: ClassifiedBucket, type: FileType): string {
+  return path.join(base, bucket, type);
+}
+
+function fileName(slug: string, hash: string, ext: string): string {
+  return `${slug}___${hash}.${ext}`;
+}
+
+function writeTypeReadme(base: string, bucket: ClassifiedBucket, type: FileType): void {
+  const dir = typeDir(base, bucket, type);
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, 'README.md'), TYPE_README[`${bucket}/${type}`]);
+}
+
+function writeSkippedReadme(base: string): void {
+  const dir = path.join(base, 'skipped');
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, 'README.md'), SKIPPED_README);
+}
+
+// V67: stale-removal per type, independent — reclassifying screenshot ⊥ touches meta's bucket, vice versa.
+function removeStaleTypeEntry(
+  base: string,
+  currentBucket: ClassifiedBucket,
+  type: FileType,
+  slug: string,
+  hash: string,
+): void {
+  const otherBucket: ClassifiedBucket = currentBucket === 'matched' ? 'changed' : 'matched';
+  const file = path.join(typeDir(base, otherBucket, type), fileName(slug, hash, TYPE_EXT[type]));
+  if (fs.existsSync(file)) {
+    fs.unlinkSync(file);
+  }
+}
+
+function removeStaleSkippedEntry(base: string, slug: string, hash: string): void {
+  const file = path.join(base, 'skipped', fileName(slug, hash, 'json'));
+  if (fs.existsSync(file)) {
+    fs.unlinkSync(file);
+  }
+}
+
+// V62 hash source is urls.url (DB); slug fallback covers pages with no matching urls row.
+export function computePageHash(dbUrl: string | undefined, slug: string): string {
+  return crypto
+    .createHash('md5')
+    .update(dbUrl ?? slug)
+    .digest('hex');
 }
 
 export function resolvePageSlugs(
@@ -83,42 +153,36 @@ function resolveDiffTolerance(
   candidateUrls: string[],
 ): number {
   if (!toleranceMap) {
-    return 0;
+    return 100;
   }
 
   const matches = Object.entries(toleranceMap)
     .filter(([glob]) => glob === '*' || candidateUrls.some((url) => micromatch.isMatch(url, glob)))
     .map(([, tolerance]) => tolerance);
 
-  return matches.length > 0 ? Math.min(...matches) : 0;
+  return matches.length > 0 ? Math.max(...matches) : 100;
 }
 
 function diffMeta(
+  v1: number,
+  v2: number,
   meta1: ScrapedPage,
   meta2: ScrapedPage,
-): Record<string, { old: unknown; new: unknown }> {
-  const diff: Record<string, { old: unknown; new: unknown }> = {};
+): { merged: Record<string, unknown>; changed: boolean } {
+  const merged: Record<string, unknown> = {};
+  let changed = false;
   for (const key of META_DIFF_KEYS) {
     const a = meta1[key];
     const b = meta2[key];
     if (JSON.stringify(a) !== JSON.stringify(b)) {
-      diff[key] = { old: a, new: b };
+      merged[key] = { reason: 'diff', versions: { [v1]: a, [v2]: b } };
+      changed = true;
+    } else {
+      merged[key] = a;
     }
   }
-  return diff;
-}
-
-function bucketReason(
-  screenshotKind: 'match' | 'changed' | 'dimension-mismatch',
-  metaChanged: boolean,
-): string {
-  if (screenshotKind === 'match') {
-    return metaChanged ? 'meta diff non-empty' : 'screenshot match, meta diff empty';
-  }
-  if (screenshotKind === 'dimension-mismatch') {
-    return 'screenshot dimension mismatch';
-  }
-  return metaChanged ? 'screenshot changed, meta diff non-empty' : 'screenshot changed';
+  merged.url = { versions: { [v1]: meta1.url, [v2]: meta2.url } };
+  return { merged, changed };
 }
 
 export type ScreenshotDiffOutcome =
@@ -129,7 +193,8 @@ export interface PageDiffOutcome {
   page_slug: string;
   skipped?: string;
   screenshot?: ScreenshotDiffOutcome;
-  meta?: Record<string, { old: unknown; new: unknown }>;
+  meta?: Record<string, unknown>;
+  metaChanged?: boolean;
 }
 
 export function diffPageSlug(
@@ -148,7 +213,9 @@ export function diffPageSlug(
   const meta1Path = path.join(dir1, 'meta.json');
   const meta2Path = path.join(dir2, 'meta.json');
 
-  const diffBaseDir = path.join(resultDir, `diff-v${v1}-v${v2}`);
+  const base = diffBaseDir(resultDir, v1, v2);
+  const dbUrl = urlsRepo.list().find((row) => row.page_slug === slug)?.url;
+  const hash = computePageHash(dbUrl, slug);
 
   if (
     !fs.existsSync(shot1) ||
@@ -157,16 +224,27 @@ export function diffPageSlug(
     !fs.existsSync(meta2Path)
   ) {
     const reason = `missing artifacts for ${slug} in version-${v1} or version-${v2}`;
-    const skippedDir = path.join(diffBaseDir, 'skipped', slug);
-    fs.mkdirSync(skippedDir, { recursive: true });
-    fs.writeFileSync(path.join(skippedDir, 'reason.json'), JSON.stringify({ reason }, null, 2));
-    writeBucketReadme(diffBaseDir, 'skipped');
+    for (const bucket of ['matched', 'changed'] as ClassifiedBucket[]) {
+      for (const type of ['screenshot', 'meta'] as FileType[]) {
+        const file = path.join(typeDir(base, bucket, type), fileName(slug, hash, TYPE_EXT[type]));
+        if (fs.existsSync(file)) {
+          fs.unlinkSync(file);
+        }
+      }
+    }
+    const dir = path.join(base, 'skipped');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(
+      path.join(dir, fileName(slug, hash, 'json')),
+      JSON.stringify({ reason }, null, 2),
+    );
+    writeSkippedReadme(base);
     return { page_slug: slug, skipped: reason };
   }
 
   const meta1 = JSON.parse(fs.readFileSync(meta1Path, 'utf-8')) as ScrapedPage;
   const meta2 = JSON.parse(fs.readFileSync(meta2Path, 'utf-8')) as ScrapedPage;
-  const meta = diffMeta(meta1, meta2);
+  const { merged: meta, changed: metaChanged } = diffMeta(v1, v2, meta1, meta2);
 
   const img1 = PNG.sync.read(fs.readFileSync(shot1));
   const img2 = PNG.sync.read(fs.readFileSync(shot2));
@@ -183,33 +261,38 @@ export function diffPageSlug(
       threshold: 0.1,
     });
 
-    const dbUrl = urlsRepo.list().find((row) => row.page_slug === slug)?.url;
     const tolerance = resolveDiffTolerance(
       config.screenshot?.rules?.diff?.tolerance,
       [dbUrl, meta1.url, meta2.url].filter((u): u is string => u !== undefined),
     );
 
     const diffPixelFraction = numDiffPixels / (width * height);
-    const changed = diffPixelFraction > tolerance;
+    const allowedDiffFraction = (100 - tolerance) / 100;
+    const changed = diffPixelFraction > allowedDiffFraction;
     screenshot = { kind: changed ? 'changed' : 'match', diffPixelFraction };
     diffPng = PNG.sync.write(output);
   }
 
-  const metaChanged = Object.keys(meta).length > 0;
-  const bucket = screenshot.kind === 'match' && !metaChanged ? 'matched' : 'changed';
-  const outDir = path.join(diffBaseDir, bucket, slug);
-  fs.mkdirSync(outDir, { recursive: true });
-  fs.writeFileSync(path.join(outDir, 'meta.json'), JSON.stringify(meta, null, 2));
-  if (diffPng) {
-    fs.writeFileSync(path.join(outDir, 'screenshot.png'), diffPng);
-  }
-  fs.writeFileSync(
-    path.join(outDir, 'reason.json'),
-    JSON.stringify({ reason: bucketReason(screenshot.kind, metaChanged) }, null, 2),
-  );
-  writeBucketReadme(diffBaseDir, bucket);
+  // V65: screenshot & meta bucket independently, same slug may split across buckets.
+  const screenshotBucket: ClassifiedBucket = screenshot.kind === 'match' ? 'matched' : 'changed';
+  const metaBucket: ClassifiedBucket = metaChanged ? 'changed' : 'matched';
+  removeStaleSkippedEntry(base, slug, hash);
 
-  return { page_slug: slug, screenshot, meta };
+  removeStaleTypeEntry(base, metaBucket, 'meta', slug, hash);
+  const metaDir = typeDir(base, metaBucket, 'meta');
+  fs.mkdirSync(metaDir, { recursive: true });
+  fs.writeFileSync(path.join(metaDir, fileName(slug, hash, 'json')), JSON.stringify(meta, null, 2));
+  writeTypeReadme(base, metaBucket, 'meta');
+
+  if (diffPng) {
+    removeStaleTypeEntry(base, screenshotBucket, 'screenshot', slug, hash);
+    const shotDir = typeDir(base, screenshotBucket, 'screenshot');
+    fs.mkdirSync(shotDir, { recursive: true });
+    fs.writeFileSync(path.join(shotDir, fileName(slug, hash, 'png')), diffPng);
+    writeTypeReadme(base, screenshotBucket, 'screenshot');
+  }
+
+  return { page_slug: slug, screenshot, meta, metaChanged };
 }
 
 export function diffVersions(

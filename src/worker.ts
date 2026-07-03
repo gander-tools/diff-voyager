@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import pino from 'pino';
 import { type Browser, chromium } from 'playwright';
+import { z } from 'zod';
 import { effectiveUrl } from './baseUrl';
 import { CONFIG_PATH, DB_PATH, LOG_DIR, SNAPSHOT_DIR } from './config';
 import { migrate, openDb, toDrizzle } from './db';
@@ -129,18 +130,28 @@ export async function runWorker(
   return finalizeRun(runsRepo, urlRunsRepo, run.id, run.version, snapshotBaseDir);
 }
 
+const toleranceSchema = z.record(z.string(), z.number().int().min(0).max(100)).optional();
+
 export function loadWorkerConfig(configPath: string): Config {
   if (!fs.existsSync(configPath)) {
     return {};
   }
 
   const raw = fs.readFileSync(configPath, 'utf-8');
+  let parsed: Config;
   try {
-    return JSON.parse(raw) as Config;
+    parsed = JSON.parse(raw) as Config;
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
     throw new Error(`invalid config JSON at ${configPath}: ${reason}`);
   }
+
+  const result = toleranceSchema.safeParse(parsed.screenshot?.rules?.diff?.tolerance);
+  if (!result.success) {
+    throw new Error(`invalid tolerance value in config at ${configPath}: ${result.error.message}`);
+  }
+
+  return parsed;
 }
 
 const isMainModule = process.argv[1] === fileURLToPath(import.meta.url);

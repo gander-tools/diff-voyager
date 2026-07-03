@@ -202,7 +202,7 @@ const DEFAULT_CONFIG: Config = {
   screenshot: {
     rules: {
       hide: { '*': ['.ad', '#consent'] },
-      diff: { tolerance: { '*': 0 } },
+      diff: { tolerance: { '*': 95 } },
     },
     full_page: true,
     format: 'png',
@@ -368,10 +368,10 @@ if (isMainModule) {
         for (const outcome of outcomes) {
           if (outcome.skipped) {
             console.log(`${outcome.page_slug}: skipped (${outcome.skipped})`);
-          } else if (outcome.screenshot?.kind === 'dimension-mismatch') {
-            console.log(`${outcome.page_slug}: dimension mismatch`);
           } else {
-            console.log(`${outcome.page_slug}: ${outcome.screenshot?.kind}`);
+            const screenshotBucket = outcome.screenshot?.kind === 'match' ? 'matched' : 'changed';
+            const metaBucket = outcome.metaChanged ? 'changed' : 'matched';
+            console.log(`${outcome.page_slug}: screenshot=${screenshotBucket}, meta=${metaBucket}`);
           }
         }
       });

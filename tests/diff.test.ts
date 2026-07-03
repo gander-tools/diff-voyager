@@ -5,7 +5,7 @@ import type Database from 'better-sqlite3';
 import { PNG } from 'pngjs';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { migrate, openDb, toDrizzle } from '../src/db';
-import { diffPageSlug, diffVersions, resolvePageSlugs } from '../src/diff';
+import { computePageHash, diffPageSlug, diffVersions, resolvePageSlugs } from '../src/diff';
 import { DrizzleRunsRepo, type RunsRepo } from '../src/repos/runsRepo';
 import { DrizzleUrlsRepo, type UrlsRepo } from '../src/repos/urlsRepo';
 import { pageSlug } from '../src/slug';
@@ -41,6 +41,26 @@ function baseMeta(url: string): ScrapedPage {
     links: [],
     js_errors: [],
   };
+}
+
+// slug-a has no matching urls row in most tests → hash falls back to md5(slug) (V62).
+const HASH_A = computePageHash(undefined, 'slug-a');
+
+function resultPath(
+  resultDir: string,
+  v1: number,
+  v2: number,
+  bucket: 'matched' | 'changed',
+  type: 'screenshot' | 'meta',
+  slug: string,
+  hash: string,
+  ext: string,
+): string {
+  return path.join(resultDir, `v${v1}-v${v2}`, bucket, type, `${slug}___${hash}.${ext}`);
+}
+
+function skippedPath(resultDir: string, v1: number, v2: number, slug: string, hash: string): string {
+  return path.join(resultDir, `v${v1}-v${v2}`, 'skipped', `${slug}___${hash}.json`);
 }
 
 describe('resolvePageSlugs', () => {
@@ -149,7 +169,7 @@ describe('diffPageSlug', () => {
     const outcome = diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
     expect(outcome.screenshot).toMatchObject({ kind: 'changed' });
     expect(
-      fs.existsSync(path.join(resultDir, 'diff-v1-v2', 'changed', 'slug-a', 'screenshot.png')),
+      fs.existsSync(resultPath(resultDir, 1, 2, 'changed', 'screenshot', 'slug-a', HASH_A, 'png')),
     ).toBe(true);
   });
 
@@ -165,12 +185,12 @@ describe('diffPageSlug', () => {
       baseMeta('https://example.com/a'),
     );
 
-    const config: Config = { screenshot: { rules: { diff: { tolerance: { '*': 1 } } } } };
+    const config: Config = { screenshot: { rules: { diff: { tolerance: { '*': 0 } } } } };
     const outcome = diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, config, urlsRepo);
     expect(outcome.screenshot).toMatchObject({ kind: 'match' });
   });
 
-  it('produces a shallow meta.json diff for changed top-level keys, links by full-array-equality (V46)', () => {
+  it('produces a merged meta.json w/ per-key version diff for changed keys, links dropped (V46)', () => {
     writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 2, 2, 0);
     writePng(path.join(snapshotDir, 'version-2', 'slug-a', 'screenshot.png'), 2, 2, 0);
     const meta1 = { ...baseMeta('https://example.com/a'), title: 'Old' };
@@ -184,12 +204,17 @@ describe('diffPageSlug', () => {
 
     const outcome = diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
     expect(outcome.meta).toEqual({
-      title: { old: 'Old', new: 'New' },
-      links: { old: meta1.links, new: meta2.links },
+      title: { reason: 'diff', versions: { 1: 'Old', 2: 'New' } },
+      lang: 'en',
+      canonical: '',
+      description: '',
+      og_description: '',
+      js_errors: [],
+      url: { versions: { 1: 'https://example.com/a', 2: 'https://example.com/a' } },
     });
   });
 
-  it('writes an empty meta diff object when nothing changed (V46)', () => {
+  it('writes a fully plain meta.json (no diff wrappers) when nothing changed (V46)', () => {
     writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 2, 2, 0);
     writePng(path.join(snapshotDir, 'version-2', 'slug-a', 'screenshot.png'), 2, 2, 0);
     writeMeta(
@@ -202,11 +227,23 @@ describe('diffPageSlug', () => {
     );
 
     const outcome = diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
-    expect(outcome.meta).toEqual({});
+    const expected = {
+      title: 'Title',
+      lang: 'en',
+      canonical: '',
+      description: '',
+      og_description: '',
+      js_errors: [],
+      url: { versions: { 1: 'https://example.com/a', 2: 'https://example.com/a' } },
+    };
+    expect(outcome.meta).toEqual(expected);
     const written = JSON.parse(
-      fs.readFileSync(path.join(resultDir, 'diff-v1-v2', 'matched', 'slug-a', 'meta.json'), 'utf-8'),
+      fs.readFileSync(
+        resultPath(resultDir, 1, 2, 'matched', 'meta', 'slug-a', HASH_A, 'json'),
+        'utf-8',
+      ),
     );
-    expect(written).toEqual({});
+    expect(written).toEqual(expected);
   });
 
   it('matches tolerance glob against urls.url (source, DB) as well as meta.json.url (V49)', () => {
@@ -225,13 +262,13 @@ describe('diffPageSlug', () => {
     );
 
     const config: Config = {
-      screenshot: { rules: { diff: { tolerance: { 'https://example.com/*': 1 } } } },
+      screenshot: { rules: { diff: { tolerance: { 'https://example.com/*': 0 } } } },
     };
     const outcome = diffPageSlug(1, 2, slug, snapshotDir, resultDir, config, urlsRepo);
     expect(outcome.screenshot).toMatchObject({ kind: 'match' });
   });
 
-  it('resolves multiple matching tolerance globs to the MIN value, regardless of config.json key order (V55)', () => {
+  it('resolves multiple matching tolerance globs to the MAX value, regardless of config.json key order (V55)', () => {
     writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 4, 4, 0);
     writePng(path.join(snapshotDir, 'version-2', 'slug-a', 'screenshot.png'), 4, 4, 255);
     writeMeta(
@@ -244,23 +281,23 @@ describe('diffPageSlug', () => {
     );
 
     // Loose glob written first, strict glob written second — a naive
-    // first-match implementation would pick the loose value (1) and report
-    // "match"; MIN precedence must pick the strict value (0) and flag it.
+    // first-match implementation would pick the loose value (0) and report
+    // "match"; MAX precedence must pick the strict value (100) and flag it.
     const looseFirst: Config = {
-      screenshot: { rules: { diff: { tolerance: { '*': 1, 'https://example.com/*': 0 } } } },
+      screenshot: { rules: { diff: { tolerance: { '*': 0, 'https://example.com/*': 100 } } } },
     };
     const outcomeLooseFirst = diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, looseFirst, urlsRepo);
     expect(outcomeLooseFirst.screenshot).toMatchObject({ kind: 'changed' });
 
     // Same two globs, reverse key order — result must be identical.
     const strictFirst: Config = {
-      screenshot: { rules: { diff: { tolerance: { 'https://example.com/*': 0, '*': 1 } } } },
+      screenshot: { rules: { diff: { tolerance: { 'https://example.com/*': 100, '*': 0 } } } },
     };
     const outcomeStrictFirst = diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, strictFirst, urlsRepo);
     expect(outcomeStrictFirst.screenshot).toMatchObject({ kind: 'changed' });
   });
 
-  it('routes to matched/ when screenshot=match and meta={} (V56)', () => {
+  it('routes to matched/{screenshot,meta}/ when screenshot=match and meta={} (V56,V62)', () => {
     writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 2, 2, 0);
     writePng(path.join(snapshotDir, 'version-2', 'slug-a', 'screenshot.png'), 2, 2, 0);
     writeMeta(
@@ -274,11 +311,17 @@ describe('diffPageSlug', () => {
 
     diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
 
-    expect(fs.existsSync(path.join(resultDir, 'diff-v1-v2', 'matched', 'slug-a'))).toBe(true);
-    expect(fs.existsSync(path.join(resultDir, 'diff-v1-v2', 'changed', 'slug-a'))).toBe(false);
+    expect(
+      fs.existsSync(resultPath(resultDir, 1, 2, 'matched', 'meta', 'slug-a', HASH_A, 'json')),
+    ).toBe(true);
+    expect(
+      fs.existsSync(resultPath(resultDir, 1, 2, 'matched', 'screenshot', 'slug-a', HASH_A, 'png')),
+    ).toBe(true);
+    expect(fs.existsSync(path.join(resultDir, 'v1-v2', 'changed'))).toBe(false);
+    expect(fs.existsSync(path.join(resultDir, 'diff-v1-v2'))).toBe(false);
   });
 
-  it('routes to changed/ when screenshot matches but meta differs (V56)', () => {
+  it('splits screenshot and meta into different buckets independently when only meta differs (V65)', () => {
     writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 2, 2, 0);
     writePng(path.join(snapshotDir, 'version-2', 'slug-a', 'screenshot.png'), 2, 2, 0);
     writeMeta(
@@ -293,12 +336,25 @@ describe('diffPageSlug', () => {
     const outcome = diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
 
     expect(outcome.screenshot).toMatchObject({ kind: 'match' });
-    expect(outcome.meta).not.toEqual({});
-    expect(fs.existsSync(path.join(resultDir, 'diff-v1-v2', 'changed', 'slug-a'))).toBe(true);
-    expect(fs.existsSync(path.join(resultDir, 'diff-v1-v2', 'matched', 'slug-a'))).toBe(false);
+    expect(outcome.metaChanged).toBe(true);
+    expect(outcome.meta?.title).toEqual({ reason: 'diff', versions: { 1: 'Title', 2: 'New' } });
+
+    // meta went to changed/, screenshot went to matched/ — same slug, different buckets.
+    expect(
+      fs.existsSync(resultPath(resultDir, 1, 2, 'changed', 'meta', 'slug-a', HASH_A, 'json')),
+    ).toBe(true);
+    expect(
+      fs.existsSync(resultPath(resultDir, 1, 2, 'matched', 'meta', 'slug-a', HASH_A, 'json')),
+    ).toBe(false);
+    expect(
+      fs.existsSync(resultPath(resultDir, 1, 2, 'matched', 'screenshot', 'slug-a', HASH_A, 'png')),
+    ).toBe(true);
+    expect(
+      fs.existsSync(resultPath(resultDir, 1, 2, 'changed', 'screenshot', 'slug-a', HASH_A, 'png')),
+    ).toBe(false);
   });
 
-  it('routes dimension-mismatch to changed/ without writing a screenshot.png (V56)', () => {
+  it('routes dimension-mismatch screenshot to changed/ w/o writing a png; unaffected meta stays matched/ (V65)', () => {
     writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 2, 2, 0);
     writePng(path.join(snapshotDir, 'version-2', 'slug-a', 'screenshot.png'), 3, 3, 0);
     writeMeta(
@@ -310,14 +366,18 @@ describe('diffPageSlug', () => {
       baseMeta('https://example.com/a'),
     );
 
-    diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
+    const outcome = diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
 
-    const changedDir = path.join(resultDir, 'diff-v1-v2', 'changed', 'slug-a');
-    expect(fs.existsSync(path.join(changedDir, 'meta.json'))).toBe(true);
-    expect(fs.existsSync(path.join(changedDir, 'screenshot.png'))).toBe(false);
+    expect(outcome.metaChanged).toBe(false);
+    expect(
+      fs.existsSync(resultPath(resultDir, 1, 2, 'matched', 'meta', 'slug-a', HASH_A, 'json')),
+    ).toBe(true);
+    expect(
+      fs.existsSync(resultPath(resultDir, 1, 2, 'changed', 'screenshot', 'slug-a', HASH_A, 'png')),
+    ).toBe(false);
   });
 
-  it('writes reason.json into matched/ with the match text (V60)', () => {
+  it('writes README.md into each type-subdir on first entry, per bucket (V57,V63)', () => {
     writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 2, 2, 0);
     writePng(path.join(snapshotDir, 'version-2', 'slug-a', 'screenshot.png'), 2, 2, 0);
     writeMeta(
@@ -331,141 +391,20 @@ describe('diffPageSlug', () => {
 
     diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
 
-    const written = JSON.parse(
-      fs.readFileSync(path.join(resultDir, 'diff-v1-v2', 'matched', 'slug-a', 'reason.json'), 'utf-8'),
-    );
-    expect(written.reason).toBe('screenshot match, meta diff empty');
-  });
-
-  it('writes reason.json into changed/ with "screenshot changed" when only the screenshot differs (V60)', () => {
-    writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 4, 4, 0);
-    writePng(path.join(snapshotDir, 'version-2', 'slug-a', 'screenshot.png'), 4, 4, 255);
-    writeMeta(
-      path.join(snapshotDir, 'version-1', 'slug-a', 'meta.json'),
-      baseMeta('https://example.com/a'),
-    );
-    writeMeta(
-      path.join(snapshotDir, 'version-2', 'slug-a', 'meta.json'),
-      baseMeta('https://example.com/a'),
-    );
-
-    diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
-
-    const written = JSON.parse(
-      fs.readFileSync(path.join(resultDir, 'diff-v1-v2', 'changed', 'slug-a', 'reason.json'), 'utf-8'),
-    );
-    expect(written.reason).toBe('screenshot changed');
-  });
-
-  it('writes reason.json into changed/ with "meta diff non-empty" when only meta differs (V60)', () => {
-    writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 2, 2, 0);
-    writePng(path.join(snapshotDir, 'version-2', 'slug-a', 'screenshot.png'), 2, 2, 0);
-    writeMeta(
-      path.join(snapshotDir, 'version-1', 'slug-a', 'meta.json'),
-      baseMeta('https://example.com/a'),
-    );
-    writeMeta(path.join(snapshotDir, 'version-2', 'slug-a', 'meta.json'), {
-      ...baseMeta('https://example.com/a'),
-      title: 'New',
-    });
-
-    diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
-
-    const written = JSON.parse(
-      fs.readFileSync(path.join(resultDir, 'diff-v1-v2', 'changed', 'slug-a', 'reason.json'), 'utf-8'),
-    );
-    expect(written.reason).toBe('meta diff non-empty');
-  });
-
-  it('writes reason.json into changed/ with both-changed text when screenshot and meta both differ (V60)', () => {
-    writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 4, 4, 0);
-    writePng(path.join(snapshotDir, 'version-2', 'slug-a', 'screenshot.png'), 4, 4, 255);
-    writeMeta(
-      path.join(snapshotDir, 'version-1', 'slug-a', 'meta.json'),
-      baseMeta('https://example.com/a'),
-    );
-    writeMeta(path.join(snapshotDir, 'version-2', 'slug-a', 'meta.json'), {
-      ...baseMeta('https://example.com/a'),
-      title: 'New',
-    });
-
-    diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
-
-    const written = JSON.parse(
-      fs.readFileSync(path.join(resultDir, 'diff-v1-v2', 'changed', 'slug-a', 'reason.json'), 'utf-8'),
-    );
-    expect(written.reason).toBe('screenshot changed, meta diff non-empty');
-  });
-
-  it('writes reason.json into changed/ with dimension-mismatch text (V60)', () => {
-    writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 2, 2, 0);
-    writePng(path.join(snapshotDir, 'version-2', 'slug-a', 'screenshot.png'), 3, 3, 0);
-    writeMeta(
-      path.join(snapshotDir, 'version-1', 'slug-a', 'meta.json'),
-      baseMeta('https://example.com/a'),
-    );
-    writeMeta(
-      path.join(snapshotDir, 'version-2', 'slug-a', 'meta.json'),
-      baseMeta('https://example.com/a'),
-    );
-
-    diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
-
-    const written = JSON.parse(
-      fs.readFileSync(path.join(resultDir, 'diff-v1-v2', 'changed', 'slug-a', 'reason.json'), 'utf-8'),
-    );
-    expect(written.reason).toBe('screenshot dimension mismatch');
-  });
-
-  it('writes a README.md into matched/ on first entry (V57)', () => {
-    writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 2, 2, 0);
-    writePng(path.join(snapshotDir, 'version-2', 'slug-a', 'screenshot.png'), 2, 2, 0);
-    writeMeta(
-      path.join(snapshotDir, 'version-1', 'slug-a', 'meta.json'),
-      baseMeta('https://example.com/a'),
-    );
-    writeMeta(
-      path.join(snapshotDir, 'version-2', 'slug-a', 'meta.json'),
-      baseMeta('https://example.com/a'),
-    );
-
-    diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
-
-    const readme = fs.readFileSync(
-      path.join(resultDir, 'diff-v1-v2', 'matched', 'README.md'),
+    const metaReadme = fs.readFileSync(
+      path.join(resultDir, 'v1-v2', 'matched', 'meta', 'README.md'),
       'utf-8',
     );
-    expect(readme.length).toBeGreaterThan(0);
-    expect(readme).toContain('screenshot.png');
-    expect(readme).toContain('meta.json');
-    expect(readme).toContain('reason.json');
-  });
-
-  it('writes a README.md into changed/ on first entry (V57)', () => {
-    writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 4, 4, 0);
-    writePng(path.join(snapshotDir, 'version-2', 'slug-a', 'screenshot.png'), 4, 4, 255);
-    writeMeta(
-      path.join(snapshotDir, 'version-1', 'slug-a', 'meta.json'),
-      baseMeta('https://example.com/a'),
-    );
-    writeMeta(
-      path.join(snapshotDir, 'version-2', 'slug-a', 'meta.json'),
-      baseMeta('https://example.com/a'),
-    );
-
-    diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
-
-    const readme = fs.readFileSync(
-      path.join(resultDir, 'diff-v1-v2', 'changed', 'README.md'),
+    expect(metaReadme).toContain('meta.json');
+    const shotReadme = fs.readFileSync(
+      path.join(resultDir, 'v1-v2', 'matched', 'screenshot', 'README.md'),
       'utf-8',
     );
-    expect(readme.length).toBeGreaterThan(0);
-    expect(readme).toContain('screenshot.png');
-    expect(readme).toContain('meta.json');
-    expect(readme).toContain('reason.json');
+    expect(shotReadme).toContain('screenshot.png');
+    expect(fs.existsSync(path.join(resultDir, 'v1-v2', 'changed'))).toBe(false);
   });
 
-  it('writes a README.md into skipped/ on first entry, mentioning reason.json (V57)', () => {
+  it('writes README.md directly into skipped/ (no type-subdir) on first entry (V57,V66)', () => {
     writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 2, 2, 0);
     writeMeta(
       path.join(snapshotDir, 'version-1', 'slug-a', 'meta.json'),
@@ -474,15 +413,13 @@ describe('diffPageSlug', () => {
 
     diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
 
-    const readme = fs.readFileSync(
-      path.join(resultDir, 'diff-v1-v2', 'skipped', 'README.md'),
-      'utf-8',
-    );
+    const readme = fs.readFileSync(path.join(resultDir, 'v1-v2', 'skipped', 'README.md'), 'utf-8');
     expect(readme.length).toBeGreaterThan(0);
-    expect(readme).toContain('reason.json');
+    expect(readme).toContain('skip.json');
+    expect(fs.existsSync(path.join(resultDir, 'v1-v2', 'skipped', 'skip'))).toBe(false);
   });
 
-  it('does not write a README.md for a bucket that never gets an entry (V57)', () => {
+  it('does not write a README.md for a type-subdir that never gets an entry (V57,V63)', () => {
     writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 2, 2, 0);
     writePng(path.join(snapshotDir, 'version-2', 'slug-a', 'screenshot.png'), 2, 2, 0);
     writeMeta(
@@ -496,11 +433,11 @@ describe('diffPageSlug', () => {
 
     diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
 
-    expect(fs.existsSync(path.join(resultDir, 'diff-v1-v2', 'changed'))).toBe(false);
-    expect(fs.existsSync(path.join(resultDir, 'diff-v1-v2', 'skipped'))).toBe(false);
+    expect(fs.existsSync(path.join(resultDir, 'v1-v2', 'changed'))).toBe(false);
+    expect(fs.existsSync(path.join(resultDir, 'v1-v2', 'skipped'))).toBe(false);
   });
 
-  it('re-running diff into an already-existing bucket dir does not throw (idempotent, V57)', () => {
+  it('re-running diff into an already-existing bucket dir does not throw (idempotent, V57,V63)', () => {
     writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 2, 2, 0);
     writePng(path.join(snapshotDir, 'version-2', 'slug-a', 'screenshot.png'), 2, 2, 0);
     writeMeta(
@@ -517,10 +454,12 @@ describe('diffPageSlug', () => {
       diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo),
     ).not.toThrow();
 
-    expect(fs.existsSync(path.join(resultDir, 'diff-v1-v2', 'matched', 'README.md'))).toBe(true);
+    expect(
+      fs.existsSync(path.join(resultDir, 'v1-v2', 'matched', 'meta', 'README.md')),
+    ).toBe(true);
   });
 
-  it('writes skipped/<slug>/reason.json with no screenshot.png or meta.json (V56)', () => {
+  it('writes skipped/<slug>___<hash>.json flat, no screenshot.png or meta.json (V56,V61,V65)', () => {
     writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 2, 2, 0);
     writeMeta(
       path.join(snapshotDir, 'version-1', 'slug-a', 'meta.json'),
@@ -529,11 +468,73 @@ describe('diffPageSlug', () => {
 
     const outcome = diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
 
-    const skippedDir = path.join(resultDir, 'diff-v1-v2', 'skipped', 'slug-a');
-    const written = JSON.parse(fs.readFileSync(path.join(skippedDir, 'reason.json'), 'utf-8'));
+    const skipFile = skippedPath(resultDir, 1, 2, 'slug-a', HASH_A);
+    const written = JSON.parse(fs.readFileSync(skipFile, 'utf-8'));
     expect(written.reason).toBe(outcome.skipped);
-    expect(fs.existsSync(path.join(skippedDir, 'screenshot.png'))).toBe(false);
-    expect(fs.existsSync(path.join(skippedDir, 'meta.json'))).toBe(false);
+    expect(fs.existsSync(path.join(resultDir, 'v1-v2', 'skipped', 'meta'))).toBe(false);
+    expect(fs.existsSync(path.join(resultDir, 'v1-v2', 'skipped', 'screenshot'))).toBe(false);
+  });
+
+  it('removes stale screenshot entry from sibling bucket without touching meta on reclassify (V58,V67)', () => {
+    writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 4, 4, 0);
+    writePng(path.join(snapshotDir, 'version-2', 'slug-a', 'screenshot.png'), 4, 4, 255);
+    writeMeta(path.join(snapshotDir, 'version-1', 'slug-a', 'meta.json'), {
+      ...baseMeta('https://example.com/a'),
+      title: 'Old',
+    });
+    writeMeta(path.join(snapshotDir, 'version-2', 'slug-a', 'meta.json'), {
+      ...baseMeta('https://example.com/a'),
+      title: 'New',
+    });
+
+    // 1st run, no tolerance → screenshot changed, meta changed
+    const outcome1 = diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
+    expect(outcome1.screenshot).toMatchObject({ kind: 'changed' });
+    expect(outcome1.metaChanged).toBe(true);
+    expect(
+      fs.existsSync(resultPath(resultDir, 1, 2, 'changed', 'screenshot', 'slug-a', HASH_A, 'png')),
+    ).toBe(true);
+    expect(
+      fs.existsSync(resultPath(resultDir, 1, 2, 'changed', 'meta', 'slug-a', HASH_A, 'json')),
+    ).toBe(true);
+
+    // 2nd run, tolerance edited so screenshot now matches — meta still differs, unaffected
+    const config: Config = { screenshot: { rules: { diff: { tolerance: { '*': 0 } } } } };
+    const outcome2 = diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, config, urlsRepo);
+    expect(outcome2.screenshot).toMatchObject({ kind: 'match' });
+    expect(outcome2.metaChanged).toBe(true);
+
+    expect(
+      fs.existsSync(resultPath(resultDir, 1, 2, 'matched', 'screenshot', 'slug-a', HASH_A, 'png')),
+    ).toBe(true);
+    expect(
+      fs.existsSync(resultPath(resultDir, 1, 2, 'changed', 'screenshot', 'slug-a', HASH_A, 'png')),
+    ).toBe(false);
+    // meta stays in changed/ across both runs — screenshot reclassification did not touch it.
+    expect(
+      fs.existsSync(resultPath(resultDir, 1, 2, 'changed', 'meta', 'slug-a', HASH_A, 'json')),
+    ).toBe(true);
+  });
+
+  it('removes stale skipped entry once artifacts appear and the page classifies (V67)', () => {
+    writePng(path.join(snapshotDir, 'version-1', 'slug-a', 'screenshot.png'), 2, 2, 0);
+    writeMeta(
+      path.join(snapshotDir, 'version-1', 'slug-a', 'meta.json'),
+      baseMeta('https://example.com/a'),
+    );
+
+    const outcome1 = diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
+    expect(outcome1.skipped).toBeTruthy();
+    expect(fs.existsSync(skippedPath(resultDir, 1, 2, 'slug-a', HASH_A))).toBe(true);
+
+    writePng(path.join(snapshotDir, 'version-2', 'slug-a', 'screenshot.png'), 2, 2, 0);
+    writeMeta(
+      path.join(snapshotDir, 'version-2', 'slug-a', 'meta.json'),
+      baseMeta('https://example.com/a'),
+    );
+    const outcome2 = diffPageSlug(1, 2, 'slug-a', snapshotDir, resultDir, {}, urlsRepo);
+    expect(outcome2.skipped).toBeUndefined();
+    expect(fs.existsSync(skippedPath(resultDir, 1, 2, 'slug-a', HASH_A))).toBe(false);
   });
 });
 
